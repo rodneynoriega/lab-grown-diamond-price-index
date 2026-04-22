@@ -1,9 +1,9 @@
-name: Monthly diamond price scrape
+name: Weekly diamond price scrape
 
 on:
   schedule:
-    # 1st of every month, 14:00 UTC (~10am ET / 7am PT)
-    - cron: "0 14 1 * *"
+    # Every Monday, 14:00 UTC (~10am ET / 7am PT)
+    - cron: "0 14 * * 1"
   workflow_dispatch:   # allows manual runs for testing
 
 permissions:
