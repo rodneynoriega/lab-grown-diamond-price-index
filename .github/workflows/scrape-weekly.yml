@@ -25,7 +25,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run scraper
-        run: python scrape_brilliant_earth.py
+        run: python scrape.py
 
       - name: Commit updated CSV
         run: |
@@ -35,6 +35,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No new data; nothing to commit."
           else
-            git commit -m "data: monthly scrape $(date -u +%Y-%m-%d)"
+            git commit -m "data: weekly scrape $(date -u +%Y-%m-%d)"
             git push
           fi
