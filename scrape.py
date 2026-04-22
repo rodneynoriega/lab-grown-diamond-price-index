@@ -22,13 +22,31 @@ RETAILERS = [
 ]
 
 
+def _already_recorded(existing: set[tuple], date_str: str, retailer: str, carat: float) -> bool:
+    return (date_str, retailer, str(carat)) in existing
+
+
+def _load_existing_keys() -> set[tuple]:
+    if not OUTPUT_CSV.exists():
+        return set()
+    keys: set[tuple] = set()
+    with OUTPUT_CSV.open(newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            keys.add((row["date"], row["retailer"], row["carat_weight"]))
+    return keys
+
+
 def main() -> int:
     today = date.today().isoformat()
+    existing = _load_existing_keys()
     rows: list[dict] = []
 
     for retailer_name, scrape_fn in RETAILERS:
         print(f"\n== {retailer_name} ==")
         for bench in BENCHMARKS:
+            if _already_recorded(existing, today, retailer_name, bench.label_carat):
+                print(f"  {bench.label_carat}ct: already recorded for today, skipping")
+                continue
             try:
                 match: Match | None = scrape_fn(bench)
             except Exception as e:
@@ -50,8 +68,8 @@ def main() -> int:
                   f"{matches_note}")
 
     if not rows:
-        print("No rows collected. Nothing written.", file=sys.stderr)
-        return 1
+        print("No new rows to write.", file=sys.stderr)
+        return 0
 
     OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
     new_file = not OUTPUT_CSV.exists()
