@@ -7,17 +7,17 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from retailers import blue_nile, brilliant_earth
+from retailers import blue_nile, brilliant_earth, with_clarity
 from retailers.base import BENCHMARKS, Benchmark, Match
 
 OUTPUT_CSV = Path(__file__).parent / "data" / "prices.csv"
 CSV_FIELDS = ["date", "retailer", "carat_weight", "price_usd", "url"]
 
-# Clean Origin, With Clarity, and VRAI stubs live in retailers/ but are not
-# yet wired into the weekly run; they will be added once implemented.
+# Clean Origin and VRAI stubs live in retailers/ but are not yet wired in.
 RETAILERS = [
     ("Brilliant Earth", brilliant_earth.scrape),
     ("Blue Nile",       blue_nile.scrape),
+    ("With Clarity",   with_clarity.scrape),
 ]
 
 
