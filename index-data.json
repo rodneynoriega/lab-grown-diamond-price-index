@@ -1,7 +1,7 @@
 {
   "month": "April 2026",
   "last_updated": "2026-04-23",
-  "benchmark_spec": "G VS1 Round Excellent IGI",
+  "benchmark_spec": "G VS1 Excellent IGI",
   "benchmark_cells": ["1ct", "1.5ct", "2ct"],
   "cell_ranges": {
     "1ct": "1.0–1.09ct",
@@ -16,6 +16,11 @@
         "1ct":   { "status": "ok",   "stone_count": 234, "median_price_per_carat": 634 },
         "1.5ct": { "status": "ok",   "stone_count": 207, "median_price_per_carat": 744 },
         "2ct":   { "status": "ok",   "stone_count": 301, "median_price_per_carat": 716 }
+      },
+      "oval_cells": {
+        "1ct":   { "status": "thin",  "stone_count": 27,  "note": "27 stones — below 30-stone publication threshold." },
+        "1.5ct": { "status": "ok",    "stone_count": 30,  "median_price_per_carat": 674 },
+        "2ct":   { "status": "ok",    "stone_count": 75,  "median_price_per_carat": 659 }
       }
     },
     {
@@ -25,16 +30,25 @@
         "1ct":   { "status": "ok",   "stone_count": 69,  "median_price_per_carat": 922 },
         "1.5ct": { "status": "ok",   "stone_count": 102, "median_price_per_carat": 993 },
         "2ct":   { "status": "ok",   "stone_count": 146, "median_price_per_carat": 1232 }
+      },
+      "oval_cells": {
+        "1ct":   { "status": "ok",   "stone_count": 79,  "median_price_per_carat": 1030 },
+        "1.5ct": { "status": "ok",   "stone_count": 101, "median_price_per_carat": 1228 },
+        "2ct":   { "status": "ok",   "stone_count": 134, "median_price_per_carat": 1463 }
       }
     },
     {
       "name": "Clean Origin",
       "slug": "clean_origin",
-      "oval_note": "Technical access restrictions during oval collection window. Oval coverage deferred to month two.",
       "cells": {
         "1ct":   { "status": "absent", "note": "No inventory found in this cell." },
         "1.5ct": { "status": "ok",   "stone_count": 92,  "median_price_per_carat": 384 },
         "2ct":   { "status": "ok",   "stone_count": 141, "median_price_per_carat": 399 }
+      },
+      "oval_cells": {
+        "1ct":   { "status": "deferred", "note": "Oval coverage deferred to month two." },
+        "1.5ct": { "status": "deferred", "note": "Oval coverage deferred to month two." },
+        "2ct":   { "status": "deferred", "note": "Oval coverage deferred to month two." }
       }
     },
     {
@@ -44,6 +58,11 @@
         "1ct":   { "status": "absent", "note": "No inventory found in this cell. Confirmed real market gap, not a data issue." },
         "1.5ct": { "status": "ok",   "stone_count": 48,  "median_price_per_carat": 809 },
         "2ct":   { "status": "thin",  "stone_count": 16,  "note": "16 stones — below 30-stone publication threshold." }
+      },
+      "oval_cells": {
+        "1ct":   { "status": "thin",  "stone_count": 1,   "note": "1 stone — below 30-stone publication threshold." },
+        "1.5ct": { "status": "ok",    "stone_count": 50,  "median_price_per_carat": 834 },
+        "2ct":   { "status": "ok",    "stone_count": 46,  "median_price_per_carat": 861 }
       }
     },
     {
@@ -52,6 +71,11 @@
       "non_igi": true,
       "note": "VRAI uses Diamond Foundry proprietary grading exclusively. No IGI certification. Tracked separately as a broad-market indicator.",
       "cells": {
+        "1ct":   { "status": "non_igi" },
+        "1.5ct": { "status": "non_igi" },
+        "2ct":   { "status": "non_igi" }
+      },
+      "oval_cells": {
         "1ct":   { "status": "non_igi" },
         "1.5ct": { "status": "non_igi" },
         "2ct":   { "status": "non_igi" }
