@@ -69,11 +69,12 @@
       "name": "VRAI",
       "slug": "vrai",
       "non_igi": true,
-      "note": "VRAI uses Diamond Foundry proprietary grading exclusively. No IGI certification. Tracked separately as a broad-market indicator.",
+      "approximate_windows": true,
+      "note": "VRAI uses Diamond Foundry proprietary grading. Prices shown across all available inventory at each weight tier — not matched to G VS1 spec. Actual inventory windows: 1ct = 1.0–1.09ct (D–F colors, VVS2–VS1); 1.5ct = 1.6–1.9ct; 2ct = 2.1–2.45ct. Mixed color and clarity grades throughout.",
       "cells": {
-        "1ct":   { "status": "non_igi" },
-        "1.5ct": { "status": "non_igi" },
-        "2ct":   { "status": "non_igi" }
+        "1ct":   { "status": "ok", "stone_count": 42,  "median_price_per_carat": 1198, "actual_range": "1.0–1.09ct" },
+        "1.5ct": { "status": "ok", "stone_count": 205, "median_price_per_carat": 682,  "actual_range": "1.6–1.9ct"  },
+        "2ct":   { "status": "ok", "stone_count": 147, "median_price_per_carat": 740,  "actual_range": "2.1–2.45ct" }
       },
       "oval_cells": {
         "1ct":   { "status": "non_igi" },
