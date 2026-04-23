@@ -1,0 +1,61 @@
+{
+  "month": "April 2026",
+  "last_updated": "2026-04-23",
+  "benchmark_spec": "G VS1 Round Excellent IGI",
+  "benchmark_cells": ["1ct", "1.5ct", "2ct"],
+  "cell_ranges": {
+    "1ct": "1.0–1.09ct",
+    "1.5ct": "1.4–1.59ct",
+    "2ct": "1.9–2.09ct"
+  },
+  "retailers": [
+    {
+      "name": "With Clarity",
+      "slug": "with_clarity",
+      "cells": {
+        "1ct":   { "status": "ok",   "stone_count": 234, "median_price_per_carat": 634 },
+        "1.5ct": { "status": "ok",   "stone_count": 207, "median_price_per_carat": 744 },
+        "2ct":   { "status": "ok",   "stone_count": 301, "median_price_per_carat": 716 }
+      }
+    },
+    {
+      "name": "Brilliant Earth",
+      "slug": "brilliant_earth",
+      "cells": {
+        "1ct":   { "status": "ok",   "stone_count": 69,  "median_price_per_carat": 922 },
+        "1.5ct": { "status": "ok",   "stone_count": 102, "median_price_per_carat": 993 },
+        "2ct":   { "status": "ok",   "stone_count": 146, "median_price_per_carat": 1232 }
+      }
+    },
+    {
+      "name": "Clean Origin",
+      "slug": "clean_origin",
+      "oval_note": "Technical access restrictions during oval collection window. Oval coverage deferred to month two.",
+      "cells": {
+        "1ct":   { "status": "absent", "note": "No inventory found in this cell." },
+        "1.5ct": { "status": "ok",   "stone_count": 92,  "median_price_per_carat": 384 },
+        "2ct":   { "status": "ok",   "stone_count": 141, "median_price_per_carat": 399 }
+      }
+    },
+    {
+      "name": "Blue Nile",
+      "slug": "blue_nile",
+      "cells": {
+        "1ct":   { "status": "absent", "note": "No inventory found in this cell. Confirmed real market gap, not a data issue." },
+        "1.5ct": { "status": "ok",   "stone_count": 48,  "median_price_per_carat": 809 },
+        "2ct":   { "status": "thin",  "stone_count": 16,  "note": "16 stones — below 30-stone publication threshold." }
+      }
+    },
+    {
+      "name": "VRAI",
+      "slug": "vrai",
+      "non_igi": true,
+      "note": "VRAI uses Diamond Foundry proprietary grading exclusively. No IGI certification. Tracked separately as a broad-market indicator.",
+      "cells": {
+        "1ct":   { "status": "non_igi" },
+        "1.5ct": { "status": "non_igi" },
+        "2ct":   { "status": "non_igi" }
+      }
+    }
+  ]
+}
