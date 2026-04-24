@@ -34,24 +34,38 @@ VALID_CERT_LABS = {"GIA", "IGI", "GCAL"}
 CUT_ALIASES: dict[str, str] = {
     "super ideal": "Excellent",
     "ideal": "Excellent",
+    "id": "Excellent",       # Ritani / JA abbreviation
     "excellent": "Excellent",
+    "ex": "Excellent",       # Ritani abbreviation for Excellent
     "very good": "Very Good",
+    "vg": "Very Good",       # Ritani abbreviation
     "good": "Good",
+    "g": "Good",             # Ritani single-letter grade
+    "gd": "Good",
     "fair": "Fair",
+    "f": "Fair",             # Ritani single-letter grade
     "poor": "Poor",
+    "p": "Poor",
     # VRAI specific
     "cut for you": "Excellent",
 }
 
 FLUORESCENCE_ALIASES: dict[str, str] = {
     "none": "None",
+    "n": "None",             # Ritani / JA abbreviation
+    "nn": "None",            # JA double-N
     "faint": "Faint",
-    "medium": "Medium",
-    "strong": "Strong",
-    "very strong": "Very Strong",
     "sl": "Faint",
     "sl1": "Faint",
+    "medium": "Medium",
+    "med": "Medium",
+    "m": "Medium",
+    "strong": "Strong",
+    "s": "Strong",
+    "st": "Strong",
+    "very strong": "Very Strong",
     "vs": "Very Strong",
+    "vst": "Very Strong",
 }
 
 
