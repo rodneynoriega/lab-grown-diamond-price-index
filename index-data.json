@@ -10,6 +10,15 @@
   },
   "retailers": [
     {
+      "name": "Clean Origin",
+      "slug": "clean_origin",
+      "cells": {
+        "1ct":   { "status": "ok", "stone_count": 187, "median_price_per_carat": 347 },
+        "1.5ct": { "status": "ok", "stone_count": 916, "median_price_per_carat": 450 },
+        "2ct":   { "status": "ok", "stone_count": 442, "median_price_per_carat": 467 }
+      }
+    },
+    {
       "name": "Ritani",
       "slug": "ritani",
       "cells": {
@@ -19,12 +28,12 @@
       }
     },
     {
-      "name": "Clean Origin",
-      "slug": "clean_origin",
+      "name": "Grown Brilliance",
+      "slug": "grown_brilliance",
       "cells": {
-        "1ct":   { "status": "ok", "stone_count": 187, "median_price_per_carat": 347 },
-        "1.5ct": { "status": "ok", "stone_count": 916, "median_price_per_carat": 450 },
-        "2ct":   { "status": "ok", "stone_count": 442, "median_price_per_carat": 467 }
+        "1ct":   { "status": "ok", "stone_count": 2249,  "median_price_per_carat": 610 },
+        "1.5ct": { "status": "ok", "stone_count": 11612, "median_price_per_carat": 799 },
+        "2ct":   { "status": "ok", "stone_count": 6732,  "median_price_per_carat": 829 }
       }
     },
     {
@@ -43,15 +52,6 @@
         "1ct":   { "status": "ok", "stone_count": 66,  "median_price_per_carat": 636 },
         "1.5ct": { "status": "ok", "stone_count": 139, "median_price_per_carat": 760 },
         "2ct":   { "status": "ok", "stone_count": 236, "median_price_per_carat": 940 }
-      }
-    },
-    {
-      "name": "Grown Brilliance",
-      "slug": "grown_brilliance",
-      "cells": {
-        "1ct":   { "status": "ok", "stone_count": 2249,  "median_price_per_carat": 610 },
-        "1.5ct": { "status": "ok", "stone_count": 11612, "median_price_per_carat": 799 },
-        "2ct":   { "status": "ok", "stone_count": 6732,  "median_price_per_carat": 829 }
       }
     },
     {
