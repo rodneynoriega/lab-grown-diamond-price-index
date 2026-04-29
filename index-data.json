@@ -36,6 +36,27 @@
       }
     },
     {
+      "name": "Clean Origin",
+      "slug": "clean_origin",
+      "cells": {
+        "1ct": {
+          "status": "thin",
+          "stone_count": 9,
+          "note": "Fewer than 30 qualifying listings in this cell."
+        },
+        "1.5ct": {
+          "status": "ok",
+          "stone_count": 254,
+          "median_price_per_carat": 450
+        },
+        "2ct": {
+          "status": "ok",
+          "stone_count": 134,
+          "median_price_per_carat": 466
+        }
+      }
+    },
+    {
       "name": "Grown Brilliance",
       "slug": "grown_brilliance",
       "cells": {
@@ -137,27 +158,6 @@
           "status": "ok",
           "stone_count": 276,
           "median_price_per_carat": 1644
-        }
-      }
-    },
-    {
-      "name": "Clean Origin",
-      "slug": "clean_origin",
-      "cells": {
-        "1ct": {
-          "status": "thin",
-          "stone_count": 9,
-          "note": "Fewer than 30 qualifying listings in this cell."
-        },
-        "1.5ct": {
-          "status": "ok",
-          "stone_count": 254,
-          "median_price_per_carat": 450
-        },
-        "2ct": {
-          "status": "ok",
-          "stone_count": 134,
-          "median_price_per_carat": 466
         }
       }
     },
