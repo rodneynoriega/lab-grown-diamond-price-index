@@ -1,0 +1,192 @@
+{
+  "month": "April 2026",
+  "last_updated": "2026-04-28",
+  "benchmark_spec": "E VS1 Excellent IGI",
+  "benchmark_cells": [
+    "1ct",
+    "1.5ct",
+    "2ct"
+  ],
+  "cell_ranges": {
+    "1ct": "0.95–1.05ct",
+    "1.5ct": "1.45–1.55ct",
+    "2ct": "1.95–2.05ct"
+  },
+  "data_notes": "Sources: Brilliant Earth, Blue Nile, With Clarity, VRAI, Clean Origin (April 22 2026); James Allen, Ritani, Grown Brilliance (April 23 2026). Carat bands revised to ±0.05ct around each anchor weight. Clean Origin 1ct cell falls below the 30-listing minimum threshold and is not published in this edition.",
+  "retailers": [
+    {
+      "name": "Ritani",
+      "slug": "ritani",
+      "cells": {
+        "1ct": {
+          "status": "ok",
+          "stone_count": 780,
+          "median_price_per_carat": 401
+        },
+        "1.5ct": {
+          "status": "ok",
+          "stone_count": 1399,
+          "median_price_per_carat": 414
+        },
+        "2ct": {
+          "status": "ok",
+          "stone_count": 1663,
+          "median_price_per_carat": 414
+        }
+      }
+    },
+    {
+      "name": "Clean Origin",
+      "slug": "clean_origin",
+      "cells": {
+        "1ct": {
+          "status": "thin",
+          "stone_count": 9,
+          "note": "Fewer than 30 qualifying listings in this cell."
+        },
+        "1.5ct": {
+          "status": "ok",
+          "stone_count": 254,
+          "median_price_per_carat": 450
+        },
+        "2ct": {
+          "status": "ok",
+          "stone_count": 134,
+          "median_price_per_carat": 466
+        }
+      }
+    },
+    {
+      "name": "Grown Brilliance",
+      "slug": "grown_brilliance",
+      "cells": {
+        "1ct": {
+          "status": "ok",
+          "stone_count": 1276,
+          "median_price_per_carat": 610
+        },
+        "1.5ct": {
+          "status": "ok",
+          "stone_count": 7921,
+          "median_price_per_carat": 800
+        },
+        "2ct": {
+          "status": "ok",
+          "stone_count": 3984,
+          "median_price_per_carat": 829
+        }
+      }
+    },
+    {
+      "name": "With Clarity",
+      "slug": "with_clarity",
+      "cells": {
+        "1ct": {
+          "status": "ok",
+          "stone_count": 596,
+          "median_price_per_carat": 631
+        },
+        "1.5ct": {
+          "status": "ok",
+          "stone_count": 865,
+          "median_price_per_carat": 699
+        },
+        "2ct": {
+          "status": "ok",
+          "stone_count": 801,
+          "median_price_per_carat": 691
+        }
+      }
+    },
+    {
+      "name": "James Allen",
+      "slug": "james_allen",
+      "cells": {
+        "1ct": {
+          "status": "ok",
+          "stone_count": 62,
+          "median_price_per_carat": 648
+        },
+        "1.5ct": {
+          "status": "ok",
+          "stone_count": 77,
+          "median_price_per_carat": 785
+        },
+        "2ct": {
+          "status": "ok",
+          "stone_count": 175,
+          "median_price_per_carat": 941
+        }
+      }
+    },
+    {
+      "name": "Blue Nile",
+      "slug": "blue_nile",
+      "cells": {
+        "1ct": {
+          "status": "ok",
+          "stone_count": 91,
+          "median_price_per_carat": 711
+        },
+        "1.5ct": {
+          "status": "ok",
+          "stone_count": 93,
+          "median_price_per_carat": 864
+        },
+        "2ct": {
+          "status": "ok",
+          "stone_count": 171,
+          "median_price_per_carat": 1034
+        }
+      }
+    },
+    {
+      "name": "Brilliant Earth",
+      "slug": "brilliant_earth",
+      "cells": {
+        "1ct": {
+          "status": "ok",
+          "stone_count": 261,
+          "median_price_per_carat": 910
+        },
+        "1.5ct": {
+          "status": "ok",
+          "stone_count": 211,
+          "median_price_per_carat": 1213
+        },
+        "2ct": {
+          "status": "ok",
+          "stone_count": 276,
+          "median_price_per_carat": 1644
+        }
+      }
+    },
+    {
+      "name": "VRAI",
+      "slug": "vrai",
+      "non_igi": true,
+      "approximate_windows": true,
+      "note": "VRAI uses Diamond Foundry proprietary grading. Prices shown across all available inventory at each weight tier — not matched to E VS1 spec. Actual inventory windows: 1ct = 1.0–1.09ct (D–F colors, VVS2–VS1); 1.5ct = 1.6–1.9ct; 2ct = 2.1–2.45ct. Mixed color and clarity grades throughout.",
+      "cells": {
+        "1ct": {
+          "status": "ok",
+          "stone_count": 42,
+          "median_price_per_carat": 1198,
+          "actual_range": "1.0–1.09ct"
+        },
+        "1.5ct": {
+          "status": "ok",
+          "stone_count": 205,
+          "median_price_per_carat": 682,
+          "actual_range": "1.6–1.9ct"
+        },
+        "2ct": {
+          "status": "ok",
+          "stone_count": 147,
+          "median_price_per_carat": 740,
+          "actual_range": "2.1–2.45ct"
+        }
+      }
+    }
+  ]
+}
