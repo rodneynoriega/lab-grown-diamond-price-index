@@ -4,6 +4,9 @@
   "benchmark_spec": "G VS1 Excellent IGI",
   "currency": "GBP",
   "prices_note": "ex-VAT",
+  "brilliant_earth_premium_pct": 35.9,
+  "usd_gbp_rate": 0.736,
+  "rate_as_of": "2026-05-11",
   "benchmark_cells": [
     "1ct",
     "1.5ct",
