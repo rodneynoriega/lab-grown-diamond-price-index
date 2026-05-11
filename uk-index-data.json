@@ -1,0 +1,83 @@
+{
+  "month": "May 2026",
+  "last_updated": "2026-05-10",
+  "benchmark_spec": "G VS1 Excellent IGI",
+  "currency": "GBP",
+  "prices_note": "ex-VAT",
+  "benchmark_cells": [
+    "1ct",
+    "1.5ct",
+    "2ct"
+  ],
+  "cell_ranges": {
+    "1ct": "0.95–1.05ct",
+    "1.5ct": "1.45–1.55ct",
+    "2ct": "1.95–2.05ct"
+  },
+  "data_notes": "Sources: Diamond Labs, 77 Diamonds, Quality Diamonds (May 2026). All prices in GBP, exclusive of VAT (ex-VAT). UK consumers pay 20% VAT on loose diamonds at purchase — multiply any figure by 1.20 for the consumer-facing inc-VAT price.",
+  "retailers": [
+    {
+      "name": "Diamond Labs",
+      "slug": "diamond_labs",
+      "cells": {
+        "1ct": {
+          "status": "ok",
+          "stone_count": 154,
+          "median_price_per_carat": 200
+        },
+        "1.5ct": {
+          "status": "ok",
+          "stone_count": 325,
+          "median_price_per_carat": 251
+        },
+        "2ct": {
+          "status": "ok",
+          "stone_count": 292,
+          "median_price_per_carat": 310
+        }
+      }
+    },
+    {
+      "name": "77 Diamonds",
+      "slug": "77_diamonds",
+      "cells": {
+        "1ct": {
+          "status": "ok",
+          "stone_count": 296,
+          "median_price_per_carat": 254
+        },
+        "1.5ct": {
+          "status": "ok",
+          "stone_count": 814,
+          "median_price_per_carat": 371
+        },
+        "2ct": {
+          "status": "ok",
+          "stone_count": 532,
+          "median_price_per_carat": 469
+        }
+      }
+    },
+    {
+      "name": "Quality Diamonds",
+      "slug": "quality_diamonds",
+      "cells": {
+        "1ct": {
+          "status": "ok",
+          "stone_count": 68,
+          "median_price_per_carat": 304
+        },
+        "1.5ct": {
+          "status": "ok",
+          "stone_count": 72,
+          "median_price_per_carat": 367
+        },
+        "2ct": {
+          "status": "ok",
+          "stone_count": 153,
+          "median_price_per_carat": 438
+        }
+      }
+    }
+  ]
+}
