@@ -9,18 +9,21 @@ Two-phase scrape:
              by the orchestrator from prior-day raw CSVs) to skip stones
              whose detail data was already fetched on a previous run.
 
-Field coverage after enrichment:
-  shape, carat, cut, color, clarity, price_usd (listing)
-  polish, symmetry, fluorescence, certificate_lab, certificate_number (detail page)
-  Missing: none.
+HTTP layer: Playwright (real Chrome) + page.evaluate() fetch.
+  - context.request.get() gets 403 on the AJAX endpoint (WAF detects it
+    as non-browser). page.evaluate() runs the fetch from inside the live
+    browser page, sharing cookies and passing WAF checks transparently.
+  - Warm-up: navigate to LIST_URL to establish session/cookies, then keep
+    the page open as the fetch host for all subsequent requests.
 """
 
 from __future__ import annotations
 
 import re
 import time
+import urllib.parse
 
-from curl_cffi import requests as cr
+from playwright.sync_api import sync_playwright
 
 from .base import Diamond, normalize_shape
 
@@ -46,19 +49,41 @@ ALLOWED_COLORS = {"D", "E", "F", "G", "H", "I", "J", "K"}
 ALLOWED_CLARITIES = {"FL", "IF", "VVS1", "VVS2", "VS1", "VS2", "SI1", "SI2", "I1"}
 PAGE_SIZE = 40
 
-_LIST_HEADERS = {
-    "Accept": "text/html, */*; q=0.01",
-    "X-Requested-With": "XMLHttpRequest",
-    "Referer": LIST_URL,
-}
-_DETAIL_HEADERS = {
-    "Accept": "text/html,application/xhtml+xml,*/*",
-    "Referer": LIST_URL,
-}
+
+# ---------------------------------------------------------------------------
+# In-browser fetch helper
+# ---------------------------------------------------------------------------
+
+_FETCH_JS = """
+    async ({url, headers}) => {
+        const resp = await fetch(url, {
+            headers: headers,
+            credentials: 'include'
+        });
+        return {status: resp.status, text: await resp.text()};
+    }
+"""
+
+
+def _page_fetch(page, url: str, headers: dict) -> tuple[int, str]:
+    """Run a fetch() call from inside the Playwright page. Returns (status, html)."""
+    result = page.evaluate(_FETCH_JS, {"url": url, "headers": headers})
+    return result["status"], result["text"]
+
+
+def _ajax_url(page_num: int, co_shape: str, weight_param: str) -> str:
+    params = {
+        "isAjax": "1",
+        "diamond_shape[]": co_shape,
+        "diamond_weight": weight_param,
+        "product_list_order": "price",
+        "p": page_num,
+    }
+    return LIST_URL + "?" + urllib.parse.urlencode(params)
 
 
 # ---------------------------------------------------------------------------
-# Listing page helpers
+# Listing page helpers (unchanged)
 # ---------------------------------------------------------------------------
 
 def _cell(row_html: str, attr: str) -> str | None:
@@ -102,24 +127,26 @@ def _total_count(html: str) -> int | None:
 # Detail page helper
 # ---------------------------------------------------------------------------
 
-def _fetch_detail(session: cr.Session, url: str) -> dict:
-    """Fetch a CO product detail page. Returns a dict with polish, symmetry,
-    fluorescence, cert_lab, cert_number. Returns empty dict on failure."""
+_DETAIL_HEADERS = {
+    "Accept": "text/html,application/xhtml+xml,*/*",
+    "Referer": LIST_URL,
+}
+
+def _fetch_detail(page, url: str) -> dict:
+    """Fetch a CO product detail page via in-browser fetch."""
     try:
-        resp = session.get(url, headers=_DETAIL_HEADERS, timeout=30)
-        resp.raise_for_status()
-        html = resp.text
+        status, html = _page_fetch(page, url, _DETAIL_HEADERS)
+        if status >= 400:
+            return {}
     except Exception:
         return {}
 
-    # <div class="attr-item"><div class="attr-label">X</div><div class="attr-value">Y</div></div>
     attr_pairs = re.findall(
         r'<div class="attr-label">([^<]+)</div>\s*<div class="attr-value">([^<]+)</div>',
         html, re.S,
     )
     attrs = {label.strip(): val.strip() for label, val in attr_pairs}
 
-    # {"diamond_lab":"IGI"} and {"certImage":"https://labcerts.../LG123.pdf"}
     lab_m = re.search(r'"diamond_lab"\s*:\s*"([^"]+)"', html)
     cert_img_m = re.search(r'"certImage"\s*:\s*"([^"\\]+)', html)
     cert_number = None
@@ -128,17 +155,22 @@ def _fetch_detail(session: cr.Session, url: str) -> dict:
         cert_number = cn_m.group(1) if cn_m else None
 
     return {
-        "polish":     attrs.get("Polish"),
-        "symmetry":   attrs.get("Symmetry"),
+        "polish":       attrs.get("Polish"),
+        "symmetry":     attrs.get("Symmetry"),
         "fluorescence": attrs.get("Fluorescence"),
-        "cert_lab":   lab_m.group(1) if lab_m else None,
-        "cert_number": cert_number,
+        "cert_lab":     lab_m.group(1) if lab_m else None,
+        "cert_number":  cert_number,
     }
 
 
 # ---------------------------------------------------------------------------
 # Public scrape function
 # ---------------------------------------------------------------------------
+
+_LIST_HEADERS = {
+    "Accept": "text/html, */*; q=0.01",
+    "X-Requested-With": "XMLHttpRequest",
+}
 
 def scrape(
     shapes: list[str],
@@ -148,117 +180,128 @@ def scrape(
     req_delay: float = 1.0,
     detail_cache: dict[str, dict] | None = None,
 ) -> list[Diamond]:
-    """Scrape Clean Origin in two phases (listing then detail enrichment).
+    """Scrape Clean Origin in two phases (listing then detail enrichment)."""
 
-    detail_cache: mapping of product_url -> detail dict from prior runs.
-      Pass the result of the orchestrator's _load_co_detail_cache() call.
-      Stones whose URL is already in the cache skip the detail page fetch.
-    """
-    session = cr.Session(impersonate="chrome")
-    session.get(LIST_URL, timeout=30)
-    time.sleep(req_delay)
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(
+            channel="chrome",
+            headless=True,
+            args=["--disable-blink-features=AutomationControlled"],
+        )
+        context = browser.new_context(
+            user_agent=(
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+        )
+        context.add_init_script(
+            "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
+        )
 
-    # ------------------------------------------------------------------
-    # Phase 1: collect listing data
-    # ------------------------------------------------------------------
-    listing_items: list[dict] = []
-    seen_urls: set[str] = set()
+        # Warm up: full page load to establish cookies. Keep page open as
+        # the fetch host for all subsequent page.evaluate() calls.
+        page = context.new_page()
+        page.goto(LIST_URL, wait_until="commit", timeout=60000)
+        time.sleep(req_delay)
 
-    for raw_shape in shapes:
-        co_shape = _SHAPE_MAP.get(raw_shape.lower())
-        if co_shape is None:
-            print(f"  [clean_origin] shape '{raw_shape}' not supported, skipping")
-            continue
+        # ------------------------------------------------------------------
+        # Phase 1: collect listing data
+        # ------------------------------------------------------------------
+        listing_items: list[dict] = []
+        seen_urls: set[str] = set()
 
-        weight_param = f"{min_carat:.2f}-{max_carat:.2f}"
-        page = 1
-        shape_seen_count = 0  # per-shape count for total_count comparison
+        for raw_shape in shapes:
+            co_shape = _SHAPE_MAP.get(raw_shape.lower())
+            if co_shape is None:
+                print(f"  [clean_origin] shape '{raw_shape}' not supported, skipping")
+                continue
 
-        while True:
-            params = {
-                "isAjax": "1",
-                "diamond_shape[]": co_shape,
-                "diamond_weight": weight_param,
-                "product_list_order": "price",
-                "p": page,
-            }
-            resp = session.get(LIST_URL, params=params, headers=_LIST_HEADERS, timeout=30)
-            resp.raise_for_status()
-            html = resp.text
+            weight_param = f"{min_carat:.2f}-{max_carat:.2f}"
+            page_num = 1
+            shape_seen_count = 0
 
-            if page == 1:
-                total = _total_count(html)
-                print(
-                    f"  [clean_origin] {co_shape} {weight_param}ct: "
-                    f"{total or '?'} total listings"
-                )
+            while True:
+                url = _ajax_url(page_num, co_shape, weight_param)
+                status, html = _page_fetch(page, url, _LIST_HEADERS)
+                if status >= 400:
+                    raise Exception(f"HTTP Error {status}")
 
-            rows = _parse_listing_rows(html)
-            if not rows:
-                break
+                if page_num == 1:
+                    total = _total_count(html)
+                    print(
+                        f"  [clean_origin] {co_shape} {weight_param}ct: "
+                        f"{total or '?'} total listings"
+                    )
 
-            for r in rows:
-                url = r.get("url")
-                if not url or url in seen_urls:
-                    continue
-                seen_urls.add(url)
-                shape_seen_count += 1
+                rows = _parse_listing_rows(html)
+                if not rows:
+                    break
 
-                try:
-                    carat = float(r["carat"])
-                except (TypeError, ValueError):
-                    continue
-                if not (min_carat <= carat <= max_carat):
-                    continue
-                if r.get("cut") not in ALLOWED_CUTS:
-                    continue
-                if r.get("color") not in ALLOWED_COLORS:
-                    continue
-                if r.get("clarity") not in ALLOWED_CLARITIES:
-                    continue
-                try:
-                    price = float(r["price"])
-                except (TypeError, ValueError):
-                    continue
+                for r in rows:
+                    url_item = r.get("url")
+                    if not url_item or url_item in seen_urls:
+                        continue
+                    seen_urls.add(url_item)
+                    shape_seen_count += 1
 
-                listing_items.append({
-                    "shape": r.get("shape") or raw_shape,
-                    "carat": carat,
-                    "cut": r.get("cut"),
-                    "color": r.get("color"),
-                    "clarity": r.get("clarity"),
-                    "price": price,
-                    "url": url,
-                })
+                    try:
+                        carat = float(r["carat"])
+                    except (TypeError, ValueError):
+                        continue
+                    if not (min_carat <= carat <= max_carat):
+                        continue
+                    if r.get("cut") not in ALLOWED_CUTS:
+                        continue
+                    if r.get("color") not in ALLOWED_COLORS:
+                        continue
+                    if r.get("clarity") not in ALLOWED_CLARITIES:
+                        continue
+                    try:
+                        price = float(r["price"])
+                    except (TypeError, ValueError):
+                        continue
 
-            total_count = _total_count(html)
-            if total_count is not None and shape_seen_count >= total_count:
-                break
-            if len(rows) < PAGE_SIZE:
-                break
+                    listing_items.append({
+                        "shape": r.get("shape") or raw_shape,
+                        "carat": carat,
+                        "cut": r.get("cut"),
+                        "color": r.get("color"),
+                        "clarity": r.get("clarity"),
+                        "price": price,
+                        "url": url_item,
+                    })
 
-            page += 1
+                total_count = _total_count(html)
+                if total_count is not None and shape_seen_count >= total_count:
+                    break
+                if len(rows) < PAGE_SIZE:
+                    break
+
+                page_num += 1
+                time.sleep(req_delay)
+
+        print(f"  [clean_origin] listing phase complete: {len(listing_items)} qualifying stones")
+
+        # ------------------------------------------------------------------
+        # Phase 2: detail enrichment
+        # ------------------------------------------------------------------
+        cache = detail_cache or {}
+        uncached = [item for item in listing_items if item["url"] not in cache]
+        cached_count = len(listing_items) - len(uncached)
+        print(
+            f"  [clean_origin] detail pages: {cached_count} cached, "
+            f"{len(uncached)} to fetch"
+        )
+
+        fetched_details: dict[str, dict] = {}
+        for i, item in enumerate(uncached, 1):
+            if i % 500 == 0:
+                print(f"  [clean_origin] detail fetch progress: {i}/{len(uncached)}")
+            fetched_details[item["url"]] = _fetch_detail(page, item["url"])
             time.sleep(req_delay)
 
-    print(f"  [clean_origin] listing phase complete: {len(listing_items)} qualifying stones")
-
-    # ------------------------------------------------------------------
-    # Phase 2: detail enrichment
-    # ------------------------------------------------------------------
-    cache = detail_cache or {}
-    uncached = [item for item in listing_items if item["url"] not in cache]
-    cached_count = len(listing_items) - len(uncached)
-    print(
-        f"  [clean_origin] detail pages: {cached_count} cached, "
-        f"{len(uncached)} to fetch"
-    )
-
-    fetched_details: dict[str, dict] = {}
-    for i, item in enumerate(uncached, 1):
-        if i % 500 == 0:
-            print(f"  [clean_origin] detail fetch progress: {i}/{len(uncached)}")
-        fetched_details[item["url"]] = _fetch_detail(session, item["url"])
-        time.sleep(req_delay)
+        browser.close()
 
     # ------------------------------------------------------------------
     # Phase 3: build Diamond objects

@@ -1,6 +1,6 @@
 {
-  "month": "April 2026",
-  "last_updated": "2026-04-28",
+  "month": "May 2026",
+  "last_updated": "2026-05-20",
   "benchmark_spec": "E VS1 Excellent IGI",
   "benchmark_cells": [
     "1ct",
@@ -12,7 +12,37 @@
     "1.5ct": "1.45–1.55ct",
     "2ct": "1.95–2.05ct"
   },
-  "data_notes": "Sources: Brilliant Earth, Blue Nile, With Clarity, VRAI, Clean Origin (April 22 2026); James Allen, Ritani, Grown Brilliance (April 23 2026). Carat bands revised to ±0.05ct around each anchor weight. Clean Origin 1ct cell falls below the 30-listing minimum threshold and is not published in this edition.",
+  "data_notes": "Sources: all eight retailers scraped May 18 2026. Clean Origin inventory contracted to ~6,500 listings (from ~16,000 in April); 1ct cell has no qualifying data this month. VRAI 2ct cell falls below the 30-listing minimum and is not published in this edition.",
+  "history": [
+    {
+      "month": "April 2026",
+      "total_listings": 476988,
+      "retailers": {
+        "ritani":           { "1ct": 401,  "1.5ct": 414,  "2ct": 414  },
+        "clean_origin":     { "1ct": null, "1.5ct": 450,  "2ct": 466  },
+        "grown_brilliance": { "1ct": 610,  "1.5ct": 800,  "2ct": 829  },
+        "with_clarity":     { "1ct": 631,  "1.5ct": 699,  "2ct": 691  },
+        "james_allen":      { "1ct": 648,  "1.5ct": 785,  "2ct": 941  },
+        "blue_nile":        { "1ct": 711,  "1.5ct": 864,  "2ct": 1034 },
+        "brilliant_earth":  { "1ct": 910,  "1.5ct": 1213, "2ct": 1644 },
+        "vrai":             { "1ct": 1198, "1.5ct": 682,  "2ct": 740,  "non_igi": true }
+      }
+    },
+    {
+      "month": "May 2026",
+      "total_listings": 528819,
+      "retailers": {
+        "ritani":           { "1ct": 290,  "1.5ct": 261,  "2ct": 283  },
+        "clean_origin":     { "1ct": null, "1.5ct": 601,  "2ct": 621  },
+        "grown_brilliance": { "1ct": 610,  "1.5ct": 799,  "2ct": 828  },
+        "with_clarity":     { "1ct": 595,  "1.5ct": 683,  "2ct": 720  },
+        "james_allen":      { "1ct": 646,  "1.5ct": 784,  "2ct": 941  },
+        "blue_nile":        { "1ct": 711,  "1.5ct": 863,  "2ct": 1035 },
+        "brilliant_earth":  { "1ct": 901,  "1.5ct": 1092, "2ct": 1642 },
+        "vrai":             { "1ct": 1180, "1.5ct": 714,  "2ct": null, "non_igi": true }
+      }
+    }
+  ],
   "retailers": [
     {
       "name": "Ritani",
@@ -20,18 +50,18 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 780,
-          "median_price_per_carat": 401
+          "stone_count": 843,
+          "median_price_per_carat": 290
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 1399,
-          "median_price_per_carat": 414
+          "stone_count": 1153,
+          "median_price_per_carat": 261
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 1663,
-          "median_price_per_carat": 414
+          "stone_count": 1707,
+          "median_price_per_carat": 283
         }
       }
     },
@@ -40,19 +70,19 @@
       "slug": "clean_origin",
       "cells": {
         "1ct": {
-          "status": "thin",
-          "stone_count": 9,
-          "note": "Fewer than 30 qualifying listings in this cell."
+          "status": "no_data",
+          "stone_count": 0,
+          "note": "No qualifying listings in this cell this month."
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 254,
-          "median_price_per_carat": 450
+          "stone_count": 88,
+          "median_price_per_carat": 601
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 134,
-          "median_price_per_carat": 466
+          "stone_count": 255,
+          "median_price_per_carat": 621
         }
       }
     },
@@ -62,18 +92,18 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 1276,
+          "stone_count": 2736,
           "median_price_per_carat": 610
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 7921,
-          "median_price_per_carat": 800
+          "stone_count": 9631,
+          "median_price_per_carat": 799
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 3984,
-          "median_price_per_carat": 829
+          "stone_count": 3261,
+          "median_price_per_carat": 828
         }
       }
     },
@@ -83,18 +113,18 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 596,
-          "median_price_per_carat": 631
+          "stone_count": 747,
+          "median_price_per_carat": 595
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 865,
-          "median_price_per_carat": 699
+          "stone_count": 844,
+          "median_price_per_carat": 683
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 801,
-          "median_price_per_carat": 691
+          "stone_count": 649,
+          "median_price_per_carat": 720
         }
       }
     },
@@ -104,17 +134,17 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 62,
-          "median_price_per_carat": 648
+          "stone_count": 41,
+          "median_price_per_carat": 646
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 77,
-          "median_price_per_carat": 785
+          "stone_count": 83,
+          "median_price_per_carat": 784
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 175,
+          "stone_count": 183,
           "median_price_per_carat": 941
         }
       }
@@ -125,18 +155,18 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 91,
+          "stone_count": 53,
           "median_price_per_carat": 711
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 93,
-          "median_price_per_carat": 864
+          "stone_count": 77,
+          "median_price_per_carat": 863
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 171,
-          "median_price_per_carat": 1034
+          "stone_count": 180,
+          "median_price_per_carat": 1035
         }
       }
     },
@@ -146,18 +176,18 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 261,
-          "median_price_per_carat": 910
+          "stone_count": 227,
+          "median_price_per_carat": 901
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 211,
-          "median_price_per_carat": 1213
+          "stone_count": 206,
+          "median_price_per_carat": 1092
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 276,
-          "median_price_per_carat": 1644
+          "stone_count": 230,
+          "median_price_per_carat": 1642
         }
       }
     },
@@ -166,24 +196,24 @@
       "slug": "vrai",
       "non_igi": true,
       "approximate_windows": true,
-      "note": "VRAI uses Diamond Foundry proprietary grading. Prices shown across all available inventory at each weight tier — not matched to E VS1 spec. Actual inventory windows: 1ct = 1.0–1.09ct (D–F colors, VVS2–VS1); 1.5ct = 1.6–1.9ct; 2ct = 2.1–2.45ct. Mixed color and clarity grades throughout.",
+      "note": "VRAI uses Diamond Foundry proprietary grading. Prices shown across all available inventory at each weight tier — not matched to E VS1 spec. Actual inventory windows: 1ct = 1.0–1.09ct (D–F colors); 1.5ct = 1.6–1.9ct (D–G colors). 2ct cell below 30-listing threshold — not published this edition.",
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 42,
-          "median_price_per_carat": 1198,
+          "stone_count": 35,
+          "median_price_per_carat": 1180,
           "actual_range": "1.0–1.09ct"
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 205,
-          "median_price_per_carat": 682,
+          "stone_count": 72,
+          "median_price_per_carat": 714,
           "actual_range": "1.6–1.9ct"
         },
         "2ct": {
-          "status": "ok",
-          "stone_count": 147,
-          "median_price_per_carat": 740,
+          "status": "thin",
+          "stone_count": 22,
+          "note": "Fewer than 30 qualifying listings in this cell.",
           "actual_range": "2.1–2.45ct"
         }
       }

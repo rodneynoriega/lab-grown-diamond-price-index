@@ -20,7 +20,7 @@ from retailers.base import CSV_FIELDS, TARGET_SHAPES, MIN_CARAT, MAX_CARAT, diam
 RAW_DIR = Path(__file__).parent / "data" / "raw"
 RAW_DIR.mkdir(parents=True, exist_ok=True)
 
-DATE = "2026-04-23"
+DATE = "2026-05-18"
 DELAY = 1.0
 
 RETAILERS = [
