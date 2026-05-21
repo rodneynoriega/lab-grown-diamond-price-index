@@ -1,6 +1,6 @@
 {
   "month": "May 2026",
-  "last_updated": "2026-05-20",
+  "last_updated": "2026-05-21",
   "benchmark_spec": "E VS1 Excellent IGI",
   "benchmark_cells": [
     "1ct",
@@ -30,6 +30,7 @@
     },
     {
       "month": "May 2026",
+      "published": "2026-05-21",
       "total_listings": 528819,
       "retailers": {
         "ritani":           { "1ct": 290,  "1.5ct": 261,  "2ct": 283  },
