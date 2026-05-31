@@ -1,0 +1,34 @@
+{% if page.handle == 'lab-grown-diamond-price-index' %}
+<style>
+.site-header, .site-footer, header, footer { display: none !important; }
+[class*="shopify-section-group-header"],
+[class*="shopify-section-group-footer"] { display: none !important; }
+body, html { padding-top: 0 !important; margin-top: 0 !important; }
+#lgd-share-wrap { display: flex; align-items: center; gap: 8px; margin: 0 0 28px; flex-wrap: wrap; }
+.lgd-share-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 4px; border: 1px solid #ddd; background: #fff; color: #444; cursor: pointer; text-decoration: none; transition: border-color 0.15s, background 0.15s; font-size: 0.7rem; font-family: system-ui, -apple-system, sans-serif; font-weight: 700; letter-spacing: 0; line-height: 1; }
+.lgd-share-btn:hover { border-color: #999; background: #f5f5f5; color: #1a1a1a; }
+.lgd-share-btn.copied { color: #2e7d32; border-color: #2e7d32; background: #f1faf1; }
+#lgd-email-wrap { background: #fff; border: 1.5px solid #e0dbd4; border-radius: 8px; padding: 22px 24px; margin: 0 0 32px; }
+#lgd-email-wrap h3 { font-size: 1rem; font-weight: 700; margin: 0 0 5px; color: #1a1a1a; }
+#lgd-email-wrap .lgd-email-sub { font-size: 0.875rem; color: #666; margin: 0 0 16px; line-height: 1.5; }
+.lgd-email-form { display: flex; gap: 8px; align-items: stretch; }
+.lgd-email-form input[type="email"] { flex: 1; padding: 9px 13px; font-size: 0.9rem; border: 1px solid #d4d0ca; border-radius: 5px; outline: none; font-family: inherit; color: #1a1a1a; background: #fff; min-width: 0; }
+.lgd-email-form input[type="email"]:focus { border-color: #1a1a1a; box-shadow: 0 0 0 2px rgba(26,26,26,0.08); }
+#lgd-email-wrap .lgd-email-form button { display: inline-flex !important; align-items: center; justify-content: center; visibility: visible !important; opacity: 1 !important; padding: 9px 20px !important; font-size: 0.9rem !important; font-weight: 600 !important; background: #2c2420 !important; color: #fff !important; border: none !important; border-radius: 5px !important; cursor: pointer !important; font-family: inherit !important; white-space: nowrap !important; line-height: 1.4 !important; transition: background 0.15s; }
+#lgd-email-wrap .lgd-email-form button:hover { background: #44342e !important; }
+#lgd-email-wrap .lgd-email-form button:disabled { background: #999 !important; cursor: default !important; }
+.lgd-email-confirm { font-size: 0.875rem; color: #2e7d32; margin: 10px 0 0; display: none; }
+@media (max-width: 540px) {
+  #lgd-table-wrap table { font-size: 0.78rem !important; }
+  #lgd-table-wrap th, #lgd-table-wrap td { padding: 7px 6px !important; }
+  #lgd-table-wrap td:first-child, #lgd-table-wrap th:first-child { white-space: normal !important; min-width: 80px; max-width: 110px; }
+  #lgd-callout-wrap > div { padding: 16px !important; font-size: 0.88rem !important; }
+  #lgd-callout-wrap ul { padding-left: 16px !important; }
+  #lgd-method-wrap { font-size: 0.875rem; }
+  #lgd-footer-wrap { font-size: 0.75rem; }
+  #lgd-share-wrap { gap: 6px; }
+  .lgd-email-form { flex-direction: column; }
+  .lgd-email-form button { width: 100%; }
+}
+</style>
+{% endif %}

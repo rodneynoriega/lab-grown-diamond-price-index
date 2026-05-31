@@ -1,0 +1,377 @@
+{% if page.handle == 'lab-grown-diamond-price-index' %}
+<script>
+(function () {
+  var DATA_URL = "https://raw.githubusercontent.com/rodneynoriega/lab-grown-diamond-price-index/main/index-data.json?v=12";
+  var PAGE_URL = "https://rings.com/pages/lab-grown-diamond-price-index";
+  var KLAVIYO_LIST = "Xi8xP8";
+
+  var FALLBACK = {
+    month: "May 2026",
+    last_updated: "2026-05-21",
+    benchmark_spec: "E VS1 Excellent IGI",
+    benchmark_cells: ["1ct", "1.5ct", "2ct"],
+    history: [
+      {
+        month: "April 2026",
+        total_listings: 476988,
+        retailers: {
+          ritani:           {"1ct": 401,  "1.5ct": 414,  "2ct": 414},
+          clean_origin:     {"1ct": null, "1.5ct": 450,  "2ct": 466},
+          grown_brilliance: {"1ct": 610,  "1.5ct": 800,  "2ct": 829},
+          with_clarity:     {"1ct": 631,  "1.5ct": 699,  "2ct": 691},
+          james_allen:      {"1ct": 648,  "1.5ct": 785,  "2ct": 941},
+          blue_nile:        {"1ct": 711,  "1.5ct": 864,  "2ct": 1034},
+          brilliant_earth:  {"1ct": 910,  "1.5ct": 1213, "2ct": 1644},
+          vrai:             {"1ct": 1198, "1.5ct": 682,  "2ct": 740, non_igi: true}
+        }
+      },
+      {
+        month: "May 2026",
+        total_listings: 528819,
+        retailers: {
+          ritani:           {"1ct": 290,  "1.5ct": 261,  "2ct": 283},
+          clean_origin:     {"1ct": null, "1.5ct": 601,  "2ct": 621},
+          grown_brilliance: {"1ct": 610,  "1.5ct": 799,  "2ct": 828},
+          with_clarity:     {"1ct": 595,  "1.5ct": 683,  "2ct": 720},
+          james_allen:      {"1ct": 646,  "1.5ct": 784,  "2ct": 941},
+          blue_nile:        {"1ct": 711,  "1.5ct": 863,  "2ct": 1035},
+          brilliant_earth:  {"1ct": 901,  "1.5ct": 1092, "2ct": 1642},
+          vrai:             {"1ct": 1180, "1.5ct": 714,  "2ct": null, non_igi: true}
+        }
+      }
+    ],
+    retailers: [
+      { name: "Ritani",           slug: "ritani",           cells: {"1ct": {status:"ok", stone_count:843,  median_price_per_carat:290}, "1.5ct": {status:"ok", stone_count:1153, median_price_per_carat:261}, "2ct": {status:"ok", stone_count:1707, median_price_per_carat:283}} },
+      { name: "Clean Origin",     slug: "clean_origin",     cells: {"1ct": {status:"no_data", stone_count:0, note:"No qualifying listings."}, "1.5ct": {status:"ok", stone_count:88, median_price_per_carat:601}, "2ct": {status:"ok", stone_count:255, median_price_per_carat:621}} },
+      { name: "Grown Brilliance", slug: "grown_brilliance", cells: {"1ct": {status:"ok", stone_count:2736, median_price_per_carat:610}, "1.5ct": {status:"ok", stone_count:9631, median_price_per_carat:799}, "2ct": {status:"ok", stone_count:3261, median_price_per_carat:828}} },
+      { name: "With Clarity",     slug: "with_clarity",     cells: {"1ct": {status:"ok", stone_count:747,  median_price_per_carat:595}, "1.5ct": {status:"ok", stone_count:844,  median_price_per_carat:683}, "2ct": {status:"ok", stone_count:649,  median_price_per_carat:720}} },
+      { name: "James Allen",      slug: "james_allen",      cells: {"1ct": {status:"ok", stone_count:41,   median_price_per_carat:646}, "1.5ct": {status:"ok", stone_count:83,   median_price_per_carat:784}, "2ct": {status:"ok", stone_count:183,  median_price_per_carat:941}} },
+      { name: "Blue Nile",        slug: "blue_nile",        cells: {"1ct": {status:"ok", stone_count:53,   median_price_per_carat:711}, "1.5ct": {status:"ok", stone_count:77,   median_price_per_carat:863}, "2ct": {status:"ok", stone_count:180,  median_price_per_carat:1035}} },
+      { name: "Brilliant Earth",  slug: "brilliant_earth",  cells: {"1ct": {status:"ok", stone_count:227,  median_price_per_carat:901}, "1.5ct": {status:"ok", stone_count:206,  median_price_per_carat:1092}, "2ct": {status:"ok", stone_count:230,  median_price_per_carat:1642}} },
+      { name: "VRAI",             slug: "vrai",             non_igi: true, approximate_windows: true, cells: {"1ct": {status:"ok", stone_count:35, median_price_per_carat:1180, actual_range:"1.0-1.09ct"}, "1.5ct": {status:"ok", stone_count:72, median_price_per_carat:714, actual_range:"1.6-1.9ct"}, "2ct": {status:"thin", stone_count:22, note:"Fewer than 30 qualifying listings.", actual_range:"2.1-2.45ct"}} }
+    ]
+  };
+
+  var METHODOLOGY = [
+    "<strong>Scope.</strong> This index tracks listed retail prices (not transaction prices) across major U.S. online lab-grown diamond retailers. The May 2026 edition analyzed 528,819 lab-grown diamond listings across eight retailers. Data was collected on May 18, 2026.",
+    "<strong>Retailer panel.</strong> This edition tracks eight retailers: Ritani, Grown Brilliance, With Clarity, James Allen, Blue Nile, Brilliant Earth, Clean Origin, and VRAI. The panel is fixed and disclosed for comparability. Any additions, removals, or reclassifications will be explicitly noted in that month's report.",
+    "<strong>Price inputs.</strong> Prices are the publicly visible list price at the time of data collection, including any site-wide or automatic reductions that do not require a membership or promotional code. Excluded: promotional codes, membership discounts, negotiated pricing, strikethrough compare-at prices. All prices in USD, excluding sales tax and shipping.",
+    "<strong>Benchmark specification.</strong> E color, VS1 clarity, round brilliant, Excellent cut, IGI-certified. Three weight cells: 1ct (0.95-1.05ct), 1.5ct (1.45-1.55ct), and 2ct (1.95-2.05ct).",
+    "<strong>Statistical method.</strong> Each published figure is the median total stone price across all qualifying listings within that cell. A minimum of 30 qualifying listings is required for publication. Per-cell sample sizes (n) are visible as tooltips when hovering over any price. Clean Origin 1ct has no qualifying data this month. VRAI 2ct (n=22) falls below the threshold and is not published.",
+    "<strong>Deduplication.</strong> Listings are deduplicated within each retailer by URL. Stones with identical IGI certificate numbers may appear at more than one retailer and are counted as independent listings at each retailer where they appear.",
+    "<strong>VRAI.</strong> VRAI uses Diamond Foundry proprietary grading exclusively and carries no IGI-certified inventory. Included as a non-comparable reference point. Weight windows: 1ct = 1.0-1.09ct (D-F colors); 1.5ct = 1.6-1.9ct (D-G colors). VRAI 2ct fell below the 30-listing minimum in May and is not published.",
+    "<strong>James Allen.</strong> Tracked as an independent storefront through its active period. Signet Jewelers announced in March 2026 that the James Allen banner will be shuttered by mid-2026 (Signet fiscal Q2), with inventory transitioning to Blue Nile. The jamesallen.com storefront now redirects to Blue Nile. Rings.com will assess whether the James Allen API remains active before the June edition.",
+    "<strong>Comparability.</strong> Historical index figures may not be directly comparable when the benchmark specification or retailer panel changes. Such changes are explicitly noted in the relevant month's report.",
+    "<strong>Independence.</strong> Rings.com receives no compensation from the retailers included in this index for inclusion or ranking, and no retailer has any editorial control over the methodology or results."
+  ];
+
+  function fmt(n) {
+    return "$" + Math.round(n).toLocaleString("en-US") + "/ct";
+  }
+
+  function fmtDual(ppc, wt) {
+    return "$" + Math.round(ppc * wt).toLocaleString("en-US");
+  }
+
+  function medianOf(arr) {
+    if (!arr.length) return null;
+    arr.sort(function (a, b) { return a - b; });
+    var m = Math.floor(arr.length / 2);
+    return arr.length % 2 === 0 ? Math.round((arr[m - 1] + arr[m]) / 2) : arr[m];
+  }
+
+  function cellHtml(cell, bg, wt) {
+    var base = "text-align:right;padding:10px 12px;background:" + bg + ";color:#1a1a1a;";
+    if (!cell || cell.status !== "ok") {
+      var tip = (cell && cell.note) || (cell && cell.status === "thin" ? "Fewer than 30 stones." : "No qualifying listings.");
+      return "<td style=\"" + base + "color:#aaa;\" title=\"" + tip.replace(/"/g, "&quot;") + "\">-</td>";
+    }
+    return "<td style=\"" + base + "font-variant-numeric:tabular-nums;\" title=\"n=" + cell.stone_count + "\">" + fmtDual(cell.median_price_per_carat, wt || 1) + "</td>";
+  }
+
+  function nextMonthOf(monthStr) {
+    var names = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    var parts = (monthStr || "").split(" ");
+    var i = names.indexOf(parts[0]);
+    var y = parseInt(parts[1], 10) || new Date().getFullYear();
+    if (i === -1) return "the next edition";
+    i = (i + 1) % 12;
+    if (i === 0) y++;
+    return names[i] + " " + y;
+  }
+
+  function buildHistoryHtml(data) {
+    if (!data.history || data.history.length < 2) return "";
+    var retailers = data.retailers || [];
+    var curEntry  = data.history[data.history.length - 1];
+    var prevEntry = data.history[0];
+    var prevMonth = prevEntry.month;
+    var curMonth  = curEntry.month;
+    var thL = "text-align:left;padding:10px 12px;border-bottom:2px solid #1a1a1a;font-weight:700;white-space:nowrap;color:#1a1a1a;background:#fff;";
+    var thR = "text-align:right;padding:10px 12px;border-bottom:2px solid #1a1a1a;font-weight:700;white-space:nowrap;color:#1a1a1a;background:#fff;";
+    var thG = "text-align:center;padding:6px 12px 0;font-weight:600;font-size:0.78rem;color:#888;background:#fff;border-bottom:none;";
+
+    var html = "<div style=\"margin:0 0 32px;\">";
+    html += "<button onclick=\"lgdToggleHistory(this)\" style=\"background:none;border:none;cursor:pointer;font-size:0.85rem;color:#555;padding:0;margin:0 0 8px;text-decoration:underline;display:block;\">+ Show " + prevMonth + " comparison</button>";
+    html += "<div id=\"lgd-history-body\" style=\"display:none;\">";
+
+    // Compute April dollar gaps
+    var _nonIgi = {}, _names = {};
+    retailers.forEach(function (r) { if (r.non_igi) _nonIgi[r.slug] = true; _names[r.slug] = r.name; });
+    var _am1 = Infinity, _ax1 = -Infinity, _amN = "", _axN = "";
+    var _am2 = Infinity, _ax2 = -Infinity;
+    Object.keys(prevEntry.retailers).forEach(function (slug) {
+      if (_nonIgi[slug]) return;
+      var rd = prevEntry.retailers[slug];
+      if (rd["1ct"] != null) {
+        if (rd["1ct"] < _am1) { _am1 = rd["1ct"]; _amN = _names[slug] || slug; }
+        if (rd["1ct"] > _ax1) { _ax1 = rd["1ct"]; _axN = _names[slug] || slug; }
+      }
+      if (rd["2ct"] != null) {
+        var t2 = Math.round(rd["2ct"] * 2);
+        if (t2 < _am2) _am2 = t2;
+        if (t2 > _ax2) _ax2 = t2;
+      }
+    });
+    html += "<p style=\"font-size:0.88rem;color:#555;margin:0 0 14px;line-height:1.6;\">"
+      + "The same 1ct E VS1 IGI round cost $" + Math.round(_am1) + " at " + _amN + " and $" + Math.round(_ax1) + " at " + _axN
+      + " in " + prevMonth + " — a $" + (Math.round(_ax1) - Math.round(_am1)) + " difference for identical specs."
+      + " At 2ct, that gap reached $" + (_ax2 - _am2).toLocaleString("en-US") + ".</p>";
+
+    html += "<div style=\"overflow-x:auto;\">";
+    html += "<table style=\"width:100%;border-collapse:collapse;font-size:0.88rem;\">";
+    html += "<thead><tr>";
+    html += "<th style=\"" + thL + "\">Retailer</th>";
+    html += "<th style=\"" + thR + "\">1ct</th><th style=\"" + thR + "\">1.5ct</th><th style=\"" + thR + "\">2ct</th>";
+    html += "</tr></thead><tbody>";
+
+    var tiers = ["1ct", "1.5ct", "2ct"];
+    retailers.forEach(function (r, i) {
+      var bg     = r.non_igi ? "#f5f5f5" : (i % 2 === 0 ? "#fafafa" : "#ffffff");
+      var rowStyle = r.non_igi ? " style=\"border-top:2px solid #e0e0e0;\"" : "";
+      var dagger = r.non_igi ? "<span style=\"font-size:0.75rem;font-weight:400;color:#999;\"> (non-IGI)</span>" : "";
+      var aprData = prevEntry.retailers[r.slug];
+      var curData = curEntry.retailers[r.slug];
+      html += "<tr" + rowStyle + "><td style=\"padding:10px 12px;font-weight:700;white-space:nowrap;background:" + bg + ";color:#1a1a1a;\">" + r.name + dagger + "</td>";
+      tiers.forEach(function (t) {
+        var wt  = t === "1ct" ? 1 : t === "1.5ct" ? 1.5 : 2;
+        var val = aprData ? aprData[t] : null;
+        var td  = "text-align:right;padding:10px 12px;background:" + bg + ";font-variant-numeric:tabular-nums;";
+        html += val != null ? "<td style=\"" + td + "color:#1a1a1a;\">" + fmtDual(val, wt) + "</td>" : "<td style=\"" + td + "color:#ccc;\">&mdash;</td>";
+      });
+      html += "</tr>";
+    });
+
+    html += "</tbody></table></div>";
+    html += "<p style=\"font-size:0.78rem;color:#888;margin:6px 0 0;\">Total stone price. E VS1 Round Excellent IGI. VRAI: non-IGI, not matched to spec.</p>";
+    html += "</div></div>";
+    return html;
+  }
+
+  window.lgdToggleHistory = function (btn) {
+    var body = document.getElementById("lgd-history-body");
+    if (!body) return;
+    if (body.style.display === "none") {
+      body.style.display = "block";
+      btn.textContent = "- Hide comparison";
+    } else {
+      body.style.display = "none";
+      btn.textContent = "+ Show " + FALLBACK.history[0].month + " comparison";
+    }
+  };
+
+  function render(data) {
+    var tableWrap   = document.getElementById("lgd-table-wrap");
+    var calloutWrap = document.getElementById("lgd-callout-wrap");
+    var methodWrap  = document.getElementById("lgd-method-wrap");
+    var footerWrap  = document.getElementById("lgd-footer-wrap");
+    if (!tableWrap || !calloutWrap || !methodWrap || !footerWrap) return;
+
+    var dateEl = document.getElementById("lgd-published-date");
+    if (dateEl && data.last_updated) {
+      var mn = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      var p = data.last_updated.split("-");
+      dateEl.innerHTML = "Published " + mn[parseInt(p[1], 10) - 1] + " " + parseInt(p[2], 10) + ", " + p[0] + " &nbsp;&middot;&nbsp; E&nbsp;VS1 Round Excellent IGI &nbsp;&middot;&nbsp; USD";
+    }
+
+    var cells = data.benchmark_cells || ["1ct", "1.5ct", "2ct"];
+
+    // Compute dollar-gap callout
+    var _min1 = Infinity, _max1 = -Infinity, _minR1 = "", _maxR1 = "";
+    var _min2 = Infinity, _max2 = -Infinity;
+    data.retailers.forEach(function (r) {
+      if (r.non_igi) return;
+      var c1 = r.cells["1ct"], c2 = r.cells["2ct"];
+      if (c1 && c1.status === "ok") {
+        var v1 = c1.median_price_per_carat;
+        if (v1 < _min1) { _min1 = v1; _minR1 = r.name; }
+        if (v1 > _max1) { _max1 = v1; _maxR1 = r.name; }
+      }
+      if (c2 && c2.status === "ok") {
+        var v2 = Math.round(c2.median_price_per_carat * 2);
+        if (v2 < _min2) _min2 = v2;
+        if (v2 > _max2) _max2 = v2;
+      }
+    });
+    var _calloutHtml = "<p style=\"font-size:0.92rem;color:#444;margin:0 0 16px;line-height:1.6;\">"
+      + "The same 1ct E VS1 IGI round costs $" + Math.round(_min1).toLocaleString("en-US") + " at " + _minR1
+      + " and $" + Math.round(_max1).toLocaleString("en-US") + " at " + _maxR1
+      + " — a $" + (Math.round(_max1) - Math.round(_min1)).toLocaleString("en-US") + " difference for identical specs."
+      + " At 2ct, that gap reaches $" + (_max2 - _min2).toLocaleString("en-US") + "."
+      + "</p>";
+
+    tableWrap.insertAdjacentHTML("beforebegin", "<span id=\"price-table\" aria-hidden=\"true\" style=\"display:block;height:0;overflow:hidden;\"></span>" + _calloutHtml);
+    methodWrap.insertAdjacentHTML("beforebegin", "<span id=\"methodology\" aria-hidden=\"true\" style=\"display:block;height:0;overflow:hidden;\"></span>");
+
+    var thStyle = "text-align:right;padding:10px 12px;border-bottom:2px solid #1a1a1a;font-weight:700;white-space:nowrap;color:#1a1a1a;background:#fff;";
+    var tableHtml = "<table style=\"width:100%;border-collapse:collapse;font-size:0.95rem;\"><thead><tr>"
+      + "<th style=\"text-align:left;padding:10px 12px;border-bottom:2px solid #1a1a1a;font-weight:700;white-space:nowrap;color:#1a1a1a;background:#fff;\">Retailer</th>"
+      + "<th style=\"" + thStyle + "\">1ct</th><th style=\"" + thStyle + "\">1.5ct</th><th style=\"" + thStyle + "\">2ct</th>"
+      + "</tr></thead><tbody>";
+
+    data.retailers.forEach(function (r, i) {
+      var bg = r.non_igi ? "#f5f5f5" : (i % 2 === 0 ? "#fafafa" : "#ffffff");
+      var rowStyle = r.non_igi ? " style=\"border-top:2px solid #e0e0e0;\"" : "";
+      var label = r.non_igi ? "<span style=\"margin-left:4px;font-size:0.75rem;font-weight:400;color:#999;\">(non-IGI)</span>" : "";
+      var ritaniNote = r.slug === "ritani" ? "<a href=\"#key-findings\" style=\"margin-left:4px;font-size:0.78rem;font-weight:400;color:#888;text-decoration:none;\" title=\"Largest month-over-month move; see Key Findings\">*</a>" : "";
+      tableHtml += "<tr" + rowStyle + "><td style=\"padding:10px 12px;font-weight:700;white-space:nowrap;background:" + bg + ";color:#1a1a1a;\">" + r.name + label + ritaniNote + "</td>"
+        + cellHtml(r.cells["1ct"], bg, 1) + cellHtml(r.cells["1.5ct"], bg, 1.5) + cellHtml(r.cells["2ct"], bg, 2) + "</tr>";
+    });
+
+    var medBg = "#f0f0f0";
+    var medPrices = {};
+    cells.forEach(function (cell) {
+      var prices = [];
+      data.retailers.forEach(function (r) {
+        if (!r.non_igi && r.cells[cell] && r.cells[cell].status === "ok") prices.push(r.cells[cell].median_price_per_carat);
+      });
+      medPrices[cell] = medianOf(prices);
+    });
+    tableHtml += "<tr style=\"border-top:2px solid #ccc;\"><td style=\"padding:10px 12px;font-weight:600;font-style:italic;background:" + medBg + ";color:#555;\">Market Median (IGI retailers)</td>";
+    cells.forEach(function (cell) {
+      var med = medPrices[cell];
+      var wt = cell === "1ct" ? 1 : cell === "1.5ct" ? 1.5 : 2;
+      tableHtml += med
+        ? "<td style=\"text-align:right;padding:10px 12px;background:" + medBg + ";color:#555;font-variant-numeric:tabular-nums;font-style:italic;\">" + fmtDual(med, wt) + "</td>"
+        : "<td style=\"text-align:right;padding:10px 12px;background:" + medBg + ";color:#aaa;\">-</td>";
+    });
+    tableHtml += "</tr></tbody></table>"
+      + "<p style=\"font-size:0.8rem;color:#666;margin:8px 0 0;line-height:1.4;\">Total stone price. E VS1 Round Excellent IGI. Median. All prices USD. Hover any price for sample size (n). VRAI: proprietary Diamond Foundry grading, not matched to E VS1. * Largest month-over-month move. See Key Findings.</p>";
+    tableWrap.innerHTML = tableHtml;
+
+    var shareUrl = encodeURIComponent(PAGE_URL);
+    var shareText = encodeURIComponent("Lab-grown diamond prices vary up to 5.8x across major U.S. retailers. 1ct: $290-$901/ct. Rings.com Lab-Grown Diamond Price Index, May 2026. " + PAGE_URL);
+    var iconX    = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.259 5.622 5.905-5.372zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="currentColor"/></svg>';
+    var iconIn   = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.5 8h-3v12h3V8zm-1.5-1.5a1.75 1.75 0 1 0 0-3.5 1.75 1.75 0 0 0 0 3.5zM20.5 20h-3v-5.5c0-1.4-.56-2.1-1.75-2.1-1.3 0-2 .85-2 2.1V20h-3V8h3v1.55c.55-.95 1.7-1.65 3-1.65 2.55 0 3.75 1.65 3.75 4.85V20z" fill="currentColor"/></svg>';
+    var iconFb   = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>';
+    var iconPin  = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.12 2.5 7.67 6.11 9.17-.08-.65-.15-1.65.03-2.37.17-.64 1.07-4.48 1.07-4.48s-.27-.55-.27-1.35c0-1.26.73-2.2 1.64-2.2.77 0 1.15.58 1.15 1.28 0 .78-.5 1.95-.75 3.03-.22.9.44 1.64 1.33 1.64 1.61 0 2.69-2.05 2.69-4.47 0-1.85-1.25-3.24-3.51-3.24-2.55 0-4.15 1.92-4.15 4.04 0 .73.21 1.25.55 1.65.15.18.17.26.11.47l-.17.67c-.06.22-.23.3-.42.22-1.13-.46-1.65-1.7-1.65-3.09 0-2.29 1.93-5.05 5.73-5.05 3.08 0 5.11 2.24 5.11 4.64 0 3.18-1.75 5.57-4.35 5.57-.87 0-1.68-.47-1.96-1l-.55 2.1c-.2.76-.74 1.69-1.1 2.25.8.24 1.65.37 2.52.37C17.52 22 22 17.52 22 12S17.52 2 12 2z"/></svg>';
+    var iconLink = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    tableWrap.insertAdjacentHTML("afterend",
+      "<div id=\"lgd-share-wrap\">"
+      + "<a href=\"https://twitter.com/intent/tweet?text=" + shareText + "\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"lgd-share-btn\" title=\"Share on X\" aria-label=\"Share on X\">" + iconX + "</a>"
+      + "<a href=\"https://www.linkedin.com/shareArticle?mini=true&url=" + shareUrl + "\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"lgd-share-btn\" title=\"Share on LinkedIn\" aria-label=\"Share on LinkedIn\">" + iconIn + "</a>"
+      + "<a href=\"https://www.facebook.com/sharer/sharer.php?u=" + shareUrl + "\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"lgd-share-btn\" title=\"Share on Facebook\" aria-label=\"Share on Facebook\">" + iconFb + "</a>"
+      + "<a href=\"https://pinterest.com/pin/create/button/?url=" + shareUrl + "\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"lgd-share-btn\" title=\"Save to Pinterest\" aria-label=\"Save to Pinterest\">" + iconPin + "</a>"
+      + "<button class=\"lgd-share-btn\" title=\"Copy link\" aria-label=\"Copy link\" onclick=\"lgdCopyLink(this)\">" + iconLink + "</button>"
+      + "</div>"
+    );
+
+    calloutWrap.insertAdjacentHTML("beforebegin",
+      "<span id=\"key-findings\" aria-hidden=\"true\" style=\"display:block;height:0;overflow:hidden;\"></span>"
+      + buildHistoryHtml(data)
+    );
+
+    calloutWrap.innerHTML = "<div style=\"background:#1a1a1a;color:#ffffff;border-radius:6px;padding:20px 24px;line-height:1.7;font-size:0.95rem;\">"
+      + "<strong style=\"display:block;margin-bottom:10px;font-size:1rem;color:#ffffff;\">Key Findings: " + data.month + "</strong>"
+      + "<p style=\"margin:0 0 14px;color:#c8c8c8;font-size:0.9rem;line-height:1.6;\">Eight retailers. 528,819 listings. E VS1 Round Excellent IGI.</p>"
+      + "<ul style=\"margin:0;padding:0 0 0 18px;color:#ffffff;line-height:1.65;\">"
+      + "<li style=\"margin:0 0 9px;\">If you're shopping for a 1ct E VS1 IGI round, prices range from $290 to $901 depending on where you buy. That gap is not a quality difference. It's a retailer difference.</li>"
+      + "<li style=\"margin:0 0 9px;\">Ritani posted the largest month-over-month move: -28% at 1ct ($401 to $290), -37% at 1.5ct, -32% at 2ct. Sample sizes of 843–1,707 qualifying stones per cell confirm this is not a data artifact.</li>"
+      + "<li style=\"margin:0 0 9px;\">Prices across most retailers were stable month-over-month. The Ritani move is the outlier.</li>"
+      + "<li style=\"margin:0 0 9px;\">Clean Origin inventory contracted from ~16,000 to ~6,500 listings. Its 1ct cell has no qualifying data this month.</li>"
+      + "<li style=\"margin:0;\">James Allen (<a href=\"https://nationaljeweler.com/articles/14798-signet-jewelers-to-close-100-stores-shutter-james-allen-banner\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color:#ffffff;text-decoration:underline;\">now merged into Blue Nile</a>): $646 at 1ct, $1,882 at 2ct.</li>"
+      + "</ul></div>";
+
+    var nextEd = nextMonthOf(data.month);
+    calloutWrap.insertAdjacentHTML("afterend",
+      "<div id=\"lgd-email-wrap\"><h3>Get the " + nextEd + " update</h3>"
+      + "<p class=\"lgd-email-sub\">Monthly index delivered to your inbox when new data publishes.</p>"
+      + "<form class=\"lgd-email-form\" onsubmit=\"lgdEmailSubmit(event)\">"
+      + "<input type=\"email\" placeholder=\"your@email.com\" required aria-label=\"Email address\">"
+      + "<button type=\"submit\">Notify me</button></form>"
+      + "<p class=\"lgd-email-confirm\">You're on the list.</p></div>"
+    );
+
+    var methodHtml = "<h2 style=\"font-size:1rem;font-weight:700;margin:0 0 12px;color:#1a1a1a;\">Methodology</h2><div style=\"font-size:0.9rem;color:#333;line-height:1.7;\">";
+    METHODOLOGY.forEach(function (para) { methodHtml += "<p style=\"margin:0 0 12px;color:#333;\">" + para + "</p>"; });
+    methodWrap.innerHTML = methodHtml + "</div>";
+
+    footerWrap.innerHTML = "<p style=\"font-size:0.8rem;color:#888;margin:0;line-height:1.5;\">Updated monthly. Next edition: June 22, 2026.</p>";
+  }
+
+  window.lgdCopyLink = function (btn) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(PAGE_URL).then(function () {
+        btn.setAttribute("title", "Copied!");
+        setTimeout(function () { btn.setAttribute("title", "Copy link"); }, 2000);
+      });
+    }
+  };
+
+  window.lgdEmailSubmit = function (e) {
+    e.preventDefault();
+    var form = e.target;
+    var input = form.querySelector("input[type=\"email\"]");
+    var btn = form.querySelector("button");
+    var wrap = document.getElementById("lgd-email-wrap");
+    var conf = wrap ? wrap.querySelector(".lgd-email-confirm") : null;
+    if (!input || !input.value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value)) return;
+    btn.textContent = "...";
+    btn.disabled = true;
+    fetch("https://manage.kmail-lists.com/ajax/subscriptions/subscribe", {
+      method: "POST",
+      headers: {"Content-Type": "application/x-www-form-urlencoded; charset=utf-8"},
+      body: "g=" + encodeURIComponent(KLAVIYO_LIST) + "&email=" + encodeURIComponent(input.value)
+    })
+    .then(function (res) { return res.json(); })
+    .then(function (json) {
+      if (json.success) { form.style.display = "none"; if (conf) conf.style.display = "block"; }
+      else { btn.textContent = "Notify me"; btn.disabled = false; }
+    })
+    .catch(function () { btn.textContent = "Notify me"; btn.disabled = false; });
+  };
+
+  var fetchData = null, domReady = false;
+  function tryRender() {
+    if (domReady && fetchData) {
+      try { render(fetchData); }
+      catch (e) {
+        var t = document.getElementById("lgd-table-wrap");
+        if (t) t.innerHTML = "<p style=\"padding:16px;color:red;font-family:monospace;\">Render error: " + e.message + "</p>";
+      }
+    }
+  }
+
+  fetch(DATA_URL)
+    .then(function (res) { return res.ok ? res.json() : Promise.reject(); })
+    .then(function (d) { fetchData = d; tryRender(); })
+    .catch(function () { fetchData = FALLBACK; tryRender(); });
+
+  function checkDom() {
+    if (document.getElementById("lgd-table-wrap")) {
+      if (obs) obs.disconnect();
+      domReady = true;
+      tryRender();
+      return true;
+    }
+    return false;
+  }
+  var obs;
+  if (!checkDom()) {
+    obs = new MutationObserver(function () { checkDom(); });
+    obs.observe(document.documentElement, {childList: true, subtree: true});
+  }
+
+})();
+</script>
+{% endif %}
