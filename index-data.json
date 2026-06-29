@@ -1,6 +1,7 @@
 {
-  "month": "May 2026",
-  "last_updated": "2026-05-21",
+  "month": "June 2026",
+  "last_updated": "2026-06-29",
+  "collection_date": "June 27, 2026",
   "benchmark_spec": "E VS1 Excellent IGI",
   "benchmark_cells": [
     "1ct",
@@ -12,7 +13,26 @@
     "1.5ct": "1.45–1.55ct",
     "2ct": "1.95–2.05ct"
   },
-  "data_notes": "Sources: all eight retailers scraped May 18 2026. Clean Origin inventory contracted to ~6,500 listings (from ~16,000 in April); 1ct cell has no qualifying data this month. VRAI 2ct cell falls below the 30-listing minimum and is not published in this edition.",
+  "data_notes": "Sources: seven retailers scraped June 27, 2026. James Allen has been retired from the panel (its storefront now redirects to Blue Nile and carries no independent lab-grown inventory). Ritani and Grown Brilliance were sampled rather than fully enumerated this cycle owing to server-side rate limiting; their benchmark cells still draw on thousands (Ritani) and hundreds to low-thousands (Grown Brilliance) of qualifying stones, so the published medians are stable. Clean Origin's 1ct cell has no qualifying data this month. VRAI's 2ct cell falls below the 30-listing minimum and is not published.",
+  "key_findings": [
+    "If you're shopping for a 1ct E VS1 IGI round, prices range from ${min1ct} to ${max1ct} depending on where you buy. That gap is not a quality difference. It's a retailer difference.",
+    "Ritani extended its price decline for a second straight month and again posted the largest move: -34% at 1ct ($290 to $192), -29% at 1.5ct, and -33% at 2ct. Sample sizes of roughly 2,900-3,200 qualifying stones per cell confirm this is a real repricing, not a data artifact.",
+    "Brilliant Earth, the premium end of the IGI panel, edged higher: +9% at 1ct ($901 to $979) and +11% at 1.5ct, holding the widest spread above the market floor.",
+    "Between the Ritani floor and the Brilliant Earth ceiling, the rest of the panel held steady: Grown Brilliance, With Clarity, and Blue Nile all cluster in the $600-$880 per-carat range at 1ct and 1.5ct, with little month-over-month movement.",
+    "James Allen has been retired from the index this edition. Its storefront now redirects to Blue Nile and it carries no independent lab-grown inventory. The panel is now seven retailers."
+  ],
+  "methodology": [
+    {"title": "Scope", "body": "This index tracks listed retail prices (not transaction prices) across major U.S. online lab-grown diamond retailers. The {month} edition analyzed {listings} lab-grown diamond listings across {n_retailers_word} retailers. Data was collected on {collection_date}."},
+    {"title": "Retailer panel", "body": "This edition tracks {n_retailers_word} retailers: {retailer_panel_list}. The panel is fixed and disclosed for comparability. Any additions, removals, or reclassifications will be explicitly noted in that month's report."},
+    {"title": "Price inputs", "body": "Prices are the publicly visible list price at the time of data collection, including any site-wide or automatic reductions that do not require a membership or promotional code. Excluded: promotional codes, membership discounts, negotiated pricing, strikethrough compare-at prices. All prices in USD, excluding sales tax and shipping."},
+    {"title": "Benchmark specification", "body": "E color, VS1 clarity, round brilliant, Excellent cut, IGI-certified. Three weight cells: 1ct (0.95-1.05ct), 1.5ct (1.45-1.55ct), and 2ct (1.95-2.05ct)."},
+    {"title": "Statistical method", "body": "Each published figure is the median total stone price across all qualifying listings within that cell. A minimum of 30 qualifying listings is required for publication. Per-cell sample sizes (n) are visible as tooltips when hovering over any price. {stat_notes}"},
+    {"title": "Coverage this edition", "body": "Two retailers (Ritani and Grown Brilliance) were sampled rather than fully enumerated this cycle owing to server-side rate limiting. Their benchmark cells still draw on thousands (Ritani) and hundreds to low-thousands (Grown Brilliance) of qualifying stones, so the published medians are stable; only the total-listing count is affected."},
+    {"title": "Deduplication", "body": "Listings are deduplicated within each retailer by URL. Stones with identical IGI certificate numbers may appear at more than one retailer and are counted as independent listings at each retailer where they appear."},
+    {"title": "VRAI", "body": "VRAI uses Diamond Foundry proprietary grading exclusively and carries no IGI-certified inventory. Included as a non-comparable reference point. Weight windows: 1ct = 1.0-1.09ct (D-F colors); 1.5ct = 1.6-1.9ct (D-G colors). VRAI 2ct fell below the 30-listing minimum in June and is not published."},
+    {"title": "Comparability", "body": "Historical index figures may not be directly comparable when the benchmark specification or retailer panel changes. Such changes are explicitly noted in the relevant month's report. James Allen was retired from the panel in the June 2026 edition following the closure of its independent storefront."},
+    {"title": "Independence", "body": "Rings.com receives no compensation from the retailers included in this index for inclusion or ranking, and no retailer has any editorial control over the methodology or results."}
+  ],
   "history": [
     {
       "month": "April 2026",
@@ -42,6 +62,20 @@
         "brilliant_earth":  { "1ct": 901,  "1.5ct": 1092, "2ct": 1642 },
         "vrai":             { "1ct": 1180, "1.5ct": 714,  "2ct": null, "non_igi": true }
       }
+    },
+    {
+      "month": "June 2026",
+      "published": "2026-06-29",
+      "total_listings": 283644,
+      "retailers": {
+        "ritani":           { "1ct": 192,  "1.5ct": 186,  "2ct": 190  },
+        "clean_origin":     { "1ct": null, "1.5ct": 560,  "2ct": 561  },
+        "grown_brilliance": { "1ct": 600,  "1.5ct": 750,  "2ct": 750  },
+        "with_clarity":     { "1ct": 618,  "1.5ct": 687,  "2ct": 703  },
+        "blue_nile":        { "1ct": 636,  "1.5ct": 883,  "2ct": 1114 },
+        "brilliant_earth":  { "1ct": 979,  "1.5ct": 1213, "2ct": 1644 },
+        "vrai":             { "1ct": 1159, "1.5ct": 707,  "2ct": null, "non_igi": true }
+      }
     }
   ],
   "retailers": [
@@ -51,18 +85,18 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 843,
-          "median_price_per_carat": 290
+          "stone_count": 2924,
+          "median_price_per_carat": 192
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 1153,
-          "median_price_per_carat": 261
+          "stone_count": 3233,
+          "median_price_per_carat": 186
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 1707,
-          "median_price_per_carat": 283
+          "stone_count": 3113,
+          "median_price_per_carat": 190
         }
       }
     },
@@ -77,13 +111,13 @@
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 88,
-          "median_price_per_carat": 601
+          "stone_count": 103,
+          "median_price_per_carat": 560
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 255,
-          "median_price_per_carat": 621
+          "stone_count": 506,
+          "median_price_per_carat": 561
         }
       }
     },
@@ -93,18 +127,18 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 2736,
-          "median_price_per_carat": 610
+          "stone_count": 352,
+          "median_price_per_carat": 600
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 9631,
-          "median_price_per_carat": 799
+          "stone_count": 1552,
+          "median_price_per_carat": 750
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 3261,
-          "median_price_per_carat": 828
+          "stone_count": 208,
+          "median_price_per_carat": 750
         }
       }
     },
@@ -114,39 +148,18 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 747,
-          "median_price_per_carat": 595
+          "stone_count": 3873,
+          "median_price_per_carat": 618
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 844,
-          "median_price_per_carat": 683
+          "stone_count": 4646,
+          "median_price_per_carat": 687
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 649,
-          "median_price_per_carat": 720
-        }
-      }
-    },
-    {
-      "name": "James Allen",
-      "slug": "james_allen",
-      "cells": {
-        "1ct": {
-          "status": "ok",
-          "stone_count": 41,
-          "median_price_per_carat": 646
-        },
-        "1.5ct": {
-          "status": "ok",
-          "stone_count": 83,
-          "median_price_per_carat": 784
-        },
-        "2ct": {
-          "status": "ok",
-          "stone_count": 183,
-          "median_price_per_carat": 941
+          "stone_count": 2698,
+          "median_price_per_carat": 703
         }
       }
     },
@@ -156,18 +169,18 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 53,
-          "median_price_per_carat": 711
+          "stone_count": 198,
+          "median_price_per_carat": 636
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 77,
-          "median_price_per_carat": 863
+          "stone_count": 295,
+          "median_price_per_carat": 883
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 180,
-          "median_price_per_carat": 1035
+          "stone_count": 316,
+          "median_price_per_carat": 1114
         }
       }
     },
@@ -177,18 +190,18 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 227,
-          "median_price_per_carat": 901
+          "stone_count": 768,
+          "median_price_per_carat": 979
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 206,
-          "median_price_per_carat": 1092
+          "stone_count": 895,
+          "median_price_per_carat": 1213
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 230,
-          "median_price_per_carat": 1642
+          "stone_count": 899,
+          "median_price_per_carat": 1644
         }
       }
     },
@@ -201,19 +214,19 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 35,
-          "median_price_per_carat": 1180,
+          "stone_count": 33,
+          "median_price_per_carat": 1159,
           "actual_range": "1.0–1.09ct"
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 72,
-          "median_price_per_carat": 714,
+          "stone_count": 64,
+          "median_price_per_carat": 707,
           "actual_range": "1.6–1.9ct"
         },
         "2ct": {
           "status": "thin",
-          "stone_count": 22,
+          "stone_count": 18,
           "note": "Fewer than 30 qualifying listings in this cell.",
           "actual_range": "2.1–2.45ct"
         }

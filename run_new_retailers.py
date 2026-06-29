@@ -14,17 +14,16 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from retailers import james_allen, ritani, grown_brilliance
+from retailers import ritani, grown_brilliance  # james_allen retired 2026-05-24
 from retailers.base import CSV_FIELDS, TARGET_SHAPES, MIN_CARAT, MAX_CARAT, diamond_to_row
 
 RAW_DIR = Path(__file__).parent / "data" / "raw"
 RAW_DIR.mkdir(parents=True, exist_ok=True)
 
-DATE = "2026-05-18"
+DATE = "2026-06-27"
 DELAY = 1.0
 
 RETAILERS = [
-    ("James Allen",    "james_allen",    james_allen.scrape),
     ("Ritani",         "ritani",         ritani.scrape),
     ("Grown Brilliance","grown_brilliance", grown_brilliance.scrape),
 ]

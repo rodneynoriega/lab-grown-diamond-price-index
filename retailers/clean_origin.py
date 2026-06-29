@@ -55,20 +55,37 @@ PAGE_SIZE = 40
 # ---------------------------------------------------------------------------
 
 _FETCH_JS = """
-    async ({url, headers}) => {
-        const resp = await fetch(url, {
-            headers: headers,
-            credentials: 'include'
-        });
-        return {status: resp.status, text: await resp.text()};
+    async ({url, headers, timeoutMs}) => {
+        // AbortController timeout so a stalled request (flaky connection) rejects
+        // instead of hanging page.evaluate() forever.
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+        try {
+            const resp = await fetch(url, {
+                headers: headers,
+                credentials: 'include',
+                signal: ctrl.signal
+            });
+            return {status: resp.status, text: await resp.text()};
+        } finally {
+            clearTimeout(timer);
+        }
     }
 """
 
 
-def _page_fetch(page, url: str, headers: dict) -> tuple[int, str]:
-    """Run a fetch() call from inside the Playwright page. Returns (status, html)."""
-    result = page.evaluate(_FETCH_JS, {"url": url, "headers": headers})
-    return result["status"], result["text"]
+def _page_fetch(page, url: str, headers: dict, retries: int = 3) -> tuple[int, str]:
+    """Run a fetch() call from inside the Playwright page. Returns (status, html).
+    Retries transient stalls/aborts (flaky hotspot) before giving up."""
+    last_err = None
+    for attempt in range(retries):
+        try:
+            result = page.evaluate(_FETCH_JS, {"url": url, "headers": headers, "timeoutMs": 30000})
+            return result["status"], result["text"]
+        except Exception as e:
+            last_err = e
+            time.sleep(1.5 * (attempt + 1))
+    raise Exception(f"fetch failed after {retries} attempts: {last_err}")
 
 
 def _ajax_url(page_num: int, co_shape: str, weight_param: str) -> str:

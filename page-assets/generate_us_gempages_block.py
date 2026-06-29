@@ -30,7 +30,7 @@ import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
-DEFAULT_JSON = os.path.join(PROJECT_ROOT, "PROJECTS", "diamond-price-index", "index-data.json")
+DEFAULT_JSON = os.path.join(PROJECT_ROOT, "index-data.json")
 
 BANDS = [
     ("1ct",   1.0, "0.95-1.05ct"),
@@ -105,6 +105,41 @@ def total_listings_for_month(data):
             if h.get("month") == month:
                 return h.get("total_listings")
     return None
+
+
+_NUM_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven",
+              "eight", "nine", "ten", "eleven", "twelve"]
+
+
+def num_to_word(n):
+    """7 -> 'seven'. Falls back to digits outside the small-number range."""
+    return _NUM_WORDS[n] if 0 <= n < len(_NUM_WORDS) else str(n)
+
+
+def build_stat_notes(retailers):
+    """Auto-build the per-cell exception sentences for the Statistical method
+    paragraph from the actual cell statuses (no_data / thin). This keeps the
+    methodology copy honest without hand-editing each month."""
+    notes = []
+    for r in retailers:
+        for key, _, _ in BANDS:
+            cell = r["cells"].get(key, {})
+            st = cell.get("status")
+            if st == "no_data":
+                notes.append(f"{r['name']} {key} has no qualifying data this month.")
+            elif st == "thin":
+                n = cell.get("stone_count")
+                notes.append(
+                    f"{r['name']} {key} (n={n}) falls below the threshold and is not published."
+                )
+    return " ".join(notes)
+
+
+def apply_ctx(text, ctx):
+    """Substitute {placeholder} tokens in editorial copy with computed values."""
+    for k, v in ctx.items():
+        text = text.replace("{" + k + "}", str(v))
+    return text
 
 
 def generate_jsonld(data, ranges, pub_date):
@@ -243,8 +278,7 @@ def generate_html(data):
     rows_html  = "\n".join(rows)
     med_td_html = "".join(med_tds)
 
-    # Key Findings — pull first bullet numbers from computed values
-    # (same data as table and JSON-LD)
+    # Computed values shared by Key Findings, Methodology, and JSON-LD
     ranges = band_ranges(data)
     min1ct = ranges["1ct"]["min"] if "1ct" in ranges else 0
     max1ct = ranges["1ct"]["max"] if "1ct" in ranges else 0
@@ -253,15 +287,58 @@ def generate_html(data):
     listings = total_listings_for_month(data)
     listings_str = f"{listings:,}" if listings else ""
     n_retailers = len(retailers)
+    n_retailers_word_cap = num_to_word(n_retailers).capitalize()
 
-    # Detect Ritani move for Key Findings (if history has >= 2 months)
-    ritani_note = ""
-    if "history" in data and len(data["history"]) >= 2:
-        prev = data["history"][-2]["retailers"].get("ritani", {})
-        curr = data["history"][-1]["retailers"].get("ritani", {})
-        if prev.get("1ct") and curr.get("1ct"):
-            pct = round((curr["1ct"] - prev["1ct"]) / prev["1ct"] * 100)
-            ritani_note = f"Ritani posted the largest month-over-month move: {pct:+d}% at 1ct."
+    # Substitution context for editorial copy held in index-data.json.
+    # Counts and the retailer panel are derived from retailers[] so they can
+    # never disagree with the table (the "eight/seven retailers" bug).
+    ctx = {
+        "month": month,
+        "listings": listings_str,
+        "n_retailers": n_retailers,
+        "n_retailers_word": num_to_word(n_retailers),
+        "collection_date": data.get("collection_date", ""),
+        "retailer_panel_list": retailer_list(retailers),
+        "stat_notes": build_stat_notes(retailers),
+        "min1ct": f"{min1ct:,}",
+        "max1ct": f"{max1ct:,}",
+        "min2ct": f"{min2ct:,}",
+        "max2ct": f"{max2ct:,}",
+    }
+
+    # Key Findings bullets — data-driven, with a computed fallback.
+    if data.get("key_findings"):
+        bullets = [apply_ctx(b, ctx) for b in data["key_findings"]]
+    else:
+        bullets = [
+            f"If you're shopping for a 1ct E VS1 IGI round, prices range from "
+            f"${min1ct:,} to ${max1ct:,} depending on where you buy. That gap is "
+            f"not a quality difference. It's a retailer difference.",
+            f"At 2ct, the gap widens to ${min2ct:,} to ${max2ct:,}.",
+        ]
+    key_findings_html = "\n".join(
+        f'        <li style="margin:0 0 9px;">{b}</li>' for b in bullets[:-1]
+    )
+    if bullets:
+        key_findings_html += (
+            ("\n" if len(bullets) > 1 else "")
+            + f'        <li style="margin:0;">{bullets[-1]}</li>'
+        )
+
+    # Methodology paragraphs — data-driven, with a generic fallback.
+    if data.get("methodology"):
+        method_paras = data["methodology"]
+    else:
+        method_paras = [
+            {"title": "Scope", "body": "This index tracks listed retail prices (not transaction prices) across major U.S. online lab-grown diamond retailers. The {month} edition analyzed {listings} lab-grown diamond listings across {n_retailers_word} retailers."},
+            {"title": "Benchmark specification", "body": "E color, VS1 clarity, round brilliant, Excellent cut, IGI-certified. Three weight cells: 1ct (0.95-1.05ct), 1.5ct (1.45-1.55ct), and 2ct (1.95-2.05ct)."},
+            {"title": "Statistical method", "body": "Each published figure is the median total stone price across all qualifying listings within that cell. A minimum of 30 qualifying listings is required for publication. {stat_notes}"},
+        ]
+    methodology_html = "\n".join(
+        f'      <p style="margin:0 0 12px;"><strong>{apply_ctx(p["title"], ctx)}.</strong> '
+        f'{apply_ctx(p["body"], ctx)}</p>'
+        for p in method_paras
+    )
 
     jsonld_str = generate_jsonld(data, ranges, pub_date)
 
@@ -326,10 +403,9 @@ def generate_html(data):
   <div id="lgd-callout-wrap" style="margin-bottom:32px;">
     <div style="background:#1a1a1a;color:#ffffff;border-radius:6px;padding:20px 24px;line-height:1.7;font-size:0.95rem;">
       <strong style="display:block;margin-bottom:10px;font-size:1rem;color:#ffffff;">Key Findings: {month}</strong>
-      <p style="margin:0 0 14px;color:#c8c8c8;font-size:0.9rem;line-height:1.6;">{n_retailers} retailers. {listings_str} listings. E VS1 Round Excellent IGI.</p>
+      <p style="margin:0 0 14px;color:#c8c8c8;font-size:0.9rem;line-height:1.6;">{n_retailers_word_cap} retailers. {listings_str} listings. E VS1 Round Excellent IGI.</p>
       <ul style="margin:0;padding:0 0 0 18px;color:#ffffff;line-height:1.65;">
-        <li style="margin:0 0 9px;">If you're shopping for a 1ct E VS1 IGI round, prices range from ${min1ct:,} to ${max1ct:,} depending on where you buy. That gap is not a quality difference. It's a retailer difference.</li>
-        <li style="margin:0 0 9px;">At 2ct, the gap widens to ${min2ct:,} to ${max2ct:,}.</li>
+{key_findings_html}
       </ul>
     </div>
   </div>
@@ -341,9 +417,7 @@ def generate_html(data):
   <div id="lgd-method-wrap" style="border-top:1px solid #ddd;padding-top:24px;margin-bottom:24px;">
     <h2 style="font-size:1rem;font-weight:700;margin:0 0 12px;color:#1a1a1a;">Methodology</h2>
     <div style="font-size:0.9rem;color:#333;line-height:1.7;">
-      <p style="margin:0 0 12px;"><strong>Scope.</strong> This index tracks listed retail prices (not transaction prices) across major U.S. online lab-grown diamond retailers. The {month} edition analyzed {listings_str} lab-grown diamond listings across {n_retailers} retailers.</p>
-      <p style="margin:0 0 12px;"><strong>Benchmark specification.</strong> E color, VS1 clarity, round brilliant, Excellent cut, IGI-certified. Three weight cells: 1ct (0.95-1.05ct), 1.5ct (1.45-1.55ct), and 2ct (1.95-2.05ct).</p>
-      <p style="margin:0 0 12px;"><strong>Statistical method.</strong> Each published figure is the median total stone price across all qualifying listings within that cell. A minimum of 30 qualifying listings is required for publication.</p>
+{methodology_html}
     </div>
   </div>
 
