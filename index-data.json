@@ -1,6 +1,8 @@
 {
   "month": "June 2026",
-  "last_updated": "2026-06-29",
+  "last_updated": "2026-07-25",
+  "originally_published": "2026-06-29",
+  "correction_note": "Corrected 2026-07-25: Ritani, Clean Origin, Grown Brilliance, Blue Nile, and Brilliant Earth's benchmark cells were originally computed under a VS2-or-better clarity filter instead of the disclosed strict-VS1 spec. Recomputed from the original June 27, 2026 raw scrape data; no new data collected. With Clarity and VRAI are unaffected. April, May, and July 2026 were checked and are unaffected. Original published figures available on request. Full correction record: OUTBOX/2026-07-25-lgd-price-index-june2026-correction-draft.md.",
   "collection_date": "June 27, 2026",
   "benchmark_spec": "E VS1 Excellent IGI",
   "benchmark_cells": [
@@ -13,12 +15,12 @@
     "1.5ct": "1.45–1.55ct",
     "2ct": "1.95–2.05ct"
   },
-  "data_notes": "Sources: seven retailers scraped June 27, 2026. James Allen has been retired from the panel (its storefront now redirects to Blue Nile and carries no independent lab-grown inventory). Ritani and Grown Brilliance were sampled rather than fully enumerated this cycle owing to server-side rate limiting; their benchmark cells still draw on thousands (Ritani) and hundreds to low-thousands (Grown Brilliance) of qualifying stones, so the published medians are stable. Clean Origin's 1ct cell has no qualifying data this month. VRAI's 2ct cell falls below the 30-listing minimum and is not published.",
+  "data_notes": "Sources: seven retailers scraped June 27, 2026. James Allen has been retired from the panel (its storefront now redirects to Blue Nile and carries no independent lab-grown inventory). Ritani and Grown Brilliance were sampled rather than fully enumerated this cycle owing to server-side rate limiting; their benchmark cells still draw on hundreds to low-thousands of qualifying stones, so the published medians are stable. Clean Origin's 1ct cell has no qualifying data this month. VRAI's 2ct cell falls below the 30-listing minimum and is not published. CORRECTED 2026-07-25: see correction_note above and the Correction methodology entry below.",
   "key_findings": [
     "If you're shopping for a 1ct E VS1 IGI round, prices range from ${min1ct} to ${max1ct} depending on where you buy. That gap is not a quality difference. It's a retailer difference.",
-    "Ritani extended its price decline for a second straight month and again posted the largest move: -34% at 1ct ($290 to $192), -29% at 1.5ct, and -33% at 2ct. Sample sizes of roughly 2,900-3,200 qualifying stones per cell confirm this is a real repricing, not a data artifact.",
-    "Brilliant Earth, the premium end of the IGI panel, edged higher: +9% at 1ct ($901 to $979) and +11% at 1.5ct, holding the widest spread above the market floor.",
-    "Between the Ritani floor and the Brilliant Earth ceiling, the rest of the panel held steady: Grown Brilliance, With Clarity, and Blue Nile all cluster in the $600-$880 per-carat range at 1ct and 1.5ct, with little month-over-month movement.",
+    "Ritani extended its price decline for a second straight month and again posted the largest move: -34% at 1ct ($290 to $190), -29% at 1.5ct, and -33% at 2ct. Corrected sample sizes are 1,296 (1ct), 1,831 (1.5ct), and 1,588 (2ct) qualifying stones.",
+    "Brilliant Earth was essentially flat at 1ct ($901 to $901, no change) and rose 11% at 1.5ct ($1,092 to $1,212).",
+    "Grown Brilliance and Blue Nile both declined more broadly than the Ritani/Brilliant Earth moves above. Grown Brilliance fell 6% at 1ct, 30% at 1.5ct, and 11% at 2ct. Blue Nile fell 18% at 1ct, 14% at 1.5ct, and 12% at 2ct, a consistent decline across all three cells.",
     "James Allen has been retired from the index this edition. Its storefront now redirects to Blue Nile and it carries no independent lab-grown inventory. The panel is now seven retailers."
   ],
   "methodology": [
@@ -26,8 +28,9 @@
     {"title": "Retailer panel", "body": "This edition tracks {n_retailers_word} retailers: {retailer_panel_list}. The panel is fixed and disclosed for comparability. Any additions, removals, or reclassifications will be explicitly noted in that month's report."},
     {"title": "Price inputs", "body": "Prices are the publicly visible list price at the time of data collection, including any site-wide or automatic reductions that do not require a membership or promotional code. Excluded: promotional codes, membership discounts, negotiated pricing, strikethrough compare-at prices. All prices in USD, excluding sales tax and shipping."},
     {"title": "Benchmark specification", "body": "E color, VS1 clarity, round brilliant, Excellent cut, IGI-certified. Three weight cells: 1ct (0.95-1.05ct), 1.5ct (1.45-1.55ct), and 2ct (1.95-2.05ct)."},
-    {"title": "Statistical method", "body": "Each published figure is the median total stone price across all qualifying listings within that cell. A minimum of 30 qualifying listings is required for publication. Per-cell sample sizes (n) are visible as tooltips when hovering over any price. {stat_notes}"},
-    {"title": "Coverage this edition", "body": "Two retailers (Ritani and Grown Brilliance) were sampled rather than fully enumerated this cycle owing to server-side rate limiting. Their benchmark cells still draw on thousands (Ritani) and hundreds to low-thousands (Grown Brilliance) of qualifying stones, so the published medians are stable; only the total-listing count is affected."},
+    {"title": "Statistical method", "body": "Each published figure is the median total stone price across all qualifying listings within that cell. A minimum of 30 qualifying listings is required for publication. Per-cell sample sizes (n) are visible as tooltips when hovering over any price. Blue Nile's corrected 1ct cell (n=32) is close to the 30-listing minimum. {stat_notes}"},
+    {"title": "Coverage this edition", "body": "Two retailers (Ritani and Grown Brilliance) were sampled rather than fully enumerated this cycle owing to server-side rate limiting. Their benchmark cells still draw on hundreds to low-thousands of qualifying stones, so the published medians are stable; only the total-listing count is affected."},
+    {"title": "Correction (2026-07-25)", "body": "Ritani, Clean Origin, Grown Brilliance, Blue Nile, and Brilliant Earth's benchmark cells were originally published under a VS2-or-better clarity filter instead of the disclosed strict-VS1 spec. This entry reflects the corrected figures, recomputed from the original June 27, 2026 raw scrape data; no new data was collected. With Clarity is unaffected (separate, already-documented aggregation method). VRAI is a non-IGI reference point and was never subject to a VS1 requirement. April, May, and July 2026 were checked against the same error and are unaffected. Originally published figures are available on request."},
     {"title": "Deduplication", "body": "Listings are deduplicated within each retailer by URL. Stones with identical IGI certificate numbers may appear at more than one retailer and are counted as independent listings at each retailer where they appear."},
     {"title": "VRAI", "body": "VRAI uses Diamond Foundry proprietary grading exclusively and carries no IGI-certified inventory. Included as a non-comparable reference point. Weight windows: 1ct = 1.0-1.09ct (D-F colors); 1.5ct = 1.6-1.9ct (D-G colors). VRAI 2ct fell below the 30-listing minimum in June and is not published."},
     {"title": "Comparability", "body": "Historical index figures may not be directly comparable when the benchmark specification or retailer panel changes. Such changes are explicitly noted in the relevant month's report. James Allen was retired from the panel in the June 2026 edition following the closure of its independent storefront."},
@@ -66,14 +69,15 @@
     {
       "month": "June 2026",
       "published": "2026-06-29",
+      "corrected": "2026-07-25",
       "total_listings": 283644,
       "retailers": {
-        "ritani":           { "1ct": 192,  "1.5ct": 186,  "2ct": 190  },
-        "clean_origin":     { "1ct": null, "1.5ct": 560,  "2ct": 561  },
-        "grown_brilliance": { "1ct": 600,  "1.5ct": 750,  "2ct": 750  },
+        "ritani":           { "1ct": 190,  "1.5ct": 185,  "2ct": 190  },
+        "clean_origin":     { "1ct": null, "1.5ct": 552,  "2ct": 561  },
+        "grown_brilliance": { "1ct": 576,  "1.5ct": 558,  "2ct": 738  },
         "with_clarity":     { "1ct": 618,  "1.5ct": 687,  "2ct": 703  },
-        "blue_nile":        { "1ct": 636,  "1.5ct": 883,  "2ct": 1114 },
-        "brilliant_earth":  { "1ct": 979,  "1.5ct": 1213, "2ct": 1644 },
+        "blue_nile":        { "1ct": 582,  "1.5ct": 742,  "2ct": 906  },
+        "brilliant_earth":  { "1ct": 901,  "1.5ct": 1212, "2ct": 1642 },
         "vrai":             { "1ct": 1159, "1.5ct": 707,  "2ct": null, "non_igi": true }
       }
     }
@@ -85,18 +89,21 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 2924,
-          "median_price_per_carat": 192
+          "stone_count": 1296,
+          "median_price_per_carat": 190,
+          "note": "Corrected 2026-07-25: was stone_count 2924, $192 (VS2-or-better filter, not disclosed spec)."
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 3233,
-          "median_price_per_carat": 186
+          "stone_count": 1831,
+          "median_price_per_carat": 185,
+          "note": "Corrected 2026-07-25: was stone_count 3233, $186."
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 3113,
-          "median_price_per_carat": 190
+          "stone_count": 1588,
+          "median_price_per_carat": 190,
+          "note": "Corrected 2026-07-25: was stone_count 3113, $190 (price unchanged)."
         }
       }
     },
@@ -107,17 +114,19 @@
         "1ct": {
           "status": "no_data",
           "stone_count": 0,
-          "note": "No qualifying listings in this cell this month."
+          "note": "No qualifying listings in this cell this month. Unaffected by the 2026-07-25 correction."
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 103,
-          "median_price_per_carat": 560
+          "stone_count": 50,
+          "median_price_per_carat": 552,
+          "note": "Corrected 2026-07-25: was stone_count 103, $560."
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 506,
-          "median_price_per_carat": 561
+          "stone_count": 249,
+          "median_price_per_carat": 561,
+          "note": "Corrected 2026-07-25: was stone_count 506, $561 (price unchanged)."
         }
       }
     },
@@ -127,18 +136,21 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 352,
-          "median_price_per_carat": 600
+          "stone_count": 76,
+          "median_price_per_carat": 576,
+          "note": "Corrected 2026-07-25: was stone_count 352, $600."
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 1552,
-          "median_price_per_carat": 750
+          "stone_count": 241,
+          "median_price_per_carat": 558,
+          "note": "Corrected 2026-07-25: was stone_count 1552, $750."
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 208,
-          "median_price_per_carat": 750
+          "stone_count": 79,
+          "median_price_per_carat": 738,
+          "note": "Corrected 2026-07-25: was stone_count 208, $750."
         }
       }
     },
@@ -169,18 +181,21 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 198,
-          "median_price_per_carat": 636
+          "stone_count": 32,
+          "median_price_per_carat": 582,
+          "note": "Corrected 2026-07-25: was stone_count 198, $636. Now close to the 30-listing minimum."
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 295,
-          "median_price_per_carat": 883
+          "stone_count": 81,
+          "median_price_per_carat": 742,
+          "note": "Corrected 2026-07-25: was stone_count 295, $883."
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 316,
-          "median_price_per_carat": 1114
+          "stone_count": 92,
+          "median_price_per_carat": 906,
+          "note": "Corrected 2026-07-25: was stone_count 316, $1,114."
         }
       }
     },
@@ -190,18 +205,21 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 768,
-          "median_price_per_carat": 979
+          "stone_count": 198,
+          "median_price_per_carat": 901,
+          "note": "Corrected 2026-07-25: was stone_count 768, $979."
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 895,
-          "median_price_per_carat": 1213
+          "stone_count": 267,
+          "median_price_per_carat": 1212,
+          "note": "Corrected 2026-07-25: was stone_count 895, $1,213 (price essentially unchanged)."
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 899,
-          "median_price_per_carat": 1644
+          "stone_count": 234,
+          "median_price_per_carat": 1642,
+          "note": "Corrected 2026-07-25: was stone_count 899, $1,644 (price essentially unchanged)."
         }
       }
     },
@@ -210,7 +228,7 @@
       "slug": "vrai",
       "non_igi": true,
       "approximate_windows": true,
-      "note": "VRAI uses Diamond Foundry proprietary grading. Prices shown across all available inventory at each weight tier — not matched to E VS1 spec. Actual inventory windows: 1ct = 1.0–1.09ct (D–F colors); 1.5ct = 1.6–1.9ct (D–G colors). 2ct cell below 30-listing threshold — not published this edition.",
+      "note": "VRAI uses Diamond Foundry proprietary grading. Prices shown across all available inventory at each weight tier — not matched to E VS1 spec. Actual inventory windows: 1ct = 1.0–1.09ct (D–F colors); 1.5ct = 1.6–1.9ct (D–G colors). 2ct cell below 30-listing threshold — not published this edition. Unaffected by the 2026-07-25 correction.",
       "cells": {
         "1ct": {
           "status": "ok",
