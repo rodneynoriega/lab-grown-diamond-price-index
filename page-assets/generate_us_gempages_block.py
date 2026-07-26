@@ -205,7 +205,9 @@ def cell_td(cell, bg, weight):
     base = f'text-align:right;padding:10px 12px;background:{bg};'
     if not cell or cell.get("status") != "ok":
         return f'<td style="{base}color:#aaa;">&#8212;</td>'
-    tp = total_price(cell["median_price_per_carat"], weight)
+    tp = cell.get("median_total_price")
+    if tp is None:
+        tp = total_price(cell["median_price_per_carat"], weight)
     return f'<td style="{base}font-variant-numeric:tabular-nums;">${tp:,}</td>'
 
 
@@ -235,8 +237,12 @@ def generate_html(data):
     )
 
     # Market medians (IGI only, per-carat then total)
+    suppressed = set(data.get("market_median_suppressed", []))
     medians = {}
     for key, wt, _ in BANDS:
+        if key in suppressed:
+            medians[key] = None
+            continue
         prices = [r["cells"][key]["median_price_per_carat"]
                   for r in retailers
                   if not r.get("non_igi") and r["cells"].get(key, {}).get("status") == "ok"]
