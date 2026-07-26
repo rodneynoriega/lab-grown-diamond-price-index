@@ -196,7 +196,6 @@ def generate_jsonld(data, ranges, pub_date):
             "encodingFormat": "application/json",
             "contentUrl": "https://raw.githubusercontent.com/rodneynoriega/lab-grown-diamond-price-index/main/index-data.json",
         },
-        "license": "https://rings.com/pages/terms-of-service",
     }
     return json.dumps(obj, indent=2, ensure_ascii=False)
 
