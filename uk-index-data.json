@@ -1,6 +1,6 @@
 {
-  "month": "June 2026",
-  "last_updated": "2026-06-29",
+  "month": "July 2026",
+  "last_updated": "2026-07-30",
   "benchmark_spec": "G VS1 Excellent IGI",
   "currency": "GBP",
   "prices_note": "ex-VAT",
@@ -14,7 +14,7 @@
     "1.5ct": "1.45–1.55ct",
     "2ct": "1.95–2.05ct"
   },
-  "data_notes": "Sources: Diamond Labs, 77 Diamonds, Quality Diamonds (June 2026). All prices in GBP, exclusive of VAT (ex-VAT). UK consumers pay 20% VAT on loose diamonds at purchase — multiply any figure by 1.20 for the consumer-facing inc-VAT price. June 2026: prices fell sharply at 1.5ct and 2ct since the May inaugural edition while 1ct held roughly flat, flattening the per-carat curve. Total benchmark-matching listings this edition: 2,550.",
+  "data_notes": "Sources: Diamond Labs, 77 Diamonds, Quality Diamonds (July 2026). All prices in GBP, exclusive of VAT (ex-VAT). UK consumers pay 20% VAT on loose diamonds at purchase — multiply any figure by 1.20 for the consumer-facing inc-VAT price. July 2026: the 1ct cell thinned sharply at two of three retailers (Diamond Labs and Quality Diamonds both fell below the 30-listing publication minimum), leaving 77 Diamonds as the sole qualifying 1ct source this edition — the published 1ct Market Median is therefore a single-retailer figure, not a blended market read. 1.5ct is up genuinely (~7% vs June); 2ct is roughly flat. Total benchmark-matching listings this edition: 1,406.",
   "history": [
     {
       "month": "May 2026",
@@ -33,6 +33,15 @@
         "77_diamonds": {"1ct": 253, "1.5ct": 247, "2ct": 236},
         "quality_diamonds": {"1ct": 278, "1.5ct": 222, "2ct": 201}
       }
+    },
+    {
+      "month": "July 2026",
+      "total_listings": 1406,
+      "retailers": {
+        "diamond_labs": {"1ct": 205, "1.5ct": 157, "2ct": 162},
+        "77_diamonds": {"1ct": 252, "1.5ct": 253, "2ct": 238},
+        "quality_diamonds": {"1ct": 284, "1.5ct": 237, "2ct": 199}
+      }
     }
   ],
   "retailers": [
@@ -41,19 +50,20 @@
       "slug": "diamond_labs",
       "cells": {
         "1ct": {
-          "status": "ok",
-          "stone_count": 77,
-          "median_price_per_carat": 203
+          "status": "thin",
+          "stone_count": 15,
+          "median_price_per_carat": 205,
+          "note": "Thin sample this edition (n=15, below the 30-listing minimum). June had n=77; the 1ct band's mix shifted toward Ideal-cut stones this month, which fall outside the Excellent-cut benchmark filter."
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 126,
-          "median_price_per_carat": 171
+          "stone_count": 51,
+          "median_price_per_carat": 157
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 208,
-          "median_price_per_carat": 163
+          "stone_count": 46,
+          "median_price_per_carat": 162
         }
       }
     },
@@ -63,18 +73,18 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 371,
-          "median_price_per_carat": 253
+          "stone_count": 211,
+          "median_price_per_carat": 252
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 831,
-          "median_price_per_carat": 247
+          "stone_count": 649,
+          "median_price_per_carat": 253
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 543,
-          "median_price_per_carat": 236
+          "stone_count": 347,
+          "median_price_per_carat": 238
         }
       }
     },
@@ -83,19 +93,20 @@
       "slug": "quality_diamonds",
       "cells": {
         "1ct": {
-          "status": "ok",
-          "stone_count": 82,
-          "median_price_per_carat": 278
+          "status": "thin",
+          "stone_count": 18,
+          "median_price_per_carat": 284,
+          "note": "Thin sample this edition (n=18, below the 30-listing minimum). June had n=82."
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 133,
-          "median_price_per_carat": 222
+          "stone_count": 33,
+          "median_price_per_carat": 237
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 179,
-          "median_price_per_carat": 201
+          "stone_count": 36,
+          "median_price_per_carat": 199
         }
       }
     }
