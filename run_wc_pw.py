@@ -71,3 +71,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+    from snapshot import sync as _snapshot_sync
+    _snapshot_sync()

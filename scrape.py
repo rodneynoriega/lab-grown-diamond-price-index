@@ -26,6 +26,7 @@ from retailers.base import (
     TARGET_SHAPES, MIN_CARAT, MAX_CARAT,
     Diamond, diamond_to_row,
 )
+from snapshot import snapshot_file, sync as snapshot_sync
 
 DATA_DIR = Path(__file__).parent / "data"
 RAW_DIR = DATA_DIR / "raw"
@@ -169,6 +170,7 @@ def run_scrape(
             writer.writeheader()
             writer.writerows([diamond_to_row(d) for d in diamonds])
         print(f"  Saved {len(diamonds)} rows -> {p.name}")
+        snapshot_file(p)
         results[slug] = diamonds
 
     return results
@@ -334,6 +336,8 @@ def main() -> int:
     if not all_diamonds:
         print("No diamonds loaded.", file=sys.stderr)
         return 1
+
+    snapshot_sync()
 
     build_processed(all_diamonds, today)
     table = build_validation(all_diamonds, today)

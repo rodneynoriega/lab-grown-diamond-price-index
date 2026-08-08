@@ -52,3 +52,5 @@ if __name__ == "__main__":
     for name, slug, fn in RETAILERS:
         if target == "all" or target == slug:
             run(name, slug, fn)
+    from snapshot import sync as _snapshot_sync
+    _snapshot_sync()

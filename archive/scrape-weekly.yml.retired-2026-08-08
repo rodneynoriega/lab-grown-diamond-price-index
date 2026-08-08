@@ -1,0 +1,62 @@
+# RETIRED 2026-08-08 (Phase 0, task 2) -- deliberately, not abandoned.
+#
+# This workflow committed data exactly once (2026-04-22) and has been a
+# guaranteed no-op ever since: the multi-retailer refactor (87d8f45) stopped
+# scrape.py from writing data/prices.csv, which is the only file the commit
+# step stages. Beyond that, GitHub-hosted runners cannot do the real capture:
+#   - Clean Origin's Cloudflare blocks datacenter IPs (residential only)
+#   - With Clarity IP-blocks on request volume; needs manual IP rotation
+#   - Clean Origin also needs Playwright, which requirements.txt never included
+#   - Ritani / Grown Brilliance tarpit full-inventory pulls from any IP
+# Only Brilliant Earth / Blue Nile / VRAI might have worked from a runner,
+# and that was never verified.
+#
+# Replacement: listing-level retention now happens on every scrape run via
+# snapshot.py (each raw CSV is gzipped into data/snapshots/ automatically,
+# hooked into scrape.py and all run_* scripts). Scrapes run from a
+# residential IP (the only place they all work); durability comes from
+# pushing data/snapshots/ to its own separate (non-public) data repository.
+# Weekly cadence, if adopted, runs locally.
+#
+# Moved from .github/workflows/ to disable; kept for reference.
+
+name: Weekly diamond price scrape
+
+on:
+  schedule:
+    # Every Monday, 14:00 UTC (~10am ET / 7am PT)
+    - cron: "0 14 * * 1"
+  workflow_dispatch:   # allows manual runs for testing
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run scraper
+        run: python scrape.py
+
+      - name: Commit updated CSV
+        run: |
+          git config user.name  "price-index-bot"
+          git config user.email "price-index-bot@users.noreply.github.com"
+          git add data/prices.csv
+          if git diff --staged --quiet; then
+            echo "No new data; nothing to commit."
+          else
+            git commit -m "data: weekly scrape $(date -u +%Y-%m-%d)"
+            git push
+          fi

@@ -6,3 +6,9 @@ venv/
 *.egg-info/
 data/raw/
 data/processed/
+# listing-level snapshots live in a separate PRIVATE repo (nested git repo
+# rooted at data/snapshots/) -- never commit row-level data to this public repo
+data/snapshots/
+
+# local credentials
+.env

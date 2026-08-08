@@ -19,6 +19,11 @@ from curl_cffi import requests
 
 BANDS = {"1ct": (0.95, 1.05), "1.5ct": (1.45, 1.55), "2ct": (1.95, 2.05)}
 
+# Raw API rows per retailer/band, captured for the listing-level snapshot
+# (Phase 0 data retention). Written to data/raw/uk_<slug>_<date>.jsonl at the
+# end of a run, then gzipped into data/snapshots/ by snapshot.sync().
+RAW_ROWS: dict[str, dict[str, list]] = {}
+
 
 def median_ppc(prices_carats):
     ppc = [p / c for p, c in prices_carats]
@@ -51,6 +56,7 @@ def scrape_diamond_labs():
             if not data.get("hasMore") or not rows:
                 break
             page += 1
+        RAW_ROWS.setdefault("diamond_labs", {})[label] = all_rows
         pc = [(row["salePriceGbp"], row["carat"]) for row in all_rows if row.get("cut") == "Excellent"]
         results[label] = {"n": len(pc), "median_ppc": median_ppc(pc)}
         print(f"  Diamond Labs {label}: n={len(pc)} median={results[label]['median_ppc']}")
@@ -88,6 +94,7 @@ def scrape_quality_diamonds():
             start += length
             if start >= total or not rows:
                 break
+        RAW_ROWS.setdefault("quality_diamonds", {})[label] = all_rows
         pc = [(row["PriceExVatValue"], float(row["Carats"])) for row in all_rows]
         results[label] = {"n": len(pc), "median_ppc": median_ppc(pc)}
         print(f"  Quality Diamonds {label}: n={len(pc)} median={results[label]['median_ppc']}")
@@ -148,6 +155,7 @@ def scrape_77diamonds():
                     seen_codes.add(row["Code"])
                     deduped.append(row)
             all_rows = deduped
+            RAW_ROWS.setdefault("77_diamonds", {})[label] = all_rows
             pc = []
             for row in all_rows:
                 total_price = row["DiamondPrice"]["TotalDiamondPrice"]
@@ -237,4 +245,24 @@ if __name__ == "__main__":
     with open("uk_benchmark_results.json", "w") as f:
         json.dump(out, f, indent=2)
     print("\nSaved to uk_benchmark_results.json")
+
+    # Listing-level retention: dump the raw API rows per retailer, then gzip
+    # into data/snapshots/. Prices in these rows are ex-VAT GBP except where
+    # the retailer notes above say otherwise.
+    from datetime import date as _date
+    from pathlib import Path as _Path
+    run_date = _date.today().isoformat()
+    raw_dir = _Path(__file__).parent / "data" / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    for slug, bands in RAW_ROWS.items():
+        jsonl_path = raw_dir / f"uk_{slug}_{run_date}.jsonl"
+        with jsonl_path.open("w", encoding="utf-8") as f:
+            for band_label, rows in bands.items():
+                for row in rows:
+                    f.write(json.dumps({"band": band_label, "listing": row}) + "\n")
+        n = sum(len(rows) for rows in bands.values())
+        print(f"Raw listings: {n} rows -> {jsonl_path.name}")
+    from snapshot import sync as _snapshot_sync
+    _snapshot_sync()
+
     print(json.dumps(out, indent=2))
