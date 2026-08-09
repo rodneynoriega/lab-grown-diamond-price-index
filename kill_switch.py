@@ -51,14 +51,21 @@ Exit codes:
      with the same error class: revoked credentials, network down, etc.).
      Dry-run included: refused entries make a dry-run exit 1.
   2  argument or manifest validation error; nothing was attempted
-  3  NOTHING WAS DONE: zero pages were actually killed AND >=90% of
-     targets resolved "already absent". Either this is a verification
-     re-run after a successful kill (fine, expected), or the run is aimed
-     at the wrong store / bad token and silently did nothing. Distinct
-     code so a false green can never look like a completed kill. A run
-     that performed at least one real kill exits 0, not 3, however many
-     entries were already absent. Dry-runs participate: an all-absent
-     dry-run also exits 3 (the manifest aims at nothing).
+  3  NOTHING WAS DONE: the run completed clean but EVERY target resolved
+     "already absent" and zero kills were executed. (Mathematically this
+     is always 100%: any failed/refused entry exits 1 instead, and any
+     real kill exits 0.) Either this is a verification re-run after a
+     successful kill (fine, expected), or the run is aimed at the wrong
+     store / bad token and silently did nothing. Distinct code so a false
+     green can never look like a completed kill. Dry-runs participate: an
+     all-absent dry-run also exits 3 (the manifest aims at nothing).
+
+Manifest hygiene (runbook): manifests are REGENERATED from current state,
+never appended to. If a pilot page is deleted and recreated, an appended
+manifest would carry the old id AND the new id sharing one handle, and the
+duplicate-handle validation then correctly refuses the WHOLE manifest.
+In an emergency with a refused manifest: delete the flagged line(s) and
+re-run the same command; already-killed pages are skipped idempotently.
 
 Operator note on a lost delete response: if pageDelete succeeds server-side
 but the response is lost in transit, the entry is marked FAILED this run;
@@ -516,10 +523,13 @@ def main():
     exit_code = 1
 
     def error_class(e):
+        # Coarse buckets on purpose (R3-1): a degraded network alternating
+        # 502s and connection errors must still trip the breaker. The
+        # detailed kind is already in the printed error message.
         if isinstance(e, AuthError):
             return "auth-failure"
         if isinstance(e, TransientExhausted):
-            return f"retry-exhausted:{e.kind}"
+            return "transient-exhausted"
         return type(e).__name__
 
     try:
