@@ -75,18 +75,23 @@ TOKEN_URL = f"https://{STORE}/admin/oauth/access_token"
 GRAPHQL_URL = f"https://{STORE}/admin/api/{API_VERSION}/graphql.json"
 
 # Immutable page GIDs that must never be touched, checked BEFORE any fetch.
-# Primary protection rail: survives renames. TODO(before any batch run):
-# pin the real GIDs of the GemPages-built pages (US index, UK index,
-# about/contact) via one read-only fetch. Until pinned, the script warns
-# loudly that the handle blocklist is the only layer.
-PROTECTED_IDS = set()
+# Primary protection rail: survives renames. Pinned 2026-08-09 from a
+# read-only pages listing against the live store (id + handle + title all
+# verified). If a new must-never-touch page appears, pin it here first.
+PROTECTED_IDS = {
+    "gid://shopify/Page/154895089937",  # /pages/lab-grown-diamond-price-index (US index, GemPages)
+    "gid://shopify/Page/155200586001",  # /pages/uk-lab-grown-diamond-price-index (UK index, GemPages)
+    "gid://shopify/Page/155196195089",  # /pages/price-index (Diamond Price Index, live)
+    "gid://shopify/Page/141494190353",  # /pages/about-us
+    "gid://shopify/Page/141532234001",  # /pages/contact-us
+}
 
 # Handle blocklist, second layer (rename-fragile, which is why the ID rail
-# above is primary). UK variants are best-guess pending live verification.
+# above is primary). Verified against the live store 2026-08-09.
 PROTECTED_HANDLES = {
     "lab-grown-diamond-price-index",
-    "lab-grown-diamond-price-index-uk",
     "uk-lab-grown-diamond-price-index",
+    "price-index",
     "about-us",
     "contact-us",
 }
