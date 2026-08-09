@@ -46,14 +46,24 @@ Safety rails (all hard, none skippable):
 
 Exit codes:
   0  every entry verified killed (or a minority already absent)
-  1  at least one entry FAILED or was REFUSED, or the run was interrupted
-     (dry-run included: refused entries make a dry-run exit 1)
+  1  at least one entry FAILED or was REFUSED, the run was interrupted, or
+     the systemic circuit breaker tripped (>=5 consecutive entries failing
+     with the same error class: revoked credentials, network down, etc.).
+     Dry-run included: refused entries make a dry-run exit 1.
   2  argument or manifest validation error; nothing was attempted
-  3  NOTHING WAS DONE: >=90% of targets resolved "already absent" and zero
-     mutations ran. Either this is a verification re-run after a
-     successful kill (fine, expected), or the run is aimed at the wrong
-     store / bad token and silently did nothing. Distinct code so a false
-     green can never look like a completed kill.
+  3  NOTHING WAS DONE: zero pages were actually killed AND >=90% of
+     targets resolved "already absent". Either this is a verification
+     re-run after a successful kill (fine, expected), or the run is aimed
+     at the wrong store / bad token and silently did nothing. Distinct
+     code so a false green can never look like a completed kill. A run
+     that performed at least one real kill exits 0, not 3, however many
+     entries were already absent. Dry-runs participate: an all-absent
+     dry-run also exits 3 (the manifest aims at nothing).
+
+Operator note on a lost delete response: if pageDelete succeeds server-side
+but the response is lost in transit, the entry is marked FAILED this run;
+the re-run resolves it as "already absent" (idempotent) and comes up clean.
+FAILED therefore means "not verified killed", not "definitely still alive".
 
 This script only removes/hides pages. It never creates or publishes anything.
 """
@@ -100,14 +110,33 @@ MUTATION_DELAY_S = 0.6   # inter-entry pause; measured cost (10 pts/mutation,
                          # 100 pts/s restore) means this can never throttle
 MAX_RETRIES = 5
 BASE_BACKOFF_S = 1.0     # doubles per retry, +/-30% jitter (vendored pattern)
-ABSENT_ALARM_FRACTION = 0.9  # >=90% already-absent => exit 3, not 0
+ABSENT_ALARM_FRACTION = 0.9  # >=90% already-absent AND zero kills => exit 3
+CONSECUTIVE_SYSTEMIC_ABORT = 5  # same-class failures in a row => abort run
 
 PAGE_GID_RE = re.compile(r"^gid://shopify/Page/\d+$")
 ALLOWED_ENTRY_KEYS = {"id", "handle", "title", "note"}
 
 
+class AuthError(RuntimeError):
+    """Token mint/refresh failed: credentials bad or revoked, not network
+    flakiness. Never retried inside gql; surfaces immediately per entry and
+    trips the systemic circuit breaker."""
+
+
+class TransientExhausted(RuntimeError):
+    """All retries spent on one call. .kind carries the last error class
+    (e.g. 'HTTP 502', 'THROTTLED', 'network: ConnectionError') so the
+    run-level circuit breaker can spot a systemic pattern."""
+
+    def __init__(self, kind, msg):
+        super().__init__(msg)
+        self.kind = kind
+
+
 class RunLog:
-    """Print to stdout and tee every line to a timestamped log file."""
+    """Print to stdout and tee every line to a timestamped log file.
+    Logging failure (disk full, unwritable dir) NEVER blocks the kill:
+    open/write/flush errors disable the file and the run continues."""
 
     def __init__(self, directory):
         stamp = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
@@ -115,18 +144,26 @@ class RunLog:
         try:
             self._fh = open(self.path, "a")
         except OSError:
-            self._fh = None  # logging must never block the kill itself
+            self._fh = None
             self.path = None
 
     def line(self, msg):
         print(msg)
         if self._fh:
-            self._fh.write(msg + "\n")
-            self._fh.flush()
+            try:
+                self._fh.write(msg + "\n")
+                self._fh.flush()
+            except OSError as e:
+                self._fh = None  # drop the file, keep killing
+                print(f"WARNING: log file write failed ({e}); continuing "
+                      f"WITHOUT a log file -- the kill itself proceeds.")
 
     def close(self):
         if self._fh:
-            self._fh.close()
+            try:
+                self._fh.close()
+            except OSError:
+                pass
 
 
 def load_env(path):
@@ -194,11 +231,21 @@ def gql(auth, query, variables=None, log=None):
     reminted = False
     last_err = None
     for attempt in range(1, MAX_RETRIES + 1):
+        # Token mint/refresh OUTSIDE the request try: a failed mint is an
+        # auth problem (bad/revoked credentials), never "network flakiness",
+        # and must not be retried as if it were.
+        try:
+            token = auth.token()
+        except requests.exceptions.RequestException as e:
+            raise AuthError(f"AUTH FAILED: could not mint access token "
+                            f"({type(e).__name__}: {e}). Check the Shopify "
+                            f"credentials in .env; this is NOT a network "
+                            f"retry situation.")
         try:
             resp = requests.post(
                 GRAPHQL_URL,
                 json={"query": query, "variables": variables or {}},
-                headers={"X-Shopify-Access-Token": auth.token()},
+                headers={"X-Shopify-Access-Token": token},
                 timeout=30,
             )
         except requests.exceptions.RequestException as e:
@@ -211,7 +258,12 @@ def gql(auth, query, variables=None, log=None):
 
         if resp.status_code == 401 and not reminted:
             say("  401 unauthorized: re-minting token and replaying...")
-            auth.refresh()
+            try:
+                auth.refresh()
+            except requests.exceptions.RequestException as e:
+                raise AuthError(f"AUTH FAILED: token re-mint after 401 "
+                                f"failed ({type(e).__name__}). Credentials "
+                                f"are bad or revoked.")
             reminted = True
             last_err = "HTTP 401"
             continue
@@ -238,7 +290,8 @@ def gql(auth, query, variables=None, log=None):
         if errors:
             raise RuntimeError(f"GraphQL errors: {errors}")
         return body["data"]
-    raise RuntimeError(
+    raise TransientExhausted(
+        last_err or "unknown",
         f"gave up after {MAX_RETRIES} attempts (last error: {last_err})")
 
 
@@ -290,7 +343,13 @@ def validate_manifest(entries, source_desc):
                 f"{where} ({gid}): missing 'handle' (required: the handle "
                 f"is the aim check)")
             continue
-        normalized.append((gid, normalize_handle(handle)))
+        norm = normalize_handle(handle)
+        if norm in {h for _, h in normalized}:
+            problems.append(f"{where} ({gid}): duplicate handle '{norm}' "
+                            f"(two ids cannot share one live handle; "
+                            f"one of them is mis-aimed)")
+            continue
+        normalized.append((gid, norm))
     if problems:
         for p in problems:
             print(f"manifest INVALID ({source_desc}): {p}")
@@ -304,8 +363,22 @@ def validate_manifest(entries, source_desc):
 
 
 def load_manifest(path):
-    raw = json.loads(Path(path).read_text())
-    entries = raw["pages"] if isinstance(raw, dict) else raw
+    try:
+        raw = json.loads(Path(path).read_text())
+    except OSError as e:
+        print(f"manifest {path}: cannot read ({e})")
+        raise SystemExit(2)
+    except json.JSONDecodeError as e:
+        print(f"manifest {path}: malformed JSON ({e})")
+        raise SystemExit(2)
+    if isinstance(raw, dict):
+        if "pages" not in raw:
+            print(f"manifest {path}: dict form must have a 'pages' key "
+                  f"(found keys: {sorted(raw)})")
+            raise SystemExit(2)
+        entries = raw["pages"]
+    else:
+        entries = raw
     if not isinstance(entries, list):
         print(f"manifest {path}: top level must be a list or "
               f"{{'pages': [...]}}")
@@ -437,7 +510,18 @@ def main():
 
     ok = failed = refused = absent = 0
     interrupted = False
+    breaker_tripped = False
+    fail_streak = 0
+    last_fail_class = None
     exit_code = 1
+
+    def error_class(e):
+        if isinstance(e, AuthError):
+            return "auth-failure"
+        if isinstance(e, TransientExhausted):
+            return f"retry-exhausted:{e.kind}"
+        return type(e).__name__
+
     try:
         for gid, expected_handle in targets:
             try:
@@ -445,12 +529,16 @@ def main():
                     say(f"  {gid}: PROTECTED id -- REFUSED. This page must "
                         f"never be touched via the API.")
                     refused += 1
+                    fail_streak = 0
+                    last_fail_class = None
                     continue
 
                 page = fetch_page(auth, gid, log=log)
                 if page is None:
                     say(f"  {gid}: already absent -- OK (idempotent)")
                     absent += 1
+                    fail_streak = 0
+                    last_fail_class = None
                     continue
 
                 handle, title = page["handle"], page["title"]
@@ -460,12 +548,16 @@ def main():
                         f"REFUSED. This page must never be touched via "
                         f"the API.")
                     refused += 1
+                    fail_streak = 0
+                    last_fail_class = None
                     continue
                 if live_handle != expected_handle:
                     say(f"  {gid}: live handle '{handle}' != manifest "
                         f"handle '{expected_handle}' -- REFUSED "
                         f"(possible ID mixup)")
                     refused += 1
+                    fail_streak = 0
+                    last_fail_class = None
                     continue
 
                 if not args.yes:
@@ -473,6 +565,8 @@ def main():
                         f"published={page['isPublished']}): "
                         f"would {args.mode}")
                     ok += 1
+                    fail_streak = 0
+                    last_fail_class = None
                     continue
 
                 if args.mode == "delete":
@@ -496,6 +590,8 @@ def main():
                     else:
                         say(f"  {gid}: unpublish not verified -- FAILED")
                         failed += 1
+                fail_streak = 0
+                last_fail_class = None
                 time.sleep(MUTATION_DELAY_S)
             except Exception as e:
                 # Per-entry failure: record and KEEP GOING. One bad page or
@@ -503,6 +599,22 @@ def main():
                 # 1,000-page kill half-done with no summary.
                 say(f"  {gid}: ERROR {e} -- recorded as FAILED, continuing")
                 failed += 1
+                cls = error_class(e)
+                if cls == last_fail_class:
+                    fail_streak += 1
+                else:
+                    fail_streak = 1
+                    last_fail_class = cls
+                if fail_streak >= CONSECUTIVE_SYSTEMIC_ABORT:
+                    say(f"CIRCUIT BREAKER: {fail_streak} consecutive "
+                        f"entries failed with the same systemic error "
+                        f"class ({cls}). This is a run-level problem "
+                        f"(credentials, network, store), not page-level "
+                        f"trouble -- aborting the rest of the run instead "
+                        f"of grinding through it. Fix the cause and re-run "
+                        f"the same command (idempotent).")
+                    breaker_tripped = True
+                    break
                 time.sleep(MUTATION_DELAY_S)
     except KeyboardInterrupt:
         interrupted = True
@@ -513,19 +625,27 @@ def main():
             f"of {len(targets)}"
             + (" [INTERRUPTED before completion]" if interrupted else ""))
 
-        if interrupted or failed or refused or processed < len(targets):
+        if (interrupted or breaker_tripped or failed or refused
+                or processed < len(targets)):
             say("RESULT: NOT CLEAN -- re-run this exact command after "
                 "fixing the above; already-killed pages are skipped "
-                "idempotently.")
+                "idempotently."
+                + (" (Note: a FAILED delete whose response was lost will "
+                   "resolve as 'already absent' on the re-run.)"
+                   if failed else ""))
             exit_code = 1
-        elif args.yes and absent / len(targets) >= ABSENT_ALARM_FRACTION:
+        elif (ok == 0
+              and absent / len(targets) >= ABSENT_ALARM_FRACTION):
+            # ok == 0 is essential: a run that performed even one real
+            # kill (or dry-run match) genuinely did something and exits 0.
             say(f"WARNING: NOTHING WAS DONE -- {absent}/{len(targets)} "
                 f"targets resolved 'already absent' and zero pages were "
-                f"actually {args.mode}d. If this was not a verification "
-                f"re-run after a successful kill, this run may be aimed "
-                f"at the wrong store or using a token that cannot see "
-                f"these pages. Exit code 3 so a false green can never "
-                f"pass as a completed kill.")
+                f"{'actually killed (' + args.mode + ')' if args.yes else 'matched for a dry-run ' + args.mode}. "
+                f"If this was not a verification re-run after a "
+                f"successful kill, this run may be aimed at the wrong "
+                f"store or using a token that cannot see these pages. "
+                f"Exit code 3 so a false green can never pass as a "
+                f"completed kill.")
             exit_code = 3
         else:
             exit_code = 0
