@@ -1,62 +1,74 @@
 {% import "_shared.html.j2" as sh %}
-<div class="lgd-pilot lgd-stone-page">
+<div class="lgd-pilot lgd-stone-page" style="{{ sh.container }}">
 {# NO h1 in the body: the Flex default page template injects page.title as the served H1 (verified live 2026-08-09); page.title carries the scheme H1, the long SEO title lives in global.title_tag. #}
-{{ sh.brand(index_url, brand_line) }}
+{{ sh.header(index_url, brand_line, cycle_label, data_date_h) }}
 
-<p>This page tracks one specific lab grown diamond, identified by its {{ lab }} certificate <strong>{{ num }}</strong>, across the US retailers publicly listing it. Because the certificate number matches exactly, this is a same-stone price comparison: identical diamond, different prices.</p>
+<p style="{{ sh.body_p }}">This page tracks one specific lab grown diamond, identified by its {{ lab }} certificate <strong>{{ num }}</strong>, across the US retailers publicly listing it. Because the certificate number matches exactly, this is a same-stone price comparison: identical diamond, different prices.</p>
 
-<h2>{{ cycle_label }} prices for {{ lab }} {{ num }}</h2>
-<table class="lgd-price-table">
-  <thead><tr><th>Retailer</th><th>Listed price ({{ cycle_label }})</th><th>Price per carat</th><th>Listing</th></tr></thead>
+<h2 style="{{ sh.h2s }}">{{ cycle_label }} prices for {{ lab }} {{ num }}</h2>
+<div style="{{ sh.wrap }}">
+<table class="lgd-price-table" style="{{ sh.table }}">
+  <thead><tr><th style="{{ sh.th_l }}">Retailer</th><th style="{{ sh.th_r }}">Listed price ({{ cycle_label }})</th><th style="{{ sh.th_r }}">Price per carat</th><th style="{{ sh.th_l }}">Listing</th></tr></thead>
   <tbody>
   {% for row in displayed %}
+    {% set bg = loop.cycle("#fafafa", "#ffffff") %}
     <tr>
-      <td>{{ row.retailer }}</td>
-      <td>{{ row.price_usd | usd }}</td>
-      <td>{{ (row.price_usd / row.carat) | usd }}</td>
-      <td><a href="{{ row.product_url }}" rel="nofollow noopener">view at {{ row.retailer }}</a></td>
+      <td style="{{ sh.td(bg) }}font-weight:700;white-space:nowrap;">{{ row.retailer }}</td>
+      <td style="{{ sh.tdn(bg) }}">{{ row.price_usd | usd }}</td>
+      <td style="{{ sh.tdn(bg) }}">{{ (row.price_usd / row.carat) | usd }}</td>
+      <td style="{{ sh.td(bg) }}"><a href="{{ row.product_url }}" rel="nofollow noopener" style="color:#1a1a1a;">view at {{ row.retailer }}</a></td>
     </tr>
   {% endfor %}
   </tbody>
 </table>
-<p><strong>Price spread: {{ spread | usd }}</strong> ({{ "%.1f" | format(spread_pct) }}%) between {{ hi_r }} ({{ hi_p | usd }}) and {{ lo_r }} ({{ lo_p | usd }}) for the same certified stone on {{ data_date_h }}.</p>
+</div>
+<div style="{{ sh.callout }}">
+  <p style="{{ sh.callout_p }}">Price spread: {{ spread | usd }} ({{ "%.1f" | format(spread_pct) }}%)</p>
+  <p style="{{ sh.callout_2 }}">between {{ hi_r }} ({{ hi_p | usd }}) and {{ lo_r }} ({{ lo_p | usd }}) for the same certified stone on {{ data_date_h }}.</p>
+</div>
 
-<h2>Stone details ({{ lab }} certificate {{ num }})</h2>
-<table class="lgd-spec-table">
+<h2 style="{{ sh.h2s }}">Stone details ({{ lab }} certificate {{ num }})</h2>
+<div style="{{ sh.wrap }}">
+<table class="lgd-spec-table" style="{{ sh.table }}">
   <tbody>
-    <tr><th>Carat</th><td>{{ cs }}</td></tr>
-    <tr><th>Shape</th><td>{{ shape }}</td></tr>
-    <tr><th>Color</th><td>{{ spec.color }}</td></tr>
-    <tr><th>Clarity</th><td>{{ spec.clarity }}</td></tr>
-    {% if ret_specs.cut %}<tr><th>Cut</th><td>{{ ret_specs.cut }}</td></tr>{% endif %}
-    {% if ret_specs.polish %}<tr><th>Polish</th><td>{{ ret_specs.polish }}</td></tr>{% endif %}
-    {% if ret_specs.symmetry %}<tr><th>Symmetry</th><td>{{ ret_specs.symmetry }}</td></tr>{% endif %}
-    <tr><th>Certificate</th><td>{{ lab }} {{ num }}</td></tr>
+    <tr><th style="{{ sh.td('#fafafa') }}text-align:left;font-weight:700;white-space:nowrap;">Carat</th><td style="{{ sh.td('#fafafa') }}">{{ cs }}</td></tr>
+    <tr><th style="{{ sh.td('#ffffff') }}text-align:left;font-weight:700;white-space:nowrap;">Shape</th><td style="{{ sh.td('#ffffff') }}">{{ shape }}</td></tr>
+    <tr><th style="{{ sh.td('#fafafa') }}text-align:left;font-weight:700;white-space:nowrap;">Color</th><td style="{{ sh.td('#fafafa') }}">{{ spec.color }}</td></tr>
+    <tr><th style="{{ sh.td('#ffffff') }}text-align:left;font-weight:700;white-space:nowrap;">Clarity</th><td style="{{ sh.td('#ffffff') }}">{{ spec.clarity }}</td></tr>
+    {% if ret_specs.cut %}<tr><th style="{{ sh.td('#fafafa') }}text-align:left;font-weight:700;white-space:nowrap;">Cut</th><td style="{{ sh.td('#fafafa') }}">{{ ret_specs.cut }}</td></tr>{% endif %}
+    {% if ret_specs.polish %}<tr><th style="{{ sh.td('#ffffff') }}text-align:left;font-weight:700;white-space:nowrap;">Polish</th><td style="{{ sh.td('#ffffff') }}">{{ ret_specs.polish }}</td></tr>{% endif %}
+    {% if ret_specs.symmetry %}<tr><th style="{{ sh.td('#fafafa') }}text-align:left;font-weight:700;white-space:nowrap;">Symmetry</th><td style="{{ sh.td('#fafafa') }}">{{ ret_specs.symmetry }}</td></tr>{% endif %}
+    <tr><th style="{{ sh.td('#ffffff') }}text-align:left;font-weight:700;white-space:nowrap;">Certificate</th><td style="{{ sh.td('#ffffff') }}">{{ lab }} {{ num }}</td></tr>
   </tbody>
 </table>
-<p>Shape, carat, color, and clarity are as reported identically by every retailer listing this certificate. Retailer-assigned grades (cut, polish, symmetry, which are not always certificate-backed on fancy shapes) are shown only where all listing retailers agree; where they disagree, the field is omitted.</p>
+</div>
+<p style="{{ sh.note }}">Shape, carat, color, and clarity are as reported identically by every retailer listing this certificate. Retailer-assigned grades (cut, polish, symmetry, which are not always certificate-backed on fancy shapes) are shown only where all listing retailers agree; where they disagree, the field is omitted.</p>
 
 {% if hist_cycles | length > 1 %}
-<h2>Listing-price history</h2>
-<table class="lgd-history-table">
-  <thead><tr><th>Month</th>{% for r in retailer_order %}<th>{{ r }}</th>{% endfor %}</tr></thead>
+<h2 style="{{ sh.h2s }}">Listing-price history</h2>
+<div style="{{ sh.wrap }}">
+<table class="lgd-history-table" style="{{ sh.table }}">
+  <thead><tr><th style="{{ sh.th_l }}">Month</th>{% for r in retailer_order %}<th style="{{ sh.th_r }}">{{ r }}</th>{% endfor %}</tr></thead>
   <tbody>
   {% for cyc in hist_cycles %}
+    {% set bg = loop.cycle("#fafafa", "#ffffff") %}
     <tr>
-      <td>{{ cycle_labels[cyc] }}</td>
+      <td style="{{ sh.td(bg) }}font-weight:700;white-space:nowrap;">{{ cycle_labels[cyc] }}</td>
       {% for r in retailer_order %}
-      <td>{% if history[cyc].get(r) is not none %}{{ history[cyc][r] | usd }}{% else %}not listed{% endif %}</td>
+      <td style="{{ sh.tdn(bg) }}{% if history[cyc].get(r) is none %}{{ sh.absent }}{% endif %}">{% if history[cyc].get(r) is not none %}{{ history[cyc][r] | usd }}{% else %}—{% endif %}</td>
       {% endfor %}
     </tr>
   {% endfor %}
   </tbody>
 </table>
-<p>"Not listed" means the stone did not appear in that retailer's public listings in that month's collection cycle.</p>
+</div>
+<p style="{{ sh.note }}">"—" means the stone did not appear in that retailer's public listings in that month's collection cycle.</p>
 {% endif %}
 
 {{ sh.loose_stone_note() }}
 {{ sh.delist_note(data_date_h, displayed | map(attribute="retailer") | list) }}
 {{ sh.methodology(data_date_h) }}
+{{ sh.footer() }}
 
 <script type="application/ld+json">{{ json_ld | tojson }}</script>
 </div>

@@ -1,40 +1,46 @@
 {% import "_shared.html.j2" as sh %}
-<div class="lgd-pilot lgd-agg-page">
+<div class="lgd-pilot lgd-agg-page" style="{{ sh.container }}">
 {# NO h1 in the body: the Flex default page template injects page.title as the served H1 (verified live 2026-08-09); page.title carries the scheme H1, the long SEO title lives in global.title_tag. #}
-{{ sh.brand(index_url, brand_line) }}
+{{ sh.header(index_url, brand_line, cycle_label, data_date_h) }}
 
-<p>Median listed prices for lab grown diamonds compared across <strong>{{ n_retailers }}</strong> US retailers, {{ cycle_label }}: <strong>{{ "{:,}".format(total_n) }}</strong> public listings, round and oval, all colors and clarities pooled, refreshed monthly.</p>
+<div style="{{ sh.callout }}">
+  <p style="{{ sh.callout_p }}">Median listed prices for lab grown diamonds compared across <strong>{{ n_retailers }}</strong> US retailers, {{ cycle_label }}: <strong>{{ "{:,}".format(total_n) }}</strong> public listings, round and oval, all colors and clarities pooled, refreshed monthly.</p>
+</div>
 
-<h2>Median price by retailer and carat ({{ cycle_label }})</h2>
-<table class="lgd-price-table">
-  <thead><tr><th>Retailer</th>{% for p in carat_points %}<th>{{ p | carat }} ct median</th>{% endfor %}</tr></thead>
+<h2 style="{{ sh.h2s }}">Median price by retailer and carat ({{ cycle_label }})</h2>
+<div style="{{ sh.wrap }}">
+<table class="lgd-price-table" style="{{ sh.table }}">
+  <thead><tr><th style="{{ sh.th_l }}">Retailer</th>{% for p in carat_points %}<th style="{{ sh.th_r }}">{{ p | carat }} ct median</th>{% endfor %}</tr></thead>
   <tbody>
   {% for r in retailers %}
+  {% set bg = loop.cycle("#fafafa", "#ffffff") %}
   <tr>
-    <td>{{ r }}{% if r == "VRAI" %} †{% endif %}</td>
+    <td style="{{ sh.td(bg) }}font-weight:700;white-space:nowrap;">{{ r }}{% if r == "VRAI" %} †{% endif %}</td>
     {% for p in carat_points %}
     {% set row = (grid[p].retailer_rows | selectattr("retailer", "equalto", r) | list) %}
-    <td>{% if row %}{{ row[0].median | usd }} <span class="lgd-n">(n={{ "{:,}".format(row[0].n) }})</span>{% else %}below minimum{% endif %}</td>
+    <td style="{{ sh.tdn(bg) }}{% if not row %}{{ sh.absent }}{% endif %}">{% if row %}{{ row[0].median | usd }} <span class="lgd-n" style="color:#888;font-size:0.85em;">(n={{ "{:,}".format(row[0].n) }})</span>{% else %}—{% endif %}</td>
     {% endfor %}
   </tr>
   {% endfor %}
   </tbody>
 </table>
-<p>"Below minimum" means the retailer had fewer than 30 qualifying listings in that carat range this cycle; no figure is published for it. † VRAI grades in-house (no third-party certificates); its figures are context, not directly comparable.</p>
+</div>
+<p style="{{ sh.note }}">"—" means the retailer had fewer than 30 qualifying listings in that carat range this cycle; no figure is published for it. † VRAI grades in-house (no third-party certificates); its figures are context, not directly comparable.</p>
 
-<h2>Per-carat detail pages</h2>
-<ul>
+<h2 style="{{ sh.h2s }}">Per-carat detail pages</h2>
+<ul style="margin:0 0 12px;padding-left:18px;line-height:1.8;">
   {% for p in carat_points %}
-  <li><a href="/pages/{{ p | carat | replace(".", "-") }}-carat-lab-grown-diamond-price">{{ p | carat }} carat lab grown diamond price</a></li>
+  <li><a href="/pages/{{ p | carat | replace(".", "-") }}-carat-lab-grown-diamond-price" style="color:#1a1a1a;">{{ p | carat }} carat lab grown diamond price</a></li>
   {% endfor %}
-  <li><a href="/pages/how-much-does-a-lab-grown-diamond-cost">How much does a lab grown diamond cost?</a></li>
-  <li><a href="/pages/lab-grown-diamond-resale-value">Lab grown diamond resale value</a></li>
+  <li><a href="/pages/how-much-does-a-lab-grown-diamond-cost" style="color:#1a1a1a;">How much does a lab grown diamond cost?</a></li>
+  <li><a href="/pages/lab-grown-diamond-resale-value" style="color:#1a1a1a;">Lab grown diamond resale value</a></li>
 </ul>
 
 {{ sh.stat_distinction() }}
 {{ sh.loose_stone_note() }}
 {{ sh.delist_note(data_date_h, retailers) }}
 {{ sh.methodology(data_date_h) }}
+{{ sh.footer() }}
 
 <script type="application/ld+json">{{ json_ld | tojson }}</script>
 </div>

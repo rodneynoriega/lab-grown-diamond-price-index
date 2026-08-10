@@ -1,31 +1,68 @@
-{# Shared macros for all pilot pages. Scope rules live here so every page
-   carries them: brand line (the ONLY place "Price Index" appears),
-   honest delist-window labels, pooled-vs-benchmark stat distinction,
-   loose-stone / no-ring-total statement, affirmative disclosure. #}
+{# Shared macros + inline design system for all pilot pages, matching the
+   US index block's visual language (page-assets/us-index-gempages-
+   2026-08-09-retitle.html). Inline styles only: pilot pages render
+   through the theme's default page template. Scope rules live here so
+   every page carries them: brand line (the ONLY place "Price Index"
+   appears), honest delist-window labels, pooled-vs-benchmark stat
+   distinction, loose-stone / no-ring-total statement, affirmative
+   disclosure. Deliberately NOT reproduced: the index block's
+   "Rings.com | Research & Data" mini-nav strip (the theme header
+   already provides nav; duplicating it is the annoyance to avoid). #}
 
-{% macro brand(index_url, brand_line) %}
-<p class="lgd-brand-line"><em>{{ brand_line | safe }}: <a href="{{ index_url }}">rings.com/pages/lab-grown-diamond-price-index</a>.</em></p>
+{% set container = "max-width:860px;margin:0 auto;padding:0 16px 24px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;" %}
+{% set h2s = "font-size:1.15rem;font-weight:700;margin:28px 0 12px;color:#1a1a1a;" %}
+{% set body_p = "margin:0 0 12px;line-height:1.6;" %}
+{% set note = "font-size:0.8rem;color:#666;line-height:1.6;margin:0 0 12px;" %}
+{% set wrap = "overflow-x:auto;margin-bottom:24px;" %}
+{% set table = "width:100%;border-collapse:collapse;font-size:0.95rem;" %}
+{% set th_l = "text-align:left;padding:10px 12px;border-bottom:2px solid #1a1a1a;font-weight:700;white-space:nowrap;color:#1a1a1a;background:#fff;" %}
+{% set th_r = "text-align:right;padding:10px 12px;border-bottom:2px solid #1a1a1a;font-weight:700;white-space:nowrap;color:#1a1a1a;background:#fff;" %}
+{% set callout = "background:#1a1a1a;color:#fff;border-radius:6px;padding:20px 24px;margin:0 0 24px;" %}
+{% set callout_p = "margin:0;font-size:1.05rem;font-weight:700;line-height:1.5;color:#fff;" %}
+{% set callout_2 = "margin:8px 0 0;color:#c8c8c8;font-size:0.9rem;line-height:1.6;" %}
+{% set absent = "color:#aaa;" %}
+
+{% macro td(bg) %}padding:10px 12px;background:{{ bg }};{% endmacro %}
+{% macro tdn(bg) %}text-align:right;padding:10px 12px;background:{{ bg }};font-variant-numeric:tabular-nums;{% endmacro %}
+
+{% macro header(index_url, brand_line, cycle_label, data_date_h) %}
+<p style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#888;margin:0 0 6px;">Rings.com Research</p>
+<div style="border-top:3px solid #1a1a1a;padding-top:12px;margin-bottom:24px;">
+  <p class="lgd-brand-line" style="margin:0 0 8px;color:#555;font-size:0.95rem;line-height:1.55;">{{ brand_line }}: <a href="{{ index_url }}" style="color:#555;">rings.com/pages/lab-grown-diamond-price-index</a>.</p>
+  <p style="margin:0;padding-top:6px;border-top:1px solid #ebebeb;font-size:0.78rem;color:#999;">Data: {{ cycle_label }} collection cycle, captured {{ data_date_h }}.</p>
+</div>
+{% endmacro %}
+
+{% macro footer() %}
+<div style="margin-top:32px;padding-top:12px;border-top:1px solid #eee;">
+  <p style="margin:0 0 4px;font-size:0.8rem;color:#888;">Updated monthly.</p>
+  <p style="margin:0;font-size:0.78rem;color:#999;">Rings.com Lab-Grown Diamond Price Index</p>
+</div>
 {% endmacro %}
 
 {% macro delist_note(data_date_h, retailers) %}
-<h2>How current are these prices?</h2>
-<p>Every price on this page was captured from public retailer listings on <strong>{{ data_date_h }}</strong> (July 2026 collection cycle) and is accurate as of that date only. Retailers reprice and delist stones continuously, so any listing shown here may have sold, been delisted, or changed price since capture.</p>
-<ul>
+<div style="border-top:1px solid #ddd;margin-top:28px;padding-top:16px;">
+<h2 style="font-size:1rem;font-weight:700;margin:0 0 12px;color:#1a1a1a;">How current are these prices?</h2>
+<p style="margin:0 0 12px;font-size:0.9rem;color:#333;line-height:1.7;">Every price on this page was captured from public retailer listings on <strong>{{ data_date_h }}</strong> (July 2026 collection cycle) and is accurate as of that date only. Retailers reprice and delist stones continuously, so any listing shown here may have sold, been delisted, or changed price since capture.</p>
+<ul style="margin:0 0 12px;padding-left:18px;">
 {% for r in retailers %}
-  <li><strong>{{ r }}</strong>: last verified in its public listings on {{ data_date_h }}. Re-checked on the index's collection cycle (currently monthly; weekly refresh rolling out).</li>
+  <li style="font-size:0.9rem;color:#333;line-height:1.7;"><strong>{{ r }}</strong>: last verified in its public listings on {{ data_date_h }}. Re-checked on the index's collection cycle (currently monthly; weekly refresh rolling out).</li>
 {% endfor %}
 </ul>
+</div>
 {% endmacro %}
 
 {% macro loose_stone_note() %}
-<p><strong>Loose stones only.</strong> Every figure on this page is for a loose lab grown diamond as listed, before any ring setting. No blended ring-total pricing appears on this page; setting costs vary by retailer and are never merged into these comparisons.</p>
+<p style="font-size:0.8rem;color:#666;line-height:1.6;margin:0 0 12px;"><strong>Loose stones only.</strong> Every figure on this page is for a loose lab grown diamond as listed, before any ring setting. No blended ring-total pricing appears on this page; setting costs vary by retailer and are never merged into these comparisons.</p>
 {% endmacro %}
 
 {% macro stat_distinction() %}
-<p class="lgd-stat-def"><strong>Stat definition.</strong> Figures on this page pool all qualifying listings in the stated carat range: all colors, clarities, and cut grades, from retailers with at least 30 qualifying listings. The monthly Index benchmark is a different, tighter statistic (E VS1 round Excellent-cut IGI). The two are not comparable and should not be quoted against each other.</p>
+<p class="lgd-stat-def" style="font-size:0.8rem;color:#666;line-height:1.6;margin:0 0 12px;"><strong>Stat definition.</strong> Figures on this page pool all qualifying listings in the stated carat range: all colors, clarities, and cut grades, from retailers with at least 30 qualifying listings. The monthly Index benchmark is a different, tighter statistic (E VS1 round Excellent-cut IGI). The two are not comparable and should not be quoted against each other.</p>
 {% endmacro %}
 
 {% macro methodology(data_date_h) %}
-<h2>About this data</h2>
-<p>Prices are publicly listed retail prices for loose lab grown diamonds, collected from each retailer's public website on {{ data_date_h }}. No accounts, logins, or paywalls are involved; these are the prices any shopper sees. Rings.com is itself a jewelry retailer and publishes this data as an attributed, dated record of public listing prices. Retailer names are used for identification only; Rings.com is not affiliated with any retailer listed.</p>
+<div style="border-top:1px solid #ddd;margin-top:28px;padding-top:16px;">
+<h2 style="font-size:1rem;font-weight:700;margin:0 0 12px;color:#1a1a1a;">About this data</h2>
+<p style="margin:0;font-size:0.9rem;color:#333;line-height:1.7;">Prices are publicly listed retail prices for loose lab grown diamonds, collected from each retailer's public website on {{ data_date_h }}. No accounts, logins, or paywalls are involved; these are the prices any shopper sees. Rings.com is itself a jewelry retailer and publishes this data as an attributed, dated record of public listing prices. Retailer names are used for identification only; Rings.com is not affiliated with any retailer listed.</p>
+</div>
 {% endmacro %}

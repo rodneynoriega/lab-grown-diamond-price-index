@@ -1,46 +1,56 @@
 {% import "_shared.html.j2" as sh %}
-<div class="lgd-pilot lgd-agg-page">
+<div class="lgd-pilot lgd-agg-page" style="{{ sh.container }}">
 {# NO h1 in the body: the Flex default page template injects page.title as the served H1 (verified live 2026-08-09); page.title carries the scheme H1, the long SEO title lives in global.title_tag. #}
-{{ sh.brand(index_url, brand_line) }}
+{{ sh.header(index_url, brand_line, cycle_label, data_date_h) }}
 
-<p>The median <strong>{{ cs }} carat {{ st.shape }} lab grown diamond</strong> lists for <strong>{{ st.median | usd }}</strong> as of {{ cycle_label }}, computed from <strong>{{ "{:,}".format(st.n) }}</strong> public listings across <strong>{{ st.shown_retailers | length }}</strong> US retailers. Typical range: {{ st.p10 | usd }} to {{ st.p90 | usd }} (10th to 90th percentile). Median price per carat: {{ st.median_ppc | usd }}.</p>
-<p>Carat range for this page: {{ "%.2f" | format(st.lo) }} to {{ "%.2f" | format(st.hi) }} ct, {{ st.shape }} shape, all colors and clarities pooled.</p>
+<div style="{{ sh.callout }}">
+  <p style="{{ sh.callout_p }}">The median <strong>{{ cs }} carat {{ st.shape }} lab grown diamond</strong> lists for <strong>{{ st.median | usd }}</strong> as of {{ cycle_label }}, computed from <strong>{{ "{:,}".format(st.n) }}</strong> public listings across <strong>{{ st.shown_retailers | length }}</strong> US retailers.</p>
+  <p style="{{ sh.callout_2 }}">Typical range: {{ st.p10 | usd }} to {{ st.p90 | usd }} (10th to 90th percentile). Median price per carat: {{ st.median_ppc | usd }}.</p>
+</div>
+<p style="{{ sh.body_p }}">Carat range for this page: {{ "%.2f" | format(st.lo) }} to {{ "%.2f" | format(st.hi) }} ct, {{ st.shape }} shape, all colors and clarities pooled.</p>
 
-<h2>Median {{ cs }} carat {{ st.shape }} price by retailer ({{ cycle_label }})</h2>
-<table class="lgd-price-table">
-  <thead><tr><th>Retailer</th><th>Median listed price</th><th>Listings (n)</th></tr></thead>
+<h2 style="{{ sh.h2s }}">Median {{ cs }} carat {{ st.shape }} price by retailer ({{ cycle_label }})</h2>
+<div style="{{ sh.wrap }}">
+<table class="lgd-price-table" style="{{ sh.table }}">
+  <thead><tr><th style="{{ sh.th_l }}">Retailer</th><th style="{{ sh.th_r }}">Median listed price</th><th style="{{ sh.th_r }}">Listings (n)</th></tr></thead>
   <tbody>
   {% for row in st.retailer_rows %}
-    <tr><td>{{ row.retailer }}{% if row.retailer == "VRAI" %} †{% endif %}</td><td>{{ row.median | usd }}</td><td>{{ "{:,}".format(row.n) }}</td></tr>
+    {% set bg = loop.cycle("#fafafa", "#ffffff") %}
+    <tr><td style="{{ sh.td(bg) }}font-weight:700;white-space:nowrap;">{{ row.retailer }}{% if row.retailer == "VRAI" %} †{% endif %}</td><td style="{{ sh.tdn(bg) }}">{{ row.median | usd }}</td><td style="{{ sh.tdn(bg) }}">{{ "{:,}".format(row.n) }}</td></tr>
   {% endfor %}
   </tbody>
 </table>
+</div>
 {% if st.below_min %}
-<p>Not shown: {{ st.below_min | join(", ") }} (below the 30-listing publication minimum in this cell this cycle).</p>
+<p style="{{ sh.note }}">Not shown: {{ st.below_min | join(", ") }} (below the 30-listing publication minimum in this cell this cycle).</p>
 {% endif %}
 {% if "VRAI" in st.shown_retailers %}
-<p>† VRAI grades in-house and does not carry third-party (IGI/GIA) certificates; its figures are shown for context and are not directly comparable.</p>
+<p style="{{ sh.note }}">† VRAI grades in-house and does not carry third-party (IGI/GIA) certificates; its figures are shown for context and are not directly comparable.</p>
 {% endif %}
 
-<h2>Monthly price history</h2>
-<table class="lgd-history-table">
-  <thead><tr><th>Month</th><th>Pooled median</th><th>Listings (n)</th><th>Retailers</th></tr></thead>
+<h2 style="{{ sh.h2s }}">Monthly price history</h2>
+<div style="{{ sh.wrap }}">
+<table class="lgd-history-table" style="{{ sh.table }}">
+  <thead><tr><th style="{{ sh.th_l }}">Month</th><th style="{{ sh.th_r }}">Pooled median</th><th style="{{ sh.th_r }}">Listings (n)</th><th style="{{ sh.th_r }}">Retailers</th></tr></thead>
   <tbody>
   {% for hrow in history %}
     {% if hrow.n >= 30 %}
-    <tr><td>{{ hrow.label }}</td><td>{{ hrow.median | usd }}</td><td>{{ "{:,}".format(hrow.n) }}</td><td>{{ hrow.retailers }}</td></tr>
+    {% set bg = loop.cycle("#fafafa", "#ffffff") %}
+    <tr><td style="{{ sh.td(bg) }}font-weight:700;white-space:nowrap;">{{ hrow.label }}</td><td style="{{ sh.tdn(bg) }}">{{ hrow.median | usd }}</td><td style="{{ sh.tdn(bg) }}">{{ "{:,}".format(hrow.n) }}</td><td style="{{ sh.tdn(bg) }}">{{ hrow.retailers }}</td></tr>
     {% endif %}
   {% endfor %}
   </tbody>
 </table>
-<p>Each month pools only retailers with at least 30 qualifying listings that month (the same rule as the headline figures above), so the {{ cycle_label }} row matches this page's headline.</p>
-{% for hrow in history %}{% if hrow.n >= 30 and hrow.partial_note %}<p><strong>Coverage note.</strong> {{ hrow.partial_note }}</p>{% endif %}{% endfor %}
-<p><strong>Composition caveat.</strong> Monthly medians reflect the mix of stones listed each month as well as pricing: inventory shifts move these numbers alongside true price changes. Month-to-month moves here are directional context, not a price series.</p>
+</div>
+<p style="{{ sh.note }}">Each month pools only retailers with at least 30 qualifying listings that month (the same rule as the headline figures above), so the {{ cycle_label }} row matches this page's headline.</p>
+{% for hrow in history %}{% if hrow.n >= 30 and hrow.partial_note %}<p style="{{ sh.note }}"><strong>Coverage note.</strong> {{ hrow.partial_note }}</p>{% endif %}{% endfor %}
+<p style="{{ sh.note }}"><strong>Composition caveat.</strong> Monthly medians reflect the mix of stones listed each month as well as pricing: inventory shifts move these numbers alongside true price changes. Month-to-month moves here are directional context, not a price series.</p>
 
 {{ sh.stat_distinction() }}
 {{ sh.loose_stone_note() }}
 {{ sh.delist_note(data_date_h, st.shown_retailers) }}
 {{ sh.methodology(data_date_h) }}
+{{ sh.footer() }}
 
 <script type="application/ld+json">{{ json_ld | tojson }}</script>
 </div>
