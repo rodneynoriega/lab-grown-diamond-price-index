@@ -165,6 +165,21 @@ STONE_DISPLAY = ["Brilliant Earth", "Clean Origin", "Grown Brilliance",
 AGG_DISPLAY = ["Blue Nile", "Brilliant Earth", "Clean Origin",
                "Grown Brilliance", "Ritani", "VRAI"]
 
+# Shape normalization: VRAI reports "round-brilliant" for what every other
+# retailer calls "round" (verified: 100% of VRAI rows, all cycles, and no
+# other retailer uses the variant). Normalized so VRAI participates in
+# round cells (with its standing dagger caveat) and shape tables reconcile
+# with headline totals (2026-08-09 content-review medium 1).
+SHAPE_ALIASES = {"round-brilliant": "round"}
+
+# Cycles with known partial coverage, disclosed on every history table
+# (disclosure-in-the-affirmative; 2026-08-09 content-review medium 3).
+PARTIAL_CYCLE_NOTES = {
+    "2026-06": ("June 2026 was a partial collection cycle for Ritani; "
+                "June rows pool fewer Ritani listings than adjacent "
+                "months."),
+}
+
 MIN_DISPLAYED = 2          # stone page needs >= 2 displayed current prices
 MIN_CELL_N = 30            # aggregate n-rule (per page and per retailer row)
 MIN_CELL_RETAILERS = 3     # aggregate cell needs >= 3 retailers at n >= 30
@@ -236,7 +251,8 @@ def load_frame():
     f["carat"] = pd.to_numeric(f["carat"], errors="coerce")
     f["price_usd"] = pd.to_numeric(f["price_usd"], errors="coerce")
     f = f[(f["price_usd"] > 0) & (f["carat"] > 0)]
-    f["shape"] = f["shape"].fillna("").str.strip().str.lower()
+    f["shape"] = f["shape"].fillna("").str.strip().str.lower() \
+                           .replace(SHAPE_ALIASES)
     f = f.drop_duplicates(subset=["retailer", "cycle", "product_url"],
                           keep="last")
     return f.reset_index(drop=True)
@@ -262,7 +278,8 @@ def build_stone_parquet(frame):
     ex["carat"] = pd.to_numeric(ex["carat"], errors="coerce")
     ex["price_usd"] = pd.to_numeric(ex["price_usd"], errors="coerce")
     ex = ex[(ex["price_usd"] > 0) & (ex["carat"] > 0)]
-    ex["shape"] = ex["shape"].fillna("").str.strip().str.lower()
+    ex["shape"] = ex["shape"].fillna("").str.strip().str.lower() \
+                             .replace(SHAPE_ALIASES)
     f = pd.concat([frame[frame["retailer"].isin(CERT_RETAILERS)], ex],
                   ignore_index=True)
     keys = f.apply(lambda r: norm_cert(r.get("certificate_lab"),
@@ -381,6 +398,10 @@ def cell_stats(f, shape, point):
 
 
 def monthly_history(frame, shape, point):
+    """Monthly pooled medians under EXACTLY the same rule as the headline
+    stats (cell_stats): each month pools only retailers with >= MIN_CELL_N
+    qualifying listings that month, so the current-cycle history row equals
+    the page headline (2026-08-09 content-review blocker 1)."""
     lo, hi = round(point - CARAT_BAND, 2), round(point + CARAT_BAND, 2)
     hist = []
     for cyc in ALL_CYCLES:
@@ -389,11 +410,15 @@ def monthly_history(frame, shape, point):
                   & (frame["carat"] >= lo) & (frame["carat"] <= hi)]
         if shape:
             f = f[f["shape"] == shape]
-        n = int(len(f))
+        counts = f.groupby("retailer").size()
+        qual = sorted(counts[counts >= MIN_CELL_N].index)
+        pooled = f[f["retailer"].isin(qual)]
+        n = int(len(pooled))
         hist.append({
             "cycle": cyc, "label": CYCLE_LABELS[cyc], "n": n,
-            "median": float(f["price_usd"].median()) if n else None,
-            "retailers": int(f["retailer"].nunique()),
+            "median": float(pooled["price_usd"].median()) if n else None,
+            "retailers": len(qual),
+            "partial_note": PARTIAL_CYCLE_NOTES.get(cyc),
         })
     return hist
 
@@ -410,7 +435,10 @@ def repricing_stats(stones):
     apr_keys = set(apr.index.get_level_values(0))
     jul_keys = set(jul.index.get_level_values(0))
     gone = apr_keys - jul_keys
+    panel = sorted(set(apr.index.get_level_values(1))
+                   | set(jul.index.get_level_values(1)))
     return {
+        "panel": panel,   # retailers actually contributing cert rows
         "n_pairs": int(len(changes)),
         "median_change_pct": float(changes.median() * 100)
         if len(changes) else None,
@@ -492,20 +520,13 @@ def stone_page(env, sel, spec_row):
         return vals.pop() if len(vals) == 1 else None
     ret_specs = {f: consensus(f) for f in ("cut", "polish", "symmetry")}
 
-    json_ld = {
-        "@context": "https://schema.org", "@type": "Product",
-        "name": f"{cs} Carat {shape} Lab Grown Diamond ({lab} {num})",
-        "sku": f"{lab}-{num}", "description": meta,
-        "offers": {
-            "@type": "AggregateOffer", "priceCurrency": "USD",
-            "lowPrice": round(lo_p), "highPrice": round(hi_p),
-            "offerCount": k,
-            "offers": [{"@type": "Offer", "priceCurrency": "USD",
-                        "price": round(row.price_usd),
-                        "url": row.product_url,
-                        "seller": {"@type": "Organization",
-                                   "name": row.retailer}}
-                       for row in displayed]}}
+    # Dataset JSON-LD, not Product/Offer, on stone pages: matches the
+    # aggregate pages and the A5 citable-answers intent, avoids
+    # spammy-product-markup risk at 1,000-page scale, and does not hand
+    # competitor deep links to crawlers as offers (Coordinator-recommended
+    # default 2026-08-09; overridable at Rodney's canary review; visible
+    # in-table listing links are unaffected).
+    json_ld = dataset_ld(h1, meta)
     body = env.get_template("stone.html.j2").render(
         **base_ctx(), spec=spec_row, cs=cs, shape=shape, lab=lab, num=num,
         displayed=displayed, k=k, lo_p=lo_p, lo_r=lo_r, hi_p=hi_p,
@@ -586,6 +607,7 @@ def build(out_dir, canary_n):
     pages = []          # (handle, title, h1, meta, keyword, record, family)
 
     # ---- stone pages ----
+    handle_disp_cycles = {}   # handle -> displayed-retailer cycle count
     for sel in picked:
         spec_row = next(r for r in
                         (sel["displayed"].get(x) for x in
@@ -594,6 +616,8 @@ def build(out_dir, canary_n):
         handle, title, h1, meta, kw, body, record, fam = stone_page(
             env, sel, spec_row)
         (pages_dir / f"{handle}.html").write_text(body)
+        handle_disp_cycles[handle] = len({r.cycle for r in sel["all_rows"]
+                                          if r.retailer in STONE_DISPLAY})
         pages.append((handle, title, h1, meta, kw, record, "stone"))
 
     jf = july_agg_frame(frame)
@@ -752,37 +776,57 @@ def build(out_dir, canary_n):
     (out_dir / "qa-manifest.json").write_text(
         json.dumps({"pages": qa}, indent=1) + "\n")
 
+    KW_HEADER = ["handle", "page_type", "family", "target_keyword",
+                 "seo_title_tag", "page_title_h1", "meta_description"]
     with open(out_dir / "keyword-log.csv", "w", newline="") as fh:
         w = csv.writer(fh)
-        w.writerow(["handle", "page_type", "family", "target_keyword",
-                    "title", "h1", "meta_description"])
+        w.writerow(KW_HEADER)
         for (handle, title, h1, meta, kw, rec, fam) in pages:
             w.writerow([handle, rec["page_type"], fam, kw, title, h1, meta])
     with open(out_dir / "keyword-log-aggregate.csv", "w", newline="") as fh:
         w = csv.writer(fh)
-        w.writerow(["handle", "page_type", "family", "target_keyword",
-                    "title", "h1", "meta_description"])
+        w.writerow(KW_HEADER)
         for (handle, title, h1, meta, kw, rec, fam) in pages:
             if rec["page_type"] == "aggregate":
                 w.writerow([handle, rec["page_type"], fam, kw, title, h1,
                             meta])
 
-    # ---- canary: every aggregate page + top stone pages (3-retailer
-    # stones first, then widest 2-retailer spreads) ----
-    agg_handles = [h for (h, *_rest) in pages
-                   if _rest[-2]["page_type"] == "aggregate"]
+    # ---- canary: every aggregate page + representative stone pages:
+    # 3 three-retailer + 4 widest 2-retailer spreads, AUGMENTED (2026-08-09
+    # content review) with 2 mid-spread stones and 1 single-cycle
+    # (no-history-table) stone so the canary is not all top-spread motif.
+    aggs = [p for p in pages if p[5]["page_type"] == "aggregate"]
     stone_pages = [p for p in pages if p[5]["page_type"] == "stone"]
     three_r = [p for p in stone_pages if p[5]["sample_size"] >= 3]
     two_r = [p for p in stone_pages if p[5]["sample_size"] == 2]
-    n_stone_canary = max(0, canary_n - len(agg_handles))
-    canary_stones = (three_r[:3] + two_r)[:n_stone_canary]
-    canary = [p for p in pages
-              if p[5]["page_type"] == "aggregate"] + canary_stones
+    n_stone_base = max(0, canary_n - len(aggs))
+    canary_stones = (three_r[:3] + two_r)[:n_stone_base]
+    chosen = {p[0] for p in canary_stones}
+    mid = len(stone_pages) // 2
+    for p in stone_pages[mid:]:
+        if len(canary_stones) >= n_stone_base + 2:
+            break
+        if p[0] not in chosen:
+            canary_stones.append(p)
+            chosen.add(p[0])
+    single = next((p for p in stone_pages
+                   if p[0] == "lab-diamond-igi-726549884"
+                   and handle_disp_cycles.get(p[0]) == 1), None) \
+        or next((p for p in stone_pages
+                 if handle_disp_cycles.get(p[0]) == 1
+                 and p[0] not in chosen), None)
+    if single:
+        canary_stones.append(single)
+    canary = aggs + canary_stones
 
     (out_dir / "qa-manifest-canary.json").write_text(
         json.dumps({"pages": [p[5] for p in canary]}, indent=1) + "\n")
+    # Shopify page.title = the SHORT scheme H1 (the Flex default page
+    # template injects page.title as the served H1, verified live
+    # 2026-08-09); the long SEO title serves via global.title_tag
+    # (canary-meta.json), to which the theme appends "- Rings.com".
     spec = {"pages": [{
-        "handle": p[0], "title": p[1],
+        "handle": p[0], "title": p[2],
         "body_file": f"pages/{p[0]}.html",
         "source": {"cycle": CYCLE, "data_timestamp": DATA_TIMESTAMP,
                    "source_files": p[5]["source_files"],
@@ -814,8 +858,9 @@ def build(out_dir, canary_n):
         "skipped_cells": [f"{f}:{s or 'both'}:{p}"
                           for (f, s, p) in skipped_cells],
         "canary_pages": len(canary),
-        "canary_aggregate": len(agg_handles),
+        "canary_aggregate": len(aggs),
         "canary_stone": len(canary_stones),
+        "canary_stone_handles": [p[0] for p in canary_stones],
         "not_built": [
             "Family C retailer roundup pages (6): HELD BACK, binding "
             "condition 2 (ships only after Block 2 closes + quiet "

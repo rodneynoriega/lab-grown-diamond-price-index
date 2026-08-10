@@ -1,6 +1,6 @@
 {% import "_shared.html.j2" as sh %}
 <div class="lgd-pilot lgd-agg-page">
-<h1>{{ h1 }}</h1>
+{# NO h1 in the body: the Flex default page template injects page.title as the served H1 (verified live 2026-08-09); page.title carries the scheme H1, the long SEO title lives in global.title_tag. #}
 {{ sh.brand(index_url, brand_line) }}
 
 <p>Median listed prices for lab grown diamonds compared across <strong>{{ n_retailers }}</strong> US retailers, {{ cycle_label }}: <strong>{{ "{:,}".format(total_n) }}</strong> public listings, round and oval, all colors and clarities pooled, refreshed monthly.</p>

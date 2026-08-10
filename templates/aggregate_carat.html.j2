@@ -1,6 +1,6 @@
 {% import "_shared.html.j2" as sh %}
 <div class="lgd-pilot lgd-agg-page">
-<h1>{{ h1 }}</h1>
+{# NO h1 in the body: the Flex default page template injects page.title as the served H1 (verified live 2026-08-09); page.title carries the scheme H1, the long SEO title lives in global.title_tag. #}
 {{ sh.brand(index_url, brand_line) }}
 
 <p>The median <strong>{{ cs }} carat lab grown diamond</strong> lists for <strong>{{ st.median | usd }}</strong> as of {{ cycle_label }}, computed from <strong>{{ "{:,}".format(st.n) }}</strong> public listings across <strong>{{ st.shown_retailers | length }}</strong> US retailers. Typical range: {{ st.p10 | usd }} to {{ st.p90 | usd }} (10th to 90th percentile). Median price per carat: {{ st.median_ppc | usd }}.</p>
@@ -33,6 +33,7 @@
   {% endfor %}
   </tbody>
 </table>
+<p>Shape rows apply the same 30-listing-per-retailer minimum within each shape, so together they can pool slightly fewer listings than the all-shapes headline when a retailer clears the minimum overall but not in one shape.</p>
 
 <h2>Monthly price history</h2>
 <table class="lgd-history-table">
@@ -45,6 +46,8 @@
   {% endfor %}
   </tbody>
 </table>
+<p>Each month pools only retailers with at least 30 qualifying listings that month (the same rule as the headline figures above), so the {{ cycle_label }} row matches this page's headline.</p>
+{% for hrow in history %}{% if hrow.n >= 30 and hrow.partial_note %}<p><strong>Coverage note.</strong> {{ hrow.partial_note }}</p>{% endif %}{% endfor %}
 <p><strong>Composition caveat.</strong> Monthly medians reflect the mix of stones listed each month as well as pricing: inventory shifts (which retailers listed what) move these numbers alongside true price changes. Month-to-month moves here are directional context, not a price series.</p>
 
 {{ sh.stat_distinction() }}
