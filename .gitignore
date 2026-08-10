@@ -12,3 +12,9 @@ data/snapshots/
 
 # local credentials
 .env
+
+# pilot batch rollback manifests + body stores: page bodies carry
+# listing-level data -- never commit to this public repo
+manifests/
+# kill-switch / drill run logs
+kill-switch-*.log
