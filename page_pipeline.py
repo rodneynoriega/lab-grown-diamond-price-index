@@ -479,7 +479,7 @@ def base_ctx():
     }
 
 
-def stone_page(env, sel, spec_row):
+def stone_page(env, sel, spec_row, related):
     lab, num = spec_row.cert_lab, spec_row.cert_number
     k = len(sel["displayed"])
     displayed = [sel["displayed"][r] for r in STONE_DISPLAY
@@ -533,7 +533,8 @@ def stone_page(env, sel, spec_row):
         hi_r=hi_r, spread=sel["spread"], spread_pct=sel["spread_pct"] * 100,
         history=history, hist_cycles=hist_cycles,
         retailer_order=retailer_order, ret_specs=ret_specs,
-        cycle_labels=CYCLE_LABELS, h1=h1, meta=meta, json_ld=json_ld)
+        cycle_labels=CYCLE_LABELS, h1=h1, meta=meta, json_ld=json_ld,
+        related=related)
     src = sorted({row.source_file for row in displayed} | hist_files)
     record = {
         "handle": handle, "title": title, "h1": h1,
@@ -606,6 +607,31 @@ def build(out_dir, canary_n):
 
     pages = []          # (handle, title, h1, meta, keyword, record, family)
 
+    # ---- internal-link graph (v6, Rodney 2026-08-10): every page gets a
+    # related-links block so the cluster is not sitemap-orphaned. Links
+    # point ONLY at pages that actually build this run (cells that pass
+    # the n-rules), never at skipped cells. ----
+    jf = july_agg_frame(frame)
+    stats_a = {p: cell_stats(jf, None, p) for p in FAMILY_A_POINTS}
+    stats_b = {c: cell_stats(jf, c[0], c[1]) for c in FAMILY_B_CELLS}
+    built_a = [p for p in FAMILY_A_POINTS if stats_a[p]["passes"]]
+    built_b = [c for c in FAMILY_B_CELLS if stats_b[c]["passes"]]
+
+    def a_link(p):
+        return (f"{carat_str(p)} carat lab grown diamond price",
+                f"/pages/{carat_slug(p)}-carat-lab-grown-diamond-price")
+
+    def b_link(s, p):
+        return (f"{carat_str(p)} carat {s} lab grown diamond price",
+                f"/pages/{carat_slug(p)}-carat-{s}-lab-grown-diamond-price")
+
+    HUB_LINK = ("Lab grown diamond price comparison (all carat sizes)",
+                "/pages/lab-grown-diamond-price-comparison")
+    FAQ_LINK = ("How much does a lab grown diamond cost?",
+                "/pages/how-much-does-a-lab-grown-diamond-cost")
+    RESALE_LINK = ("Lab grown diamond resale value",
+                   "/pages/lab-grown-diamond-resale-value")
+
     # ---- stone pages ----
     handle_disp_cycles = {}   # handle -> displayed-retailer cycle count
     for sel in picked:
@@ -613,20 +639,28 @@ def build(out_dir, canary_n):
                         (sel["displayed"].get(x) for x in
                          ["Brilliant Earth", "Ritani", "Grown Brilliance",
                           "Clean Origin"]) if r is not None)
+        pt = next((p for p in built_a
+                   if abs(spec_row.carat - p) <= 0.09), None)
+        sshape = (spec_row.shape or "").lower()
+        related = []
+        if pt is not None:
+            related.append(a_link(pt))
+            if (sshape, pt) in built_b:
+                related.append(b_link(sshape, pt))
+        related.append(HUB_LINK)
         handle, title, h1, meta, kw, body, record, fam = stone_page(
-            env, sel, spec_row)
+            env, sel, spec_row, related)
         (pages_dir / f"{handle}.html").write_text(body)
         handle_disp_cycles[handle] = len({r.cycle for r in sel["all_rows"]
                                           if r.retailer in STONE_DISPLAY})
         pages.append((handle, title, h1, meta, kw, record, "stone"))
 
-    jf = july_agg_frame(frame)
     n_agg_retailers = int(jf["retailer"].nunique())
     skipped_cells = []
 
     # ---- Family A: carat-price pages ----
     for point in FAMILY_A_POINTS:
-        st = cell_stats(jf, None, point)
+        st = stats_a[point]
         if not st["passes"]:
             skipped_cells.append(("A", None, point))
             continue
@@ -646,7 +680,9 @@ def build(out_dir, canary_n):
         body = env.get_template("aggregate_carat.html.j2").render(
             **base_ctx(), st=st, cs=cs, h1=h1, meta=meta, shapes=shapes,
             history=hist, volume_note=FAMILY_A_VOLUME.get(point),
-            json_ld=dataset_ld(h1, meta))
+            json_ld=dataset_ld(h1, meta),
+            related=[b_link(s, p) for (s, p) in built_b if p == point]
+                    + [FAQ_LINK, HUB_LINK])
         (pages_dir / f"{handle}.html").write_text(body)
         pages.append((handle, title, h1, meta, kw,
                       agg_record(handle, title, h1, kw, st["n"],
@@ -657,7 +693,7 @@ def build(out_dir, canary_n):
 
     # ---- Family B: shape x carat pages ----
     for shape, point in FAMILY_B_CELLS:
-        st = cell_stats(jf, shape, point)
+        st = stats_b[(shape, point)]
         if not st["passes"]:
             skipped_cells.append(("B", shape, point))
             continue
@@ -675,9 +711,16 @@ def build(out_dir, canary_n):
                   f"diamond-price")
         kw = f"{cs} carat {shape} lab grown diamond price"
         hist = monthly_history(frame, shape, point)
+        other = "oval" if shape == "round" else "round"
+        rel = []
+        if point in built_a:
+            rel.append(a_link(point))
+        if (other, point) in built_b:
+            rel.append(b_link(other, point))
+        rel.append(HUB_LINK)
         body = env.get_template("aggregate_shape_carat.html.j2").render(
             **base_ctx(), st=st, cs=cs, sh=sh, h1=h1, meta=meta,
-            history=hist, json_ld=dataset_ld(h1, meta))
+            history=hist, json_ld=dataset_ld(h1, meta), related=rel)
         (pages_dir / f"{handle}.html").write_text(body)
         pages.append((handle, title, h1, meta, kw,
                       agg_record(handle, title, h1, kw, st["n"],
@@ -687,7 +730,7 @@ def build(out_dir, canary_n):
                                     if CYCLE not in s]), "B"))
 
     # ---- Family D1: cost FAQ ----
-    cells = {p: cell_stats(jf, None, p) for p in FAMILY_A_POINTS}
+    cells = stats_a
     total_n = int(len(jf))
     title = (f"How Much Does a Lab Grown Diamond Cost? "
              f"({CYCLE_LABEL} Data)")
@@ -722,7 +765,8 @@ def build(out_dir, canary_n):
         **base_ctx(), cells=cells, total_n=total_n,
         n_retailers=n_agg_retailers, h1=h1, meta=meta,
         carat_points=FAMILY_A_POINTS,
-        retailer_names=sorted(jf["retailer"].unique()), json_ld=faq_ld)
+        retailer_names=sorted(jf["retailer"].unique()), json_ld=faq_ld,
+        related=[a_link(p) for p in built_a] + [RESALE_LINK, HUB_LINK])
     (pages_dir / f"{handle}.html").write_text(body)
     pages.append((handle, title, h1, meta, kw,
                   agg_record(handle, title, h1, kw, total_n,
@@ -743,7 +787,9 @@ def build(out_dir, canary_n):
     kw = "lab grown diamond resale value"
     body = env.get_template("aggregate_resale.html.j2").render(
         **base_ctx(), rep=rep, hist=hist_1ct, h1=h1, meta=meta,
-        retailer_names=AGG_DISPLAY, json_ld=dataset_ld(h1, meta))
+        retailer_names=AGG_DISPLAY, json_ld=dataset_ld(h1, meta),
+        related=([a_link(1.0)] if 1.0 in built_a else [])
+                + [FAQ_LINK, HUB_LINK])
     (pages_dir / f"{handle}.html").write_text(body)
     pages.append((handle, title, h1, meta, kw,
                   agg_record(handle, title, h1, kw, rep["n_pairs"],
@@ -764,7 +810,8 @@ def build(out_dir, canary_n):
     body = env.get_template("aggregate_hub.html.j2").render(
         **base_ctx(), grid=grid, carat_points=FAMILY_A_POINTS,
         retailers=AGG_DISPLAY, n_retailers=n_agg_retailers, h1=h1,
-        meta=meta, total_n=total_n, json_ld=dataset_ld(h1, meta))
+        meta=meta, total_n=total_n, json_ld=dataset_ld(h1, meta),
+        shape_pages=[b_link(s, p) for (s, p) in built_b])
     (pages_dir / f"{handle}.html").write_text(body)
     pages.append((handle, title, h1, meta, kw,
                   agg_record(handle, title, h1, kw, total_n,

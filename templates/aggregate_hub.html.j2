@@ -36,6 +36,13 @@
   <li><a href="/pages/lab-grown-diamond-resale-value" style="color:#1a1a1a;">Lab grown diamond resale value</a></li>
 </ul>
 
+<h2 style="{{ sh.h2s }}">By shape and carat</h2>
+<ul style="margin:0 0 12px;padding-left:18px;line-height:1.8;">
+  {% for label, href in shape_pages %}
+  <li><a href="{{ href }}" style="color:#1a1a1a;">{{ label }}</a></li>
+  {% endfor %}
+</ul>
+
 {{ sh.stat_distinction() }}
 {{ sh.loose_stone_note() }}
 {{ sh.delist_note(data_date_h, retailers) }}

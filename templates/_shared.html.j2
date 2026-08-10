@@ -98,6 +98,22 @@ function lgdKlavSubscribe(e) {
 </script>
 {% endmacro %}
 
+{# Related-links block (v6): internal links so the cluster is crawlable
+   through itself, not just the sitemap. The pipeline only passes links
+   to pages that actually built this run. #}
+{% macro related(items) %}
+{% if items %}
+<div style="border-top:1px solid #ddd;margin-top:28px;padding-top:16px;">
+<h2 style="font-size:1rem;font-weight:700;margin:0 0 12px;color:#1a1a1a;">More lab grown diamond price data</h2>
+<ul style="margin:0;padding-left:18px;">
+{% for label, href in items %}
+  <li style="font-size:0.9rem;line-height:1.9;"><a href="{{ href }}" style="color:#1a1a1a;font-weight:600;text-decoration:underline;text-underline-offset:2px;">{{ label }}</a></li>
+{% endfor %}
+</ul>
+</div>
+{% endif %}
+{% endmacro %}
+
 {% macro footer() %}
 {{ email_capture() }}
 <div style="margin-top:24px;padding-top:12px;border-top:1px solid #eee;">
