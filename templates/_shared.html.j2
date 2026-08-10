@@ -48,7 +48,7 @@
 <div style="border-top:3px solid #1a1a1a;padding-top:16px;margin-bottom:28px;">
   <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#888;margin:0 0 10px;">Rings.com Research</p>
   <h1 style="font-size:2.1rem;font-weight:700;line-height:1.15;margin:0 0 12px;color:#1a1a1a;">{{ h1 }}</h1>
-  <p class="lgd-brand-line" style="margin:0 0 14px;color:#555;font-size:0.95rem;line-height:1.55;">{{ brand_line }}: <a href="{{ index_url }}" style="color:#555;">Lab Grown Diamond Price Per Carat</a>.</p>
+  <p class="lgd-brand-line" style="margin:0 0 14px;color:#555;font-size:0.95rem;line-height:1.55;">{{ brand_line }}: <a href="{{ index_url }}" style="color:#1a1a1a;font-weight:600;text-decoration:underline;text-underline-offset:2px;">Lab Grown Diamond Price Per Carat</a>.</p>
   <p style="margin:0;padding-top:10px;border-top:1px solid #ebebeb;font-size:0.78rem;color:#999;">Data: {{ cycle_label }} collection cycle · Captured {{ data_date_h }} · USD</p>
 </div>
 {% endmacro %}
@@ -129,6 +129,6 @@ function lgdKlavSubscribe(e) {
 {% macro methodology(data_date_h) %}
 <div style="border-top:1px solid #ddd;margin-top:28px;padding-top:16px;">
 <h2 style="font-size:1rem;font-weight:700;margin:0 0 12px;color:#1a1a1a;">About this data</h2>
-<p style="margin:0;font-size:0.9rem;color:#333;line-height:1.7;">Prices are publicly listed retail prices for loose lab grown diamonds, collected from each retailer's public website on {{ data_date_h }}. No accounts, logins, or paywalls are involved; these are the prices any shopper sees. Rings.com is itself a jewelry retailer and publishes this data as an attributed, dated record of public listing prices. Retailer names are used for identification only; Rings.com is not affiliated with any retailer listed.</p>
+<p style="margin:0;font-size:0.9rem;color:#333;line-height:1.7;">Prices are publicly listed retail prices for loose lab grown diamonds, collected from each retailer's public website on {{ data_date_h }}. No accounts, logins, or paywalls are involved; these are the prices any shopper sees. Rings.com is an independent research publisher, not a jewelry retailer, and publishes this data as an attributed, dated record of public listing prices. Retailer names are used for identification only; Rings.com is not affiliated with any retailer listed.</p>
 </div>
 {% endmacro %}
