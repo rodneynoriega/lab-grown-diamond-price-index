@@ -1,0 +1,33 @@
+{% import "_shared.html.j2" as sh %}
+<div class="lgd-pilot lgd-agg-page">
+<h1>{{ h1 }}</h1>
+{{ sh.brand(index_url, brand_line) }}
+
+<p>As of {{ cycle_label }}, based on <strong>{{ "{:,}".format(total_n) }}</strong> public listings across <strong>{{ n_retailers }}</strong> US retailers (round and oval, 0.90 to 2.50 ct):</p>
+
+<table class="lgd-price-table">
+  <thead><tr><th>Size</th><th>Median listed price</th><th>Typical range (10th–90th pct)</th><th>Median per carat</th><th>Listings (n)</th></tr></thead>
+  <tbody>
+  {% for p in carat_points %}
+  {% set c = cells[p] %}
+  <tr><td>{{ p | carat }} carat</td><td>{{ c.median | usd }}</td><td>{{ c.p10 | usd }} to {{ c.p90 | usd }}</td><td>{{ c.median_ppc | usd }}</td><td>{{ "{:,}".format(c.n) }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h2>How much does a 1 carat lab grown diamond cost?</h2>
+<p>The median 1 carat lab grown diamond ({{ "%.2f" | format(cells[1.0].lo) }} to {{ "%.2f" | format(cells[1.0].hi) }} ct) listed for <strong>{{ cells[1.0].median | usd }}</strong> in {{ cycle_label }}. Most listings fall between {{ cells[1.0].p10 | usd }} and {{ cells[1.0].p90 | usd }}; color, clarity, and cut grade drive the difference.</p>
+
+<h2>How much does a 2 carat lab grown diamond cost?</h2>
+<p>The median 2 carat lab grown diamond listed for <strong>{{ cells[2.0].median | usd }}</strong> in {{ cycle_label }}, with most listings between {{ cells[2.0].p10 | usd }} and {{ cells[2.0].p90 | usd }}. Price per carat rises with size: {{ cells[2.0].median_ppc | usd }}/ct at 2 carats vs {{ cells[1.0].median_ppc | usd }}/ct at 1 carat.</p>
+
+<h2>What moves the price?</h2>
+<p>Within a size, listed prices vary severalfold with color, clarity, and cut grade, and the same certified stone is often listed at different prices by different retailers. Per-carat pages with retailer-level medians: see the <a href="/pages/lab-grown-diamond-price-comparison">price comparison hub</a>.</p>
+
+{{ sh.stat_distinction() }}
+{{ sh.loose_stone_note() }}
+{{ sh.delist_note(data_date_h, retailer_names) }}
+{{ sh.methodology(data_date_h) }}
+
+<script type="application/ld+json">{{ json_ld | tojson }}</script>
+</div>

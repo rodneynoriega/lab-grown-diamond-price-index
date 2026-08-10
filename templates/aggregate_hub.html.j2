@@ -1,0 +1,40 @@
+{% import "_shared.html.j2" as sh %}
+<div class="lgd-pilot lgd-agg-page">
+<h1>{{ h1 }}</h1>
+{{ sh.brand(index_url, brand_line) }}
+
+<p>Median listed prices for lab grown diamonds compared across <strong>{{ n_retailers }}</strong> US retailers, {{ cycle_label }}: <strong>{{ "{:,}".format(total_n) }}</strong> public listings, round and oval, all colors and clarities pooled, refreshed monthly.</p>
+
+<h2>Median price by retailer and carat ({{ cycle_label }})</h2>
+<table class="lgd-price-table">
+  <thead><tr><th>Retailer</th>{% for p in carat_points %}<th>{{ p | carat }} ct median</th>{% endfor %}</tr></thead>
+  <tbody>
+  {% for r in retailers %}
+  <tr>
+    <td>{{ r }}{% if r == "VRAI" %} †{% endif %}</td>
+    {% for p in carat_points %}
+    {% set row = (grid[p].retailer_rows | selectattr("retailer", "equalto", r) | list) %}
+    <td>{% if row %}{{ row[0].median | usd }} <span class="lgd-n">(n={{ "{:,}".format(row[0].n) }})</span>{% else %}below minimum{% endif %}</td>
+    {% endfor %}
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p>"Below minimum" means the retailer had fewer than 30 qualifying listings in that carat range this cycle; no figure is published for it. † VRAI grades in-house (no third-party certificates); its figures are context, not directly comparable.</p>
+
+<h2>Per-carat detail pages</h2>
+<ul>
+  {% for p in carat_points %}
+  <li><a href="/pages/{{ p | carat | replace(".", "-") }}-carat-lab-grown-diamond-price">{{ p | carat }} carat lab grown diamond price</a></li>
+  {% endfor %}
+  <li><a href="/pages/how-much-does-a-lab-grown-diamond-cost">How much does a lab grown diamond cost?</a></li>
+  <li><a href="/pages/lab-grown-diamond-resale-value">Lab grown diamond resale value</a></li>
+</ul>
+
+{{ sh.stat_distinction() }}
+{{ sh.loose_stone_note() }}
+{{ sh.delist_note(data_date_h, retailers) }}
+{{ sh.methodology(data_date_h) }}
+
+<script type="application/ld+json">{{ json_ld | tojson }}</script>
+</div>

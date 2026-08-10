@@ -1,0 +1,40 @@
+{% import "_shared.html.j2" as sh %}
+<div class="lgd-pilot lgd-agg-page">
+<h1>{{ h1 }}</h1>
+{{ sh.brand(index_url, brand_line) }}
+
+<p><strong>What this page is.</strong> There is no public transaction record of lab grown diamond resales, and this page does not claim one. What can be measured honestly is <em>listing-price history</em>: how retailers have repriced the same certified stones over time, and how quickly stones leave the market. That history is the best public context for what a lab grown diamond might be worth later.</p>
+
+<h2>Same-stone repricing, April to {{ cycle_label }}</h2>
+<p>Tracking identical certified stones (same certificate number, same retailer) listed in both April and July 2026:</p>
+<ul>
+  <li><strong>{{ "{:,}".format(rep.n_pairs) }}</strong> matched listings were live in both months.</li>
+  <li>Median listed-price change: <strong>{{ "%+.1f" | format(rep.median_change_pct) }}%</strong> over the three months.</li>
+  <li><strong>{{ "%.0f" | format(rep.share_down_pct) }}%</strong> of matched listings were repriced downward.</li>
+  <li>Of the {{ "{:,}".format(rep.n_april_stones) }} certified stones tracked in April, <strong>{{ "%.0f" | format(rep.delisted_share_pct) }}%</strong> no longer appeared in any tracked retailer's listings by July (sold or delisted; public data cannot distinguish which).</li>
+</ul>
+<p>Because these are the same physical stones at the same retailers, this comparison is free of the inventory-mix distortion that affects month-to-month median charts.</p>
+
+<h2>Pooled listing-price history (1 carat round)</h2>
+<table class="lgd-history-table">
+  <thead><tr><th>Month</th><th>Pooled median</th><th>Listings (n)</th><th>Retailers</th></tr></thead>
+  <tbody>
+  {% for hrow in hist %}
+    {% if hrow.n >= 30 %}
+    <tr><td>{{ hrow.label }}</td><td>{{ hrow.median | usd }}</td><td>{{ "{:,}".format(hrow.n) }}</td><td>{{ hrow.retailers }}</td></tr>
+    {% endif %}
+  {% endfor %}
+  </tbody>
+</table>
+<p><strong>Composition caveat.</strong> Pooled medians move with inventory mix as well as price; the same-stone repricing figures above are the cleaner signal.</p>
+
+<h2>What this means for resale value</h2>
+<p>Falling new-stone listing prices compress what any reseller can expect: a buyer can compare a resale offer against a brand-new certified equivalent in seconds. The honest summary of the data above: new-listing prices for the same stones have been drifting down, and any resale estimate should be anchored to current new-listing prices, not the original purchase price. This page presents listing-price history and delisting behavior only; it does not report resale transactions and makes no promise about resale proceeds.</p>
+
+{{ sh.stat_distinction() }}
+{{ sh.loose_stone_note() }}
+{{ sh.delist_note(data_date_h, retailer_names) }}
+{{ sh.methodology(data_date_h) }}
+
+<script type="application/ld+json">{{ json_ld | tojson }}</script>
+</div>

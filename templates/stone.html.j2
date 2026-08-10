@@ -1,0 +1,62 @@
+{% import "_shared.html.j2" as sh %}
+<div class="lgd-pilot lgd-stone-page">
+<h1>{{ h1 }}</h1>
+{{ sh.brand(index_url, brand_line) }}
+
+<p>This page tracks one specific lab grown diamond, identified by its {{ lab }} certificate <strong>{{ num }}</strong>, across the US retailers publicly listing it. Because the certificate number matches exactly, this is a same-stone price comparison: identical diamond, different prices.</p>
+
+<h2>{{ cycle_label }} prices for {{ lab }} {{ num }}</h2>
+<table class="lgd-price-table">
+  <thead><tr><th>Retailer</th><th>Listed price ({{ cycle_label }})</th><th>Price per carat</th><th>Listing</th></tr></thead>
+  <tbody>
+  {% for row in displayed %}
+    <tr>
+      <td>{{ row.retailer }}</td>
+      <td>{{ row.price_usd | usd }}</td>
+      <td>{{ (row.price_usd / row.carat) | usd }}</td>
+      <td><a href="{{ row.product_url }}" rel="nofollow noopener">view at {{ row.retailer }}</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p><strong>Price spread: {{ spread | usd }}</strong> ({{ "%.1f" | format(spread_pct) }}%) between {{ hi_r }} ({{ hi_p | usd }}) and {{ lo_r }} ({{ lo_p | usd }}) for the same certified stone on {{ data_date_h }}.</p>
+
+<h2>Stone details ({{ lab }} certificate {{ num }})</h2>
+<table class="lgd-spec-table">
+  <tbody>
+    <tr><th>Carat</th><td>{{ cs }}</td></tr>
+    <tr><th>Shape</th><td>{{ shape }}</td></tr>
+    <tr><th>Color</th><td>{{ spec.color }}</td></tr>
+    <tr><th>Clarity</th><td>{{ spec.clarity }}</td></tr>
+    {% if ret_specs.cut %}<tr><th>Cut</th><td>{{ ret_specs.cut }}</td></tr>{% endif %}
+    {% if ret_specs.polish %}<tr><th>Polish</th><td>{{ ret_specs.polish }}</td></tr>{% endif %}
+    {% if ret_specs.symmetry %}<tr><th>Symmetry</th><td>{{ ret_specs.symmetry }}</td></tr>{% endif %}
+    <tr><th>Certificate</th><td>{{ lab }} {{ num }}</td></tr>
+  </tbody>
+</table>
+<p>Shape, carat, color, and clarity are as reported identically by every retailer listing this certificate. Retailer-assigned grades (cut, polish, symmetry, which are not always certificate-backed on fancy shapes) are shown only where all listing retailers agree; where they disagree, the field is omitted.</p>
+
+{% if hist_cycles | length > 1 %}
+<h2>Listing-price history</h2>
+<table class="lgd-history-table">
+  <thead><tr><th>Month</th>{% for r in retailer_order %}<th>{{ r }}</th>{% endfor %}</tr></thead>
+  <tbody>
+  {% for cyc in hist_cycles %}
+    <tr>
+      <td>{{ cycle_labels[cyc] }}</td>
+      {% for r in retailer_order %}
+      <td>{% if history[cyc].get(r) is not none %}{{ history[cyc][r] | usd }}{% else %}not listed{% endif %}</td>
+      {% endfor %}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p>"Not listed" means the stone did not appear in that retailer's public listings in that month's collection cycle.</p>
+{% endif %}
+
+{{ sh.loose_stone_note() }}
+{{ sh.delist_note(data_date_h, displayed | map(attribute="retailer") | list) }}
+{{ sh.methodology(data_date_h) }}
+
+<script type="application/ld+json">{{ json_ld | tojson }}</script>
+</div>

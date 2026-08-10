@@ -1,0 +1,31 @@
+{# Shared macros for all pilot pages. Scope rules live here so every page
+   carries them: brand line (the ONLY place "Price Index" appears),
+   honest delist-window labels, pooled-vs-benchmark stat distinction,
+   loose-stone / no-ring-total statement, affirmative disclosure. #}
+
+{% macro brand(index_url, brand_line) %}
+<p class="lgd-brand-line"><em>{{ brand_line | safe }}: <a href="{{ index_url }}">rings.com/pages/lab-grown-diamond-price-index</a>.</em></p>
+{% endmacro %}
+
+{% macro delist_note(data_date_h, retailers) %}
+<h2>How current are these prices?</h2>
+<p>Every price on this page was captured from public retailer listings on <strong>{{ data_date_h }}</strong> (July 2026 collection cycle) and is accurate as of that date only. Retailers reprice and delist stones continuously, so any listing shown here may have sold, been delisted, or changed price since capture.</p>
+<ul>
+{% for r in retailers %}
+  <li><strong>{{ r }}</strong>: last verified in its public listings on {{ data_date_h }}. Re-checked on the index's collection cycle (currently monthly; weekly refresh rolling out).</li>
+{% endfor %}
+</ul>
+{% endmacro %}
+
+{% macro loose_stone_note() %}
+<p><strong>Loose stones only.</strong> Every figure on this page is for a loose lab grown diamond as listed, before any ring setting. No blended ring-total pricing appears on this page; setting costs vary by retailer and are never merged into these comparisons.</p>
+{% endmacro %}
+
+{% macro stat_distinction() %}
+<p class="lgd-stat-def"><strong>Stat definition.</strong> Figures on this page pool all qualifying listings in the stated carat range: all colors, clarities, and cut grades, from retailers with at least 30 qualifying listings. The monthly Index benchmark is a different, tighter statistic (E VS1 round Excellent-cut IGI). The two are not comparable and should not be quoted against each other.</p>
+{% endmacro %}
+
+{% macro methodology(data_date_h) %}
+<h2>About this data</h2>
+<p>Prices are publicly listed retail prices for loose lab grown diamonds, collected from each retailer's public website on {{ data_date_h }}. No accounts, logins, or paywalls are involved; these are the prices any shopper sees. Rings.com is itself a jewelry retailer and publishes this data as an attributed, dated record of public listing prices. Retailer names are used for identification only; Rings.com is not affiliated with any retailer listed.</p>
+{% endmacro %}
