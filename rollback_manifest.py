@@ -51,6 +51,7 @@ import argparse
 import datetime
 import gzip
 import hashlib
+import html
 import json
 import re
 import sys
@@ -79,12 +80,21 @@ def sha256_bytes(b):
 
 
 def normalize_html(s):
-    """Shopify's pageCreate normalizes stored HTML (inserts newlines around
-    block tags). Live-vs-manifest body comparison is therefore done on a
-    whitespace-normalized form; equality here proves the difference is
-    whitespace-only. The raw sha256 in the manifest still guards the local
-    body STORE byte-for-byte."""
-    s = re.sub(r">\s+<", "><", s or "")
+    """Shopify's pageCreate normalizes stored HTML two ways (both observed
+    live): it inserts newlines around block tags (batch-1 v1, 2026-08-09)
+    and it entity-encodes bare text-node characters, e.g. & -> &amp;
+    (batch-1 v4, 2026-08-10). Live-vs-manifest body comparison is therefore
+    done on an entity-decoded, whitespace-normalized form; equality here
+    proves the difference is whitespace/entity-encoding only. The raw
+    sha256 in the manifest still guards the local body STORE byte-for-byte.
+    Caveat: entity-decoding is applied to the whole body including <script>
+    content, so this comparison alone would not catch Shopify corrupting a
+    bare & inside a script into &amp; (browsers do NOT decode entities in
+    script elements). cmd_verify therefore ALSO compares raw script blocks
+    without entity decoding; observed behavior (batch-1 v4) is that Shopify
+    leaves script content untouched."""
+    s = html.unescape(s or "")
+    s = re.sub(r">\s+<", "><", s)
     return re.sub(r"\s+", " ", s).strip()
 
 
@@ -388,11 +398,20 @@ def cmd_verify(args):
         raise SystemExit(0)
     live = fetch_body(auth, page["id"])
     same = normalize_html(live["body"]) == normalize_html(stored)
+    # Script blocks compared WITHOUT entity decoding (whitespace-collapse
+    # only): browsers never decode entities inside <script>, so an
+    # entity-mangled script is a functional break the normalized body
+    # comparison above would mask.
+    script_re = re.compile(r"<script[^>]*>(.*?)</script>", re.S | re.I)
+    def _scripts(s):
+        return [re.sub(r"\s+", " ", x).strip() for x in script_re.findall(s or "")]
+    scripts_same = _scripts(live["body"]) == _scripts(stored)
     print(f"{entry['handle']}: live {page['id']} "
           f"published={page['isPublished']} "
           f"body (normalized) {'MATCHES' if same else 'DIFFERS FROM'} "
-          f"manifest")
-    raise SystemExit(0 if same else 1)
+          f"manifest; script blocks "
+          f"{'INTACT' if scripts_same else 'CORRUPTED'}")
+    raise SystemExit(0 if (same and scripts_same) else 1)
 
 
 def main():

@@ -13,10 +13,14 @@
 {% set h2s = "font-size:1.15rem;font-weight:700;margin:28px 0 12px;color:#1a1a1a;" %}
 {% set body_p = "margin:0 0 12px;line-height:1.6;" %}
 {% set note = "font-size:0.8rem;color:#666;line-height:1.6;margin:0 0 12px;" %}
-{% set wrap = "overflow-x:auto;margin-bottom:24px;" %}
+{# width:0 + min-width:100% keeps the wrapper's min-content contribution at
+   zero: the theme's page column is a flex/grid item, and without this a wide
+   table's min-content width propagates up and drags the whole column wider
+   than a phone viewport (reproduced + fixed at 390px, 2026-08-10). #}
+{% set wrap = "overflow-x:auto;margin-bottom:24px;width:0;min-width:100%;" %}
 {% set table = "width:100%;border-collapse:collapse;font-size:0.95rem;" %}
-{% set th_l = "text-align:left;padding:10px 12px;border-bottom:2px solid #1a1a1a;font-weight:700;white-space:nowrap;color:#1a1a1a;background:#fff;" %}
-{% set th_r = "text-align:right;padding:10px 12px;border-bottom:2px solid #1a1a1a;font-weight:700;white-space:nowrap;color:#1a1a1a;background:#fff;" %}
+{% set th_l = "text-align:left;padding:10px 12px;border-bottom:2px solid #1a1a1a;font-weight:700;color:#1a1a1a;background:#fff;" %}
+{% set th_r = "text-align:right;padding:10px 12px;border-bottom:2px solid #1a1a1a;font-weight:700;color:#1a1a1a;background:#fff;" %}
 {% set callout = "background:#1a1a1a;color:#fff;border-radius:6px;padding:20px 24px;margin:0 0 24px;" %}
 {% set callout_p = "margin:0;font-size:1.05rem;font-weight:700;line-height:1.5;color:#fff;" %}
 {% set callout_2 = "margin:8px 0 0;color:#c8c8c8;font-size:0.9rem;line-height:1.6;" %}
@@ -25,16 +29,78 @@
 {% macro td(bg) %}padding:10px 12px;background:{{ bg }};{% endmacro %}
 {% macro tdn(bg) %}text-align:right;padding:10px 12px;background:{{ bg }};font-variant-numeric:tabular-nums;{% endmacro %}
 
-{% macro header(index_url, brand_line, cycle_label, data_date_h) %}
-<p style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#888;margin:0 0 6px;">Rings.com Research</p>
-<div style="border-top:3px solid #1a1a1a;padding-top:12px;margin-bottom:24px;">
-  <p class="lgd-brand-line" style="margin:0 0 8px;color:#555;font-size:0.95rem;line-height:1.55;">{{ brand_line }}: <a href="{{ index_url }}" style="color:#555;">rings.com/pages/lab-grown-diamond-price-index</a>.</p>
-  <p style="margin:0;padding-top:6px;border-top:1px solid #ebebeb;font-size:0.78rem;color:#999;">Data: {{ cycle_label }} collection cycle, captured {{ data_date_h }}.</p>
+{# Header, reference-style (Rodney's US-index screenshots, 2026-08-10):
+   masthead strip, thick rule, kicker, in-body H1, brand-line subtitle,
+   middot meta line. The first <style> hides the Flex theme's hardcoded
+   page-title block (.heading-wrapper--page wraps the injected
+   <h1 class="page__title"> AND its divider; markup verified live via
+   /pages/about-us?view=lgd-research, 2026-08-10). The theme H1 stays in
+   the DOM (display:none); this macro's h1 is the visible heading. Page
+   <style> tags only affect the page they are on, so the hide cannot leak
+   to other pages. Literal UTF-8 (· &), never entities: Shopify decodes
+   entities on store and that breaks body-equality verification. #}
+{% macro header(h1, index_url, brand_line, cycle_label, data_date_h) %}
+<style>.heading-wrapper--page{display:none;}</style>
+<div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 16px;padding-bottom:10px;border-bottom:1px solid #e5e5e5;margin-bottom:20px;">
+  <span style="font-size:1rem;font-weight:600;letter-spacing:0.16em;color:#1a1a1a;">RINGS.COM</span>
+  <span style="font-size:0.72rem;font-weight:600;letter-spacing:0.14em;color:#999;">RESEARCH & DATA</span>
+</div>
+<div style="border-top:3px solid #1a1a1a;padding-top:16px;margin-bottom:28px;">
+  <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#888;margin:0 0 10px;">Rings.com Research</p>
+  <h1 style="font-size:2.1rem;font-weight:700;line-height:1.15;margin:0 0 12px;color:#1a1a1a;">{{ h1 }}</h1>
+  <p class="lgd-brand-line" style="margin:0 0 14px;color:#555;font-size:0.95rem;line-height:1.55;">{{ brand_line }}: <a href="{{ index_url }}" style="color:#555;">Lab Grown Diamond Price Per Carat</a>.</p>
+  <p style="margin:0;padding-top:10px;border-top:1px solid #ebebeb;font-size:0.78rem;color:#999;">Data: {{ cycle_label }} collection cycle · Captured {{ data_date_h }} · USD</p>
 </div>
 {% endmacro %}
 
+{# Email capture: Klaviyo list Xi8xP8 (Rodney, 2026-08-10; deliberately NOT
+   the contact page's VXECZW list). Same mechanism and copy as the live
+   rings.com contact page's signup box, replicated inline so pilot pages
+   have no theme/app dependency. Client-side subscribe via Klaviyo's public
+   kmail-lists endpoint, identical to the contact page's pattern. #}
+{% macro email_capture() %}
+<div class="lgd-email-capture" style="border:1px solid #ddd;border-radius:6px;padding:20px 24px;margin:32px 0 0;">
+  <h2 style="font-size:1.05rem;font-weight:700;margin:0 0 6px;color:#1a1a1a;">Get future Rings.com Research in your inbox</h2>
+  <p style="margin:0 0 14px;font-size:0.9rem;color:#555;line-height:1.6;">New studies and data delivered when they publish. No other emails.</p>
+  <div style="display:flex;flex-wrap:wrap;gap:10px;">
+    <input type="email" id="lgd-klav-email" placeholder="your@email.com" aria-label="Email address" style="flex:1 1 200px;min-width:0;padding:10px 14px;font-size:0.9rem;border:1px solid #d0d0d0;border-radius:4px;outline:none;font-family:inherit;color:#1a1a1a;background:#fff;">
+    <button onclick="lgdKlavSubscribe(event)" style="padding:10px 22px;font-size:0.875rem;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-family:inherit;">Subscribe</button>
+  </div>
+  <p id="lgd-klav-confirm" style="display:none;font-size:0.875rem;color:#2e7d32;margin:10px 0 0;">You're on the list.</p>
+  <p id="lgd-klav-error" style="display:none;font-size:0.875rem;color:#c62828;margin:10px 0 0;">Something went wrong. Please try again.</p>
+</div>
+<script>
+function lgdKlavSubscribe(e) {
+  e.preventDefault();
+  var email = document.getElementById('lgd-klav-email').value;
+  var confirm = document.getElementById('lgd-klav-confirm');
+  var error = document.getElementById('lgd-klav-error');
+  confirm.style.display = 'none';
+  error.style.display = 'none';
+  fetch('https://manage.kmail-lists.com/ajax/subscriptions/subscribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' },
+    body: 'g=Xi8xP8&email=' + encodeURIComponent(email)
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(j) {
+    if (j.success) {
+      confirm.style.display = 'block';
+      document.getElementById('lgd-klav-email').value = '';
+    } else {
+      error.style.display = 'block';
+    }
+  })
+  .catch(function() {
+    error.style.display = 'block';
+  });
+}
+</script>
+{% endmacro %}
+
 {% macro footer() %}
-<div style="margin-top:32px;padding-top:12px;border-top:1px solid #eee;">
+{{ email_capture() }}
+<div style="margin-top:24px;padding-top:12px;border-top:1px solid #eee;">
   <p style="margin:0 0 4px;font-size:0.8rem;color:#888;">Updated monthly.</p>
   <p style="margin:0;font-size:0.78rem;color:#999;">Rings.com Lab-Grown Diamond Price Index</p>
 </div>

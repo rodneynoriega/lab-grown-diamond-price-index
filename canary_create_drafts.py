@@ -43,11 +43,12 @@ import shopify_batch  # noqa: E402  (fleet-shared batching/backoff client)
 from kill_switch import PROTECTED_HANDLES, normalize_handle  # noqa: E402
 
 STORE = "09c241-13.myshopify.com"
+TEMPLATE_SUFFIX = "lgd-research"
 
 PAGE_CREATE_WITH_META = """
 mutation PageCreate($page: PageCreateInput!) {
   pageCreate(page: $page) {
-    page { id title handle isPublished }
+    page { id title handle isPublished templateSuffix }
     userErrors { field message code }
   }
 }
@@ -124,6 +125,10 @@ def main():
             "handle": h,
             "body": body_file.read_text(),
             "isPublished": False,      # hard rule; never publish here
+            # Rodney's page template (created by him in the theme editor
+            # 2026-08-10); its title block is hidden by in-body CSS, see
+            # templates/_shared.html.j2 header macro.
+            "templateSuffix": TEMPLATE_SUFFIX,
             "metafields": [
                 {"namespace": "global", "key": "title_tag",
                  "type": "single_line_text_field",
@@ -151,12 +156,23 @@ def main():
                                 "id": page["id"]})
                 _write_log(results, client)
                 raise SystemExit(1)
+            if page.get("templateSuffix") != TEMPLATE_SUFFIX:
+                print(f"FAILED {h}: templateSuffix came back "
+                      f"{page.get('templateSuffix')!r}, expected "
+                      f"{TEMPLATE_SUFFIX!r} (template missing on theme?)")
+                failed += 1
+                results.append({"handle": h, "status": "wrong-template",
+                                "id": page["id"],
+                                "templateSuffix": page.get("templateSuffix")})
+                continue
             print(f"created DRAFT {page['id']} /pages/{page['handle']} "
-                  f"published={page['isPublished']}")
+                  f"published={page['isPublished']} "
+                  f"template={page['templateSuffix']}")
             ok += 1
             results.append({"handle": h, "status": "draft-created",
                             "id": page["id"],
-                            "isPublished": page["isPublished"]})
+                            "isPublished": page["isPublished"],
+                            "templateSuffix": page["templateSuffix"]})
         except SystemExit:
             raise
         except Exception as e:  # keep batch containment, report at end
