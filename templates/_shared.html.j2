@@ -12,7 +12,8 @@
 {% set container = "max-width:860px;margin:0 auto;padding:0 16px 24px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;" %}
 {% set h2s = "font-size:1.15rem;font-weight:700;margin:28px 0 12px;color:#1a1a1a;" %}
 {% set body_p = "margin:0 0 12px;line-height:1.6;" %}
-{% set note = "font-size:0.8rem;color:#666;line-height:1.6;margin:0 0 12px;" %}
+{# 0.8rem footnote class is italic (Rodney 2026-08-10): size alone did not read as a distinction #}
+{% set note = "font-size:0.8rem;font-style:italic;color:#666;line-height:1.6;margin:0 0 12px;" %}
 {# width:0 + min-width:100% keeps the wrapper's min-content contribution at
    zero: the theme's page column is a flex/grid item, and without this a wide
    table's min-content width propagates up and drags the whole column wider
@@ -135,11 +136,11 @@ function lgdKlavSubscribe(e) {
 {% endmacro %}
 
 {% macro loose_stone_note() %}
-<p style="font-size:0.8rem;color:#666;line-height:1.6;margin:0 0 12px;"><strong>Loose stones only.</strong> Every figure on this page is for a loose lab grown diamond as listed, before any ring setting. No blended ring-total pricing appears on this page; setting costs vary by retailer and are never merged into these comparisons.</p>
+<p style="font-size:0.8rem;font-style:italic;color:#666;line-height:1.6;margin:0 0 12px;"><strong>Loose stones only.</strong> Every figure on this page is for a loose lab grown diamond as listed, before any ring setting. No blended ring-total pricing appears on this page; setting costs vary by retailer and are never merged into these comparisons.</p>
 {% endmacro %}
 
 {% macro stat_distinction() %}
-<p class="lgd-stat-def" style="font-size:0.8rem;color:#666;line-height:1.6;margin:0 0 12px;"><strong>Stat definition.</strong> Figures on this page pool all qualifying listings in the stated carat range: all colors, clarities, and cut grades, from retailers with at least 30 qualifying listings. The monthly Index benchmark is a different, tighter statistic (E VS1 round Excellent-cut IGI). The two are not comparable and should not be quoted against each other.</p>
+<p class="lgd-stat-def" style="font-size:0.8rem;font-style:italic;color:#666;line-height:1.6;margin:0 0 12px;"><strong>Stat definition.</strong> Figures on this page pool all qualifying listings in the stated carat range: all colors, clarities, and cut grades, from retailers with at least 30 qualifying listings. The monthly Index benchmark is a different, tighter statistic (E VS1 round Excellent-cut IGI). The two are not comparable and should not be quoted against each other.</p>
 {% endmacro %}
 
 {% macro methodology(data_date_h) %}
