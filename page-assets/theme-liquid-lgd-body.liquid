@@ -201,9 +201,11 @@
     });
     html += "</tr></thead><tbody>";
 
-    retailers.forEach(function (r, i) {
-      var bg     = r.non_igi ? "#f5f5f5" : (i % 2 === 0 ? "#fafafa" : "#ffffff");
-      var rowStyle = r.non_igi ? " style=\"border-top:2px solid #e0e0e0;\"" : "";
+    var hStripe = 0;   // same rules as the price table: grey rows do not consume a stripe; reference rows draw no border
+    retailers.forEach(function (r) {
+      var bg     = r.non_igi ? "#f5f5f5" : (hStripe % 2 === 0 ? "#fafafa" : "#ffffff");
+      if (!r.non_igi) hStripe++;
+      var rowStyle = (r.non_igi && !r.reference_row_of) ? " style=\"border-top:2px solid #e0e0e0;\"" : "";
       var dagger = r.non_igi ? "<span style=\"font-size:0.72rem;font-weight:400;color:#999;\"> " + (r.row_label || "(non-IGI)") + "</span>" : "";
       html += "<tr" + rowStyle + "><td style=\"padding:9px 10px;font-weight:700;white-space:nowrap;background:" + bg + ";color:#1a1a1a;\">" + r.name + dagger + "</td>";
       months.forEach(function (m, idx) {
