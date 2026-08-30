@@ -170,13 +170,82 @@ def check_page(page, today):
                 fails.append(f"source: cert {num} not found in any "
                              f"referenced source file (figures not "
                              f"traceable to a scrape row)")
+            # Per-retailer, per-cycle traceability (added 2026-08-29 after
+            # review): every retailer the page claims for a cycle must have
+            # a referenced source file OF THAT RETAILER, dated IN THAT
+            # CYCLE, that contains the cert. Catches stale counts relabeled
+            # under a new cycle even when no `delisted` block is present.
+            claims = [(page.get("retailer_set") or [], str(page.get("cycle") or ""))]
+            dl = page.get("delisted")
+            if isinstance(dl, dict):
+                claims.append((dl.get("last_observed_retailers") or [],
+                               str(dl.get("last_observed_cycle") or "")))
+            for rets, cyc in claims:
+                if not cyc:
+                    continue
+                for r in rets:
+                    slug = str(r).strip().lower().replace(" ", "_")
+                    cands = [q for q in resolved
+                             if q.name.startswith(slug + "_" + cyc)
+                             or q.name.startswith(cyc + "-" + slug)]
+                    hit = False
+                    for q in cands:
+                        try:
+                            if digits in read_source_text(q):
+                                hit = True
+                                break
+                        except OSError:
+                            pass
+                    if not hit:
+                        fails.append(f"source: cert {num} not found in any "
+                                     f"referenced {r} file for cycle {cyc} "
+                                     f"(claimed retailer/cycle not traceable)")
 
     # ---- 3. sample size ---------------------------------------------
+    # Delisted variant (added 2026-08-29): a LIVE stone page whose stone no
+    # longer has >= MIN_STONE_RETAILERS displayed prices this cycle. The
+    # record carries the truth for the current cycle (sample_size =
+    # current displayed count, may be 0; retailer_set = current displayed
+    # retailers, may be empty) PLUS a `delisted` block naming the last
+    # cycle that had a real comparison; that last-observed comparison must
+    # itself satisfy the stone rule, and the cert must still be traceable
+    # to a referenced source file (check 2).
+    delisted = page.get("delisted")
+    if delisted is not None:
+        if ptype != "stone" or not isinstance(delisted, dict):
+            fails.append("delisted: only stone pages may carry a delisted "
+                         "block, and it must be an object")
+            delisted = None
+        else:
+            lo_ret = delisted.get("last_observed_retailers")
+            lo_n = delisted.get("last_observed_count")
+            cur_ret = delisted.get("current_retailers")
+            if (not isinstance(lo_ret, list) or not lo_ret
+                    or not isinstance(lo_n, int) or isinstance(lo_n, bool)
+                    or lo_n != len(lo_ret) or lo_n < MIN_STONE_RETAILERS):
+                fails.append(f"delisted: last-observed comparison invalid "
+                             f"(count {lo_n!r}, retailers {lo_ret!r}); needs "
+                             f">= {MIN_STONE_RETAILERS} displayed retailers")
+            if not isinstance(delisted.get("last_observed_cycle"), str):
+                fails.append("delisted: last_observed_cycle missing")
+            for r in (lo_ret or []):
+                low = str(r).strip().lower()
+                if low in BANNED_DISPLAY or low not in STONE_CAPABLE:
+                    fails.append(f"delisted: '{r}' may not appear in a "
+                                 f"stone comparison")
+            if not isinstance(cur_ret, list) or \
+                    sorted(map(str, cur_ret)) != sorted(map(str, page.get("retailer_set") or [])):
+                fails.append("delisted: current_retailers must equal retailer_set")
     n = page.get("sample_size")
-    if not isinstance(n, int) or isinstance(n, bool) or n < 1:
+    if (not isinstance(n, int) or isinstance(n, bool)
+            or n < (0 if delisted is not None else 1)):
         fails.append(f"sample: sample_size missing or invalid ({n!r})")
     else:
-        if ptype == "stone":
+        if ptype == "stone" and delisted is not None:
+            if n >= MIN_STONE_RETAILERS:
+                fails.append(f"delisted: page claims delisted but has {n} "
+                             f"displayed offers this cycle")
+        elif ptype == "stone":
             if n < MIN_STONE_RETAILERS:
                 fails.append(f"sample: stone page has {n} displayed "
                              f"offer(s); cross-retailer comparison needs "
@@ -188,7 +257,7 @@ def check_page(page, today):
 
     # ---- 4. retailer set --------------------------------------------
     rset = page.get("retailer_set")
-    if not isinstance(rset, list) or not rset:
+    if not isinstance(rset, list) or (not rset and delisted is None):
         fails.append("retailers: retailer_set missing or empty")
         rset = []
     lowered = [str(r).strip().lower() for r in rset]
@@ -205,7 +274,8 @@ def check_page(page, today):
     if len(set(lowered)) != len(lowered):
         fails.append("retailers: duplicate retailer in retailer_set")
     if (ptype == "stone" and isinstance(n, int)
-            and not isinstance(n, bool) and rset and n != len(rset)):
+            and not isinstance(n, bool) and (rset or delisted is not None)
+            and n != len(rset)):
         fails.append(f"sample: stone sample_size {n} != displayed "
                      f"retailer count {len(rset)}")
 

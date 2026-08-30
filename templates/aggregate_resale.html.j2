@@ -6,13 +6,13 @@
 <p style="{{ sh.body_p }}"><strong>What this page is.</strong> There is no public transaction record of lab grown diamond resales, and this page does not claim one. What can be measured honestly is <em>listing-price history</em>: how retailers have repriced the same certified stones over time, and how quickly stones leave the market. That history is the best public context for what a lab grown diamond might be worth later.</p>
 
 <h2 style="{{ sh.h2s }}">Same-stone repricing, April to {{ cycle_label }}</h2>
-<p style="{{ sh.body_p }}">Tracking identical certified stones (same certificate number, same retailer) listed in both April and July 2026. Attribution basis: this comparison covers the {{ rep.panel | length }} tracked US retailers whose public listings carry third-party certificate numbers ({{ rep.panel | join(", ") }}); retailers without published certificate numbers cannot be stone-matched and are not part of this statistic.</p>
+<p style="{{ sh.body_p }}">Tracking identical certified stones (same certificate number, same retailer) listed in both April and {{ cycle_label }}. Attribution basis: this comparison covers the {{ rep.panel | length }} tracked US retailers whose public listings carry third-party certificate numbers ({{ rep.panel | join(", ") }}); retailers without published certificate numbers cannot be stone-matched and are not part of this statistic.</p>
 <div style="{{ sh.callout }}">
 <ul style="margin:0;padding:0 0 0 18px;color:#ffffff;line-height:1.65;">
   <li><strong>{{ "{:,}".format(rep.n_pairs) }}</strong> matched listings were live in both months.</li>
-  <li>Median listed-price change: <strong>{{ "%+.1f" | format(rep.median_change_pct) }}%</strong> over the three months.</li>
+  <li>Median listed-price change: <strong>{{ "%+.1f" | format(rep.median_change_pct) }}%</strong> over the {{ rep.months_span_word }} months.</li>
   <li><strong>{{ "%.0f" | format(rep.share_down_pct) }}%</strong> of matched listings were repriced downward.</li>
-  <li>Of the {{ "{:,}".format(rep.n_april_stones) }} certified stones tracked in April, <strong>{{ "%.0f" | format(rep.delisted_share_pct) }}%</strong> no longer appeared in the July listings of the {{ rep.panel | length }} certificate-carrying retailers above (sold, delisted, or moved to a retailer outside this panel; public data cannot distinguish which).</li>
+  <li>Of the {{ "{:,}".format(rep.n_april_stones) }} certified stones tracked in April, <strong>{{ "%.0f" | format(rep.delisted_share_pct) }}%</strong> no longer appeared in the {{ cycle_label }} listings of the {{ rep.panel | length }} certificate-carrying retailers above (sold, delisted, or moved to a retailer outside this panel; public data cannot distinguish which).</li>
 </ul>
 </div>
 <p style="{{ sh.body_p }}">Because these are the same physical stones at the same retailers, this comparison is free of the inventory-mix distortion that affects month-to-month median charts.</p>
@@ -40,7 +40,7 @@
 
 {{ sh.stat_distinction() }}
 {{ sh.loose_stone_note() }}
-{{ sh.delist_note(data_date_h, retailer_names) }}
+{{ sh.delist_note(data_date_h, retailer_names, cycle_label) }}
 {{ sh.methodology(data_date_h) }}
 {{ sh.related(related) }}
 {{ sh.footer() }}

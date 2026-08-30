@@ -123,10 +123,10 @@ function lgdKlavSubscribe(e) {
 </div>
 {% endmacro %}
 
-{% macro delist_note(data_date_h, retailers) %}
+{% macro delist_note(data_date_h, retailers, cycle_label="July 2026") %}
 <div style="border-top:1px solid #ddd;margin-top:28px;padding-top:16px;">
 <h2 style="font-size:1rem;font-weight:700;margin:0 0 12px;color:#1a1a1a;">How current are these prices?</h2>
-<p style="margin:0 0 12px;font-size:0.9rem;color:#333;line-height:1.7;">Every price on this page was captured from public retailer listings on <strong>{{ data_date_h }}</strong> (July 2026 collection cycle) and is accurate as of that date only. Retailers reprice and delist stones continuously, so any listing shown here may have sold, been delisted, or changed price since capture.</p>
+<p style="margin:0 0 12px;font-size:0.9rem;color:#333;line-height:1.7;">Every price on this page was captured from public retailer listings on <strong>{{ data_date_h }}</strong> ({{ cycle_label }} collection cycle) and is accurate as of that date only. Retailers reprice and delist stones continuously, so any listing shown here may have sold, been delisted, or changed price since capture.</p>
 <ul style="margin:0 0 12px;padding-left:18px;">
 {% for r in retailers %}
   <li style="font-size:0.9rem;color:#333;line-height:1.7;"><strong>{{ r }}</strong>: last verified in its public listings on {{ data_date_h }}. Re-checked on the index's collection cycle (currently monthly; weekly refresh rolling out).</li>

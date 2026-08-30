@@ -1,0 +1,122 @@
+<style>
+  .rdc-index-section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 40px 60px;
+    box-sizing: border-box;
+  }
+  .rdc-index-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 40px;
+    margin-bottom: 24px;
+  }
+  .rdc-index-tag {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #999;
+    margin: 0 0 12px;
+    font-family: Roboto, sans-serif;
+  }
+  .rdc-index-title {
+    font-family: 'Tenor Sans', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: #0d0d0d;
+    line-height: 1.35;
+    margin: 0 0 8px;
+  }
+  .rdc-index-desc {
+    font-size: 0.875rem;
+    color: #555;
+    line-height: 1.65;
+    font-family: Roboto, sans-serif;
+    margin: 0;
+  }
+  .rdc-index-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #0d0d0d;
+    text-decoration: none;
+    font-family: Roboto, sans-serif;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .rdc-index-cta svg { transition: transform 0.15s; }
+  .rdc-index-cta:hover svg { transform: translateX(3px); }
+  .rdc-index-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-top: 1px solid #e0e0e0;
+    margin-top: 24px;
+  }
+  .rdc-index-stat {
+    padding: 16px 20px 16px 0;
+    border-right: 1px solid #e0e0e0;
+    margin-right: 20px;
+  }
+  .rdc-index-stat:last-child {
+    border-right: none;
+    padding-right: 0;
+    margin-right: 0;
+  }
+  .rdc-index-stat-label {
+    font-size: 0.68rem;
+    color: #999;
+    font-family: Roboto, sans-serif;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin: 0 0 5px;
+  }
+  .rdc-index-stat-value {
+    font-family: 'Tenor Sans', sans-serif;
+    font-size: 0.9rem;
+    color: #0d0d0d;
+    margin: 0;
+  }
+  @media (max-width: 768px) {
+    .rdc-index-section { padding: 0 20px 48px; }
+    .rdc-index-header { flex-direction: column; gap: 16px; }
+    .rdc-index-stats { grid-template-columns: repeat(2, 1fr); }
+    .rdc-index-stat:nth-child(2) { border-right: none; }
+    .rdc-index-stat { border-bottom: 1px solid #e0e0e0; padding-bottom: 16px; }
+  }
+</style>
+<div class="rdc-index-section">
+  <div class="rdc-index-header">
+    <div>
+      <p class="rdc-index-tag">Lab Diamond Prices</p>
+      <h3 class="rdc-index-title">Lab Grown Diamond Price Per Carat</h3>
+      <p class="rdc-index-desc">The Rings.com Lab-Grown Diamond Price Index: monthly benchmark prices across 7 tracked U.S. online retailers (6 collected this edition). Published August 29, 2026. Updated every month.</p>
+    </div>
+    <a class="rdc-index-cta" href="https://rings.com/pages/lab-grown-diamond-price-index">
+      View the index
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+  </div>
+  <div class="rdc-index-stats">
+    <div class="rdc-index-stat">
+      <p class="rdc-index-stat-label">Market median at 1.5ct</p>
+      <p class="rdc-index-stat-value">$972</p>
+    </div>
+    <div class="rdc-index-stat">
+      <p class="rdc-index-stat-label">Price range at 1ct</p>
+      <p class="rdc-index-stat-value">$223 to $856</p>
+    </div>
+    <div class="rdc-index-stat">
+      <p class="rdc-index-stat-label">Listings analyzed</p>
+      <p class="rdc-index-stat-value">250,502</p>
+    </div>
+  </div>
+</div>

@@ -38,7 +38,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 from retailers import grown_brilliance
 from retailers.base import CSV_FIELDS, TARGET_SHAPES, diamond_to_row
 
-DATE = "2026-07-23"
+import os as _os
+from datetime import date as _date
+# Cycle date: LGD_DATE env var, else argv[2], else today. (Was hardcoded per cycle before 2026-08-29.)
+DATE = _os.environ.get("LGD_DATE") or (sys.argv[2] if len(sys.argv) > 2 else _date.today().isoformat())
 REQ_DELAY = 1.0
 BANDS = [(0.95, 1.09), (1.40, 1.59), (1.90, 2.09)]
 RAW_DIR = Path(__file__).parent / "data" / "raw"

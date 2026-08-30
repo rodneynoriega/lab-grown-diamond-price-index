@@ -43,9 +43,9 @@ SHAPE_IDS: dict[str, int] = {
     "marquise": 5,
     "oval":     6,
     "pear":     7,
-    "cushion":  8,
+    "heart":    8,
     "asscher":  9,
-    "heart":    10,
+    "cushion":  10,   # empirically confirmed 2026-07-05 (id 10 = "cushion"/"cushion modified"; id 8 = heart)
 }
 
 # Color codes D-K (BN lab inventory confirmed through K)

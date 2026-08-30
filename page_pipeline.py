@@ -67,12 +67,40 @@ PROCESSED = HERE / "data" / "processed"
 TEMPLATES = HERE / "templates"
 
 # ----------------------------------------------------------------- cycle
-CYCLE = "2026-07"
-CYCLE_LABEL = "July 2026"
-DATA_TIMESTAMP = "2026-07-23"      # capture date of every July source file
-ALL_CYCLES = ["2026-04", "2026-05", "2026-06", "2026-07"]
+# One entry per collection cycle. `configure(cycle)` (called from main,
+# --cycle) sets the module-level CYCLE / CYCLE_LABEL / DATA_TIMESTAMP /
+# ALL_CYCLES / DATA_DATE_H that every builder reads. Before 2026-08-29
+# these were hardcoded to July; the August refresh made them selectable so
+# a prior cycle can be rebuilt byte-for-byte as a regression check.
 CYCLE_LABELS = {"2026-04": "April 2026", "2026-05": "May 2026",
-                "2026-06": "June 2026", "2026-07": "July 2026"}
+                "2026-06": "June 2026", "2026-07": "July 2026",
+                "2026-08": "August 2026"}
+CYCLE_TIMESTAMPS = {"2026-07": "2026-07-23",   # capture date of every source file
+                    "2026-08": "2026-08-29"}
+CYCLE_ORDER = ["2026-04", "2026-05", "2026-06", "2026-07", "2026-08"]
+DEFAULT_CYCLE = "2026-08"
+
+CYCLE = CYCLE_LABEL = DATA_TIMESTAMP = DATA_DATE_H = None
+ALL_CYCLES = []
+
+
+def _date_h(iso):
+    y, m, d = iso.split("-")
+    return f"{CYCLE_LABELS[y + '-' + m].split()[0]} {int(d)}, {y}"
+
+
+def configure(cycle):
+    global CYCLE, CYCLE_LABEL, DATA_TIMESTAMP, DATA_DATE_H, ALL_CYCLES
+    if cycle not in CYCLE_TIMESTAMPS:
+        raise SystemExit(f"unknown cycle {cycle}; known: {sorted(CYCLE_TIMESTAMPS)}")
+    CYCLE = cycle
+    CYCLE_LABEL = CYCLE_LABELS[cycle]
+    DATA_TIMESTAMP = CYCLE_TIMESTAMPS[cycle]
+    DATA_DATE_H = _date_h(DATA_TIMESTAMP)
+    ALL_CYCLES = CYCLE_ORDER[:CYCLE_ORDER.index(cycle) + 1]
+
+
+configure(DEFAULT_CYCLE)
 
 # One file per retailer per cycle (verified: July band files are exact
 # subsets of the July main files). James Allen deliberately absent
@@ -113,6 +141,18 @@ CYCLE_FILES = {
         "Ritani": "ritani_2026-07-23.csv",
         "Grown Brilliance": "grown_brilliance_2026-07-23.csv",
         "With Clarity": "with_clarity_2026-07-23.csv",
+    },
+    # August 2026: Ritani/GB main files are the union of their three
+    # benchmark-band pulls (same convention as July); With Clarity is the
+    # E-color benchmark-band pull (round), the only WC collection this cycle.
+    "2026-08": {
+        "Brilliant Earth": "brilliant_earth_2026-08-29.csv",
+        "Blue Nile": "blue_nile_2026-08-29.csv",
+        "Clean Origin": "clean_origin_2026-08-29.csv",
+        "VRAI": "vrai_2026-08-29.csv",
+        "Ritani": "ritani_2026-08-29.csv",
+        "Grown Brilliance": "grown_brilliance_2026-08-29.csv",
+        "With Clarity": "with_clarity_2026-08-29.csv",
     },
 }
 
@@ -155,10 +195,14 @@ STONE_EXTRA_FILES = {
 WC = "With Clarity"
 
 # Retailers whose scrape rows carry third-party cert numbers (stone pages).
+# Clean Origin's files carry cert numbers from 2026-08-29 onward (the
+# capture fix of 2026-08-08), but it is NOT yet in this list: adding it
+# changes the stone-page cert panel (selection pool, resale-page
+# attribution panel) and is a disclosed methodology change for a future
+# cycle, decided by Rodney, not a silent side effect of a monthly refresh.
 CERT_RETAILERS = ["Brilliant Earth", "Grown Brilliance", "Ritani", WC]
-# Displayed stone-page panel: cert-capable minus WC. Clean Origin joins
-# automatically once a cycle file carries cert numbers (fixed forward
-# from 2026-08-08; the July file predates the fix).
+# Displayed stone-page panel: cert-capable minus WC (Clean Origin is listed
+# so it displays automatically once it joins CERT_RETAILERS).
 STONE_DISPLAY = ["Brilliant Earth", "Clean Origin", "Grown Brilliance",
                  "Ritani"]
 # Aggregate-page panel: everything scraped minus WC.
@@ -179,6 +223,28 @@ PARTIAL_CYCLE_NOTES = {
                 "June rows pool fewer Ritani listings than adjacent "
                 "months."),
 }
+
+# Stone pages that are LIVE (batch-1 canary, published 2026-08-10). A
+# monthly refresh must rebuild exactly these handles, so they bypass the
+# spread-rank cutoff and the tier rule (but NOT the >= MIN_DISPLAYED and
+# spec-agreement guards: a stone no longer listed at 2+ displayed retailers
+# cannot honestly carry a same-stone comparison and is reported instead).
+PINNED_STONE_HANDLES = [
+    "lab-diamond-igi-770676346", "lab-diamond-igi-776637045",
+    "lab-diamond-igi-778658457", "lab-diamond-igi-762544882",
+    "lab-diamond-igi-743509144", "lab-diamond-igi-743523294",
+    "lab-diamond-igi-743550667", "lab-diamond-igi-782604209",
+    "lab-diamond-igi-766651588", "lab-diamond-igi-726549884",
+]
+
+
+def pinned_cert_keys():
+    out = []
+    for h in PINNED_STONE_HANDLES:
+        _, _, lab, num = h.split("-", 3)
+        out.append(f"{lab.upper()}:{num.upper()}")
+    return out
+
 
 MIN_DISPLAYED = 2          # stone page needs >= 2 displayed current prices
 MIN_CELL_N = 30            # aggregate n-rule (per page and per retailer row)
@@ -238,9 +304,18 @@ def load_frame():
     file order)."""
     parts = []
     for cycle, files in CYCLE_FILES.items():
+        if cycle not in ALL_CYCLES:      # only cycles up to the one being built
+            continue
         for retailer, fn in files.items():
             p = RAW / fn
             if not p.exists():
+                # With Clarity is display-banned (condition 1): its rows only
+                # feed the private parquet, so a cycle without a WC file
+                # (2026-08: IP-blocked collection) must not stop the build.
+                if retailer == WC:
+                    print(f"WARNING: no {retailer} file for {cycle} ({fn}); "
+                          f"WC rows absent from the parquet this cycle")
+                    continue
                 raise SystemExit(f"missing source file: {p}")
             df = pd.read_csv(p, dtype=str)
             df["cycle"] = cycle
@@ -264,6 +339,8 @@ def build_stone_parquet(frame):
     tiebreak lowest price. Includes WC rows (internal only; private dir)."""
     extras = []
     for cycle, by_ret in STONE_EXTRA_FILES.items():
+        if cycle not in ALL_CYCLES:
+            continue
         for retailer, fns in by_ret.items():
             for fn in fns:
                 p = RAW / fn
@@ -307,9 +384,10 @@ def build_stone_parquet(frame):
 
 # -------------------------------------------------------- stone selection
 
-def select_stones(stones):
+def select_stones(stones, pinned=()):
     """Strict pool per the 2026-08-09 WC-exclusion recompute, ranked
-    WC-blind by displayed-retailer July price spread."""
+    WC-blind by displayed-retailer current-cycle price spread. `pinned`
+    cert keys (live pages) join the pool regardless of the tier rule."""
     by_key = defaultdict(dict)      # cert_key -> retailer -> row (July)
     cycles = defaultdict(set)
     retailers_ever = defaultdict(set)
@@ -322,7 +400,8 @@ def select_stones(stones):
     allc = set(ALL_CYCLES)
     tier = [k for k in by_key
             if len(retailers_ever[k]) == 4
-            or (len(retailers_ever[k]) == 3 and allc <= cycles[k])]
+            or (len(retailers_ever[k]) == 3 and allc <= cycles[k])
+            or k in set(pinned)]
     strict, mismatched = [], []
     for k in sorted(tier):
         disp = {ret: row for ret, row in by_key[k].items()
@@ -437,8 +516,13 @@ def repricing_stats(stones):
     gone = apr_keys - jul_keys
     panel = sorted(set(apr.index.get_level_values(1))
                    | set(jul.index.get_level_values(1)))
+    months_span = CYCLE_ORDER.index(CYCLE) - CYCLE_ORDER.index("2026-04")
     return {
         "panel": panel,   # retailers actually contributing cert rows
+        "months_span": months_span,
+        "months_span_word": {1: "one", 2: "two", 3: "three", 4: "four",
+                             5: "five", 6: "six"}.get(months_span,
+                                                      str(months_span)),
         "n_pairs": int(len(changes)),
         "median_change_pct": float(changes.median() * 100)
         if len(changes) else None,
@@ -473,13 +557,19 @@ def base_ctx():
     return {
         "cycle_label": CYCLE_LABEL,
         "data_date": DATA_TIMESTAMP,
-        "data_date_h": "July 23, 2026",
+        "data_date_h": DATA_DATE_H,
         "index_url": INDEX_URL,
         "brand_line": BRAND_LINE,
     }
 
 
-def stone_page(env, sel, spec_row, related):
+def stone_page(env, sel, spec_row, related, delisted=None):
+    """delisted: None for a normal page; for a LIVE stone that no longer
+    has >= MIN_DISPLAYED displayed prices in the current cycle, a dict
+    {"last_cycle": cycle, "current": {retailer: row}} where sel["displayed"]
+    holds the LAST cycle's multi-retailer comparison. The page keeps its
+    URL and history and states plainly, dated, that the stone was not
+    found at 2+ tracked retailers in the current collection."""
     lab, num = spec_row.cert_lab, spec_row.cert_number
     k = len(sel["displayed"])
     displayed = [sel["displayed"][r] for r in STONE_DISPLAY
@@ -488,15 +578,28 @@ def stone_page(env, sel, spec_row, related):
     lo_p, lo_r = prices[0]
     hi_p, hi_r = prices[-1]
     cs, shape = carat_str(spec_row.carat), (spec_row.shape or "").title()
-    title = (f"{cs} Carat {shape} Lab Grown Diamond {spec_row.color} "
-             f"{spec_row.clarity} {lab} {num}: Price at {k} Retailers "
-             f"– {CYCLE_LABEL}")
+    if delisted:
+        title = (f"{cs} Carat {shape} Lab Grown Diamond {spec_row.color} "
+                 f"{spec_row.clarity} {lab} {num}: Price History, Last "
+                 f"Listed at {k} Retailers ({CYCLE_LABELS[delisted['last_cycle']]})")
+    else:
+        title = (f"{cs} Carat {shape} Lab Grown Diamond {spec_row.color} "
+                 f"{spec_row.clarity} {lab} {num}: Price at {k} Retailers "
+                 f"– {CYCLE_LABEL}")
     h1 = (f"{cs} Carat {shape} Lab Grown Diamond "
           f"({spec_row.color} {spec_row.clarity}, {lab} {num}) Prices")
-    meta = (f"{lab} {num}: {cs} ct {shape.lower()} lab grown diamond "
-            f"({spec_row.color} {spec_row.clarity}) listed "
-            f"{usd(lo_p)}–{usd(hi_p)} at {k} US retailers, "
-            f"{CYCLE_LABEL}. Certificate-matched comparison.")
+    if delisted:
+        last_label = CYCLE_LABELS[delisted["last_cycle"]]
+        meta = (f"{lab} {num}: {cs} ct {shape.lower()} lab grown diamond "
+                f"({spec_row.color} {spec_row.clarity}) last listed "
+                f"{usd(lo_p)}–{usd(hi_p)} at {k} US retailers ({last_label}); "
+                f"not found at 2+ tracked retailers in the {CYCLE_LABEL} "
+                f"collection. Certificate-matched price history.")
+    else:
+        meta = (f"{lab} {num}: {cs} ct {shape.lower()} lab grown diamond "
+                f"({spec_row.color} {spec_row.clarity}) listed "
+                f"{usd(lo_p)}–{usd(hi_p)} at {k} US retailers, "
+                f"{CYCLE_LABEL}. Certificate-matched comparison.")
     handle = f"lab-diamond-{lab.lower()}-{num.lower()}"
     keyword = f"{lab.lower()} {num.lower()}"
 
@@ -507,6 +610,8 @@ def stone_page(env, sel, spec_row, related):
             history[r.cycle][r.retailer] = r.price_usd
             hist_files.add(r.source_file)
     hist_cycles = [c for c in ALL_CYCLES if c in history]
+    if delisted and CYCLE not in hist_cycles:
+        hist_cycles.append(CYCLE)      # show the current cycle as dashes
     retailer_order = [r for r in STONE_DISPLAY
                       if any(r in history[c] for c in hist_cycles)]
 
@@ -527,6 +632,16 @@ def stone_page(env, sel, spec_row, related):
     # default 2026-08-09; overridable at Rodney's canary review; visible
     # in-table listing links are unaffected).
     json_ld = dataset_ld(h1, meta)
+    dl_ctx = {}
+    if delisted:
+        cur = delisted["current"]
+        dl_ctx = {
+            "delisted": True,
+            "last_cycle_label": CYCLE_LABELS[delisted["last_cycle"]],
+            "last_date_h": _date_h(max(str(r.scraped_at)[:10]
+                                       for r in displayed)),
+            "current_rows": [cur[r] for r in STONE_DISPLAY if r in cur],
+        }
     body = env.get_template("stone.html.j2").render(
         **base_ctx(), spec=spec_row, cs=cs, shape=shape, lab=lab, num=num,
         displayed=displayed, k=k, lo_p=lo_p, lo_r=lo_r, hi_p=hi_p,
@@ -534,8 +649,15 @@ def stone_page(env, sel, spec_row, related):
         history=history, hist_cycles=hist_cycles,
         retailer_order=retailer_order, ret_specs=ret_specs,
         cycle_labels=CYCLE_LABELS, h1=h1, meta=meta, json_ld=json_ld,
-        related=related)
+        related=related, **dl_ctx)
     src = sorted({row.source_file for row in displayed} | hist_files)
+    if delisted:
+        # The current-cycle files are what verified the absence; they are
+        # part of the page's evidence and go in the traceability record.
+        src = sorted(set(src) | {f"data/raw/{CYCLE_FILES[CYCLE][r]}"
+                                 for r in STONE_DISPLAY
+                                 if r in CYCLE_FILES[CYCLE]
+                                 and (RAW / CYCLE_FILES[CYCLE][r]).exists()})
     record = {
         "handle": handle, "title": title, "h1": h1,
         "target_keyword": keyword, "page_type": "stone",
@@ -546,6 +668,20 @@ def stone_page(env, sel, spec_row, related):
         "scope": {"cert_matched_only": True, "ring_total_present": False,
                   "ring_total_separated": False},
     }
+    if delisted:
+        # Truth for the current cycle in the standard fields; the
+        # last-observed comparison (what the page shows as its table) in
+        # its own block. publish_gate.py validates both.
+        cur = [r for r in STONE_DISPLAY if r in delisted["current"]]
+        record["sample_size"] = len(cur)
+        record["retailer_set"] = cur
+        record["delisted"] = {
+            "last_observed_cycle": delisted["last_cycle"],
+            "last_observed_retailers": [row.retailer for row in displayed],
+            "last_observed_count": k,
+            "current_retailers": cur,
+            "current_count": len(cur),
+        }
     return handle, title, h1, meta, keyword, body, record, "stone"
 
 
@@ -577,7 +713,7 @@ def all_cycle_sources(retailers):
     return out
 
 
-def build(out_dir, canary_n):
+def build(out_dir, canary_n, pin_live=True, refresh_manifest=None):
     frame = load_frame()
     stones, pq = build_stone_parquet(frame)
     print(f"parquet: {pq} ({len(stones)} rows)")
@@ -587,12 +723,48 @@ def build(out_dir, canary_n):
     for r in stones.itertuples():
         rows_by_key[r.cert_key].append(r)
 
-    ranked, mismatched = select_stones(stones)
+    pinned = pinned_cert_keys() if pin_live else []
+    ranked, mismatched = select_stones(stones, pinned)
     pool = len(ranked)
     dist = defaultdict(int)
     for s in ranked:
         dist[s["n_displayed"]] += 1
     picked = ranked[:TARGET_STONE_PAGES]
+    # Live stone pages always rebuild when they still qualify (>= 2
+    # displayed current prices, specs agree); anything that no longer
+    # qualifies is listed in the selection report for a human decision.
+    ranked_keys = {s["cert_key"]: s for s in ranked}
+    picked_keys = {s["cert_key"] for s in picked}
+    pinned_unbuildable = [k for k in pinned if k not in ranked_keys]
+    for k in pinned:
+        if k in ranked_keys and k not in picked_keys:
+            picked.append(ranked_keys[k])
+            picked_keys.add(k)
+    # Live stones no longer at >= MIN_DISPLAYED displayed retailers this
+    # cycle: build a dated "no longer listed" page from the LAST cycle that
+    # had a multi-retailer comparison (URL preserved; Rodney decides the
+    # policy; see the refresh report).
+    delisted_sel = []
+    for k in pinned_unbuildable:
+        rows = rows_by_key.get(k, [])
+        by_cycle = defaultdict(dict)
+        for r in rows:
+            if r.retailer in STONE_DISPLAY:
+                by_cycle[r.cycle][r.retailer] = r
+        last = next((c for c in reversed(ALL_CYCLES)
+                     if c != CYCLE and len(by_cycle.get(c, {})) >= MIN_DISPLAYED),
+                    None)
+        if last is None:
+            continue
+        disp = by_cycle[last]
+        prices = sorted(row.price_usd for row in disp.values())
+        delisted_sel.append({
+            "cert_key": k, "displayed": disp, "spread": prices[-1] - prices[0],
+            "spread_pct": (prices[-1] - prices[0]) / prices[0] if prices[0] else 0.0,
+            "cycles": sorted({r.cycle for r in rows}), "n_displayed": len(disp),
+            "all_rows": rows,
+            "delisted": {"last_cycle": last, "current": by_cycle.get(CYCLE, {})},
+        })
     for s in picked:
         s["all_rows"] = rows_by_key[s["cert_key"]]
     print(f"strict pool: {pool} after spec-consistency guard "
@@ -634,7 +806,7 @@ def build(out_dir, canary_n):
 
     # ---- stone pages ----
     handle_disp_cycles = {}   # handle -> displayed-retailer cycle count
-    for sel in picked:
+    for sel in picked + delisted_sel:
         spec_row = next(r for r in
                         (sel["displayed"].get(x) for x in
                          ["Brilliant Earth", "Ritani", "Grown Brilliance",
@@ -649,7 +821,7 @@ def build(out_dir, canary_n):
                 related.append(b_link(sshape, pt))
         related.append(HUB_LINK)
         handle, title, h1, meta, kw, body, record, fam = stone_page(
-            env, sel, spec_row, related)
+            env, sel, spec_row, related, delisted=sel.get("delisted"))
         (pages_dir / f"{handle}.html").write_text(body)
         handle_disp_cycles[handle] = len({r.cycle for r in sel["all_rows"]
                                           if r.retailer in STONE_DISPLAY})
@@ -780,7 +952,7 @@ def build(out_dir, canary_n):
     h1 = "Lab Grown Diamond Resale Value: What Price History Shows"
     meta = (f"Listing-price history for lab grown diamonds: the same "
             f"certified stones repriced a median "
-            f"{rep['median_change_pct']:+.1f}% April–July 2026 "
+            f"{rep['median_change_pct']:+.1f}% April–{CYCLE_LABEL} "
             f"({rep['n_pairs']:,} matched listings). What that means "
             f"for resale value.")
     handle = "lab-grown-diamond-resale-value"
@@ -842,8 +1014,11 @@ def build(out_dir, canary_n):
     # 3 three-retailer + 4 widest 2-retailer spreads, AUGMENTED (2026-08-09
     # content review) with 2 mid-spread stones and 1 single-cycle
     # (no-history-table) stone so the canary is not all top-spread motif.
+    delisted_handles = {f"lab-diamond-{k.split(':')[0].lower()}-{k.split(':')[1].lower()}"
+                        for k in (s["cert_key"] for s in delisted_sel)}
     aggs = [p for p in pages if p[5]["page_type"] == "aggregate"]
-    stone_pages = [p for p in pages if p[5]["page_type"] == "stone"]
+    stone_pages = [p for p in pages if p[5]["page_type"] == "stone"
+                   and p[0] not in delisted_handles]
     three_r = [p for p in stone_pages if p[5]["sample_size"] >= 3]
     two_r = [p for p in stone_pages if p[5]["sample_size"] == 2]
     n_stone_base = max(0, canary_n - len(aggs))
@@ -908,12 +1083,15 @@ def build(out_dir, canary_n):
         "canary_aggregate": len(aggs),
         "canary_stone": len(canary_stones),
         "canary_stone_handles": [p[0] for p in canary_stones],
+        "pinned_live_stone_handles": PINNED_STONE_HANDLES if pin_live else [],
+        "pinned_unbuildable": pinned_unbuildable,
+        "pinned_delisted_pages_built": [s["cert_key"] for s in delisted_sel],
         "not_built": [
             "Family C retailer roundup pages (6): HELD BACK, binding "
             "condition 2 (ships only after Block 2 closes + quiet "
             "period clean)",
             "3 Carat page: data-gated (no data above 2.50ct in the "
-            "July cycle; carat extension running)",
+            "main cycle files; carat extension is a separate pull)",
         ],
         "parquet": str(pq),
         "top_spread": {"cert_key": picked[0]["cert_key"],
@@ -923,6 +1101,49 @@ def build(out_dir, canary_n):
         json.dumps(report, indent=2) + "\n")
     print(json.dumps(report, indent=2))
 
+    # ---- live-batch refresh outputs: for every page in the CURRENTLY LIVE
+    # rollback manifest, the freshly built body/record/meta in manifest
+    # order, so update_batch.py + publish_gate.py + rollback_manifest.py
+    # snapshot can run against exactly the live set. Any live handle this
+    # build did not produce is listed (never silently dropped).
+    if refresh_manifest:
+        live = json.loads(Path(refresh_manifest).read_text())
+        by_handle = {p[0]: p for p in pages}
+        missing, spec_pages, qa_pages, meta = [], [], [], {}
+        for e in live["pages"]:
+            h = e["handle"]
+            p = by_handle.get(h)
+            if p is None:
+                missing.append(h)
+                continue
+            spec_pages.append({
+                "handle": h, "title": p[2],
+                "body_file": f"pages/{h}.html",
+                "source": {"cycle": CYCLE, "data_timestamp": DATA_TIMESTAMP,
+                           "source_files": p[5]["source_files"],
+                           "sample_size": p[5]["sample_size"],
+                           "retailer_set": p[5]["retailer_set"]},
+                "target_keyword": p[4],
+                "note": f"{live.get('batch', 'live')} refresh, {CYCLE_LABEL}; "
+                        f"{p[5]['page_type']} page; meta in refresh-meta.json",
+            })
+            qa_pages.append(p[5])
+            meta[h] = {"title_tag": p[1], "description_tag": p[3]}
+        tag = f"refresh-{CYCLE}"
+        (out_dir / f"{tag}-rollback-spec.json").write_text(
+            json.dumps({"pages": spec_pages}, indent=1) + "\n")
+        (out_dir / f"qa-manifest-{tag}.json").write_text(
+            json.dumps({"pages": qa_pages}, indent=1) + "\n")
+        (out_dir / f"{tag}-meta.json").write_text(
+            json.dumps(meta, indent=1) + "\n")
+        (out_dir / f"{tag}-report.json").write_text(json.dumps({
+            "live_manifest": str(refresh_manifest),
+            "live_pages": len(live["pages"]),
+            "rebuilt": len(spec_pages),
+            "missing_from_build": missing}, indent=2) + "\n")
+        print(f"refresh: {len(spec_pages)}/{len(live['pages'])} live pages "
+              f"rebuilt; missing: {missing}")
+
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -930,9 +1151,18 @@ def main():
     b = sub.add_parser("build")
     b.add_argument("--out", default=str(HERE / "page_output"))
     b.add_argument("--canary", type=int, default=25)
+    b.add_argument("--cycle", default=DEFAULT_CYCLE,
+                   help="collection cycle to build (YYYY-MM)")
+    b.add_argument("--no-pin-live", action="store_true",
+                   help="do not force-include the live stone pages")
+    b.add_argument("--refresh-manifest", default=None,
+                   help="live rollback manifest; emits refresh-<cycle>-* "
+                        "spec/qa/meta for exactly its pages")
     args = ap.parse_args()
     if args.cmd == "build":
-        build(Path(args.out), args.canary)
+        configure(args.cycle)
+        build(Path(args.out), args.canary, pin_live=not args.no_pin_live,
+              refresh_manifest=args.refresh_manifest)
 
 
 if __name__ == "__main__":

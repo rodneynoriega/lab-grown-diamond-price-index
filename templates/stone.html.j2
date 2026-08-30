@@ -4,11 +4,20 @@
 {{ sh.header(h1, index_url, brand_line, cycle_label, data_date_h) }}
 
 <p style="{{ sh.body_p }}">This page tracks one specific lab grown diamond, identified by its {{ lab }} certificate <strong>{{ num }}</strong>, across the US retailers publicly listing it. Because the certificate number matches exactly, this is a same-stone price comparison: identical diamond, different prices.</p>
+{% if delisted %}
+<div style="{{ sh.callout }}">
+  <p style="{{ sh.callout_p }}">Not found at two or more tracked retailers in the {{ cycle_label }} collection ({{ data_date_h }}).</p>
+  <p style="{{ sh.callout_2 }}">{% if current_rows %}On {{ data_date_h }} this certificate appeared at only {{ current_rows | map(attribute="retailer") | join(", ") }} ({% for r in current_rows %}{{ r.price_usd | usd }}{% if not loop.last %}, {% endif %}{% endfor %}), so no cross-retailer comparison can be made for this cycle.{% else %}On {{ data_date_h }} this certificate did not appear in the public listings of any tracked retailer (sold, delisted, or moved to a retailer outside this panel; public data cannot distinguish which).{% endif %} The most recent same-stone comparison, from the {{ last_cycle_label }} collection, is kept below as a dated record.</p>
+</div>
+
+<h2 style="{{ sh.h2s }}">Last observed prices for {{ lab }} {{ num }} ({{ last_cycle_label }}, captured {{ last_date_h }})</h2>
+{% else %}
 
 <h2 style="{{ sh.h2s }}">{{ cycle_label }} prices for {{ lab }} {{ num }}</h2>
+{% endif %}
 <div style="{{ sh.wrap }}">
 <table class="lgd-price-table" style="{{ sh.table }}">
-  <thead><tr><th style="{{ sh.th_l }}">Retailer</th><th style="{{ sh.th_r }}">Listed price ({{ cycle_label }})</th><th style="{{ sh.th_r }}">Price per carat</th><th style="{{ sh.th_l }}">Listing</th></tr></thead>
+  <thead><tr><th style="{{ sh.th_l }}">Retailer</th><th style="{{ sh.th_r }}">Listed price ({{ last_cycle_label if delisted else cycle_label }})</th><th style="{{ sh.th_r }}">Price per carat</th><th style="{{ sh.th_l }}">Listing</th></tr></thead>
   <tbody>
   {% for row in displayed %}
     {% set bg = loop.cycle("#fafafa", "#ffffff") %}
@@ -24,7 +33,7 @@
 </div>
 <div style="{{ sh.callout }}">
   <p style="{{ sh.callout_p }}">Price spread: {{ spread | usd }} ({{ "%.1f" | format(spread_pct) }}%)</p>
-  <p style="{{ sh.callout_2 }}">between {{ hi_r }} ({{ hi_p | usd }}) and {{ lo_r }} ({{ lo_p | usd }}) for the same certified stone on {{ data_date_h }}.</p>
+  <p style="{{ sh.callout_2 }}">between {{ hi_r }} ({{ hi_p | usd }}) and {{ lo_r }} ({{ lo_p | usd }}) for the same certified stone on {{ last_date_h if delisted else data_date_h }}.</p>
 </div>
 
 <h2 style="{{ sh.h2s }}">Stone details ({{ lab }} certificate {{ num }})</h2>
@@ -66,7 +75,7 @@
 {% endif %}
 
 {{ sh.loose_stone_note() }}
-{{ sh.delist_note(data_date_h, displayed | map(attribute="retailer") | list) }}
+{% if delisted %}{{ sh.delist_note(data_date_h, current_rows | map(attribute="retailer") | list, cycle_label) }}{% else %}{{ sh.delist_note(data_date_h, displayed | map(attribute="retailer") | list, cycle_label) }}{% endif %}
 {{ sh.methodology(data_date_h) }}
 {{ sh.related(related) }}
 {{ sh.footer() }}

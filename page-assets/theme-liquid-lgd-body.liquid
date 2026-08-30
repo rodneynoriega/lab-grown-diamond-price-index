@@ -1,94 +1,111 @@
 {% if page.handle == 'lab-grown-diamond-price-index' %}
 <script>
 (function () {
-  var DATA_URL = "https://raw.githubusercontent.com/rodneynoriega/lab-grown-diamond-price-index/main/index-data.json?v=14";
+  var DATA_URL = "https://raw.githubusercontent.com/rodneynoriega/lab-grown-diamond-price-index/main/index-data.json?v=18";
   var PAGE_URL = "https://rings.com/pages/lab-grown-diamond-price-index";
   var KLAVIYO_LIST = "Xi8xP8";
 
   var FALLBACK = {
-    month: "July 2026",
-    last_updated: "2026-07-26",
+    month: "August 2026",
+    last_updated: "2026-08-29",
+    next_edition_note: "Updated monthly. Next edition: week of September 28, 2026.",
     benchmark_spec: "E VS1 Excellent IGI",
     benchmark_cells: ["1ct", "1.5ct", "2ct"],
-    market_median_suppressed: ["1ct"],
+    market_median_suppressed: ["1ct", "2ct"],
     history: [
       {
         month: "April 2026",
         total_listings: 476988,
         retailers: {
-          ritani:           {"1ct": 401,  "1.5ct": 414,  "2ct": 414},
-          clean_origin:     {"1ct": null, "1.5ct": 450,  "2ct": 466},
-          grown_brilliance: {"1ct": 610,  "1.5ct": 800,  "2ct": 829},
-          with_clarity:     {"1ct": 631,  "1.5ct": 699,  "2ct": 691},
-          james_allen:      {"1ct": 648,  "1.5ct": 785,  "2ct": 941},
-          blue_nile:        {"1ct": 711,  "1.5ct": 864,  "2ct": 1034},
-          brilliant_earth:  {"1ct": 910,  "1.5ct": 1213, "2ct": 1644},
-          vrai:             {"1ct": 1198, "1.5ct": 682,  "2ct": 740, non_igi: true}
+          ritani: {"1ct": 401, "1.5ct": 414, "2ct": 414},
+          clean_origin: {"1ct": null, "1.5ct": 450, "2ct": 466},
+          grown_brilliance: {"1ct": 610, "1.5ct": 800, "2ct": 829},
+          with_clarity: {"1ct": 631, "1.5ct": 699, "2ct": 691},
+          james_allen: {"1ct": 648, "1.5ct": 785, "2ct": 941},
+          blue_nile: {"1ct": 711, "1.5ct": 864, "2ct": 1034},
+          brilliant_earth: {"1ct": 910, "1.5ct": 1213, "2ct": 1644},
+          vrai: {"1ct": 1198, "1.5ct": 682, "2ct": 740, non_igi: true}
         }
       },
       {
         month: "May 2026",
         total_listings: 528819,
         retailers: {
-          ritani:           {"1ct": 290,  "1.5ct": 261,  "2ct": 283},
-          clean_origin:     {"1ct": null, "1.5ct": 601,  "2ct": 621},
-          grown_brilliance: {"1ct": 610,  "1.5ct": 799,  "2ct": 828},
-          with_clarity:     {"1ct": 595,  "1.5ct": 683,  "2ct": 720},
-          james_allen:      {"1ct": 646,  "1.5ct": 784,  "2ct": 941},
-          blue_nile:        {"1ct": 711,  "1.5ct": 863,  "2ct": 1035},
-          brilliant_earth:  {"1ct": 901,  "1.5ct": 1092, "2ct": 1642},
-          vrai:             {"1ct": 1180, "1.5ct": 714,  "2ct": null, non_igi: true}
+          ritani: {"1ct": 290, "1.5ct": 261, "2ct": 283},
+          clean_origin: {"1ct": null, "1.5ct": 601, "2ct": 621},
+          grown_brilliance: {"1ct": 610, "1.5ct": 799, "2ct": 828},
+          with_clarity: {"1ct": 595, "1.5ct": 683, "2ct": 720},
+          james_allen: {"1ct": 646, "1.5ct": 784, "2ct": 941},
+          blue_nile: {"1ct": 711, "1.5ct": 863, "2ct": 1035},
+          brilliant_earth: {"1ct": 901, "1.5ct": 1092, "2ct": 1642},
+          vrai: {"1ct": 1180, "1.5ct": 714, "2ct": null, non_igi: true}
         }
       },
       {
         month: "June 2026",
         total_listings: 283644,
         retailers: {
-          ritani:           {"1ct": 190,  "1.5ct": 185,  "2ct": 190},
-          clean_origin:     {"1ct": null, "1.5ct": 552,  "2ct": 561},
-          grown_brilliance: {"1ct": 576,  "1.5ct": 558,  "2ct": 738},
-          with_clarity:     {"1ct": 618,  "1.5ct": 687,  "2ct": 703},
-          blue_nile:        {"1ct": 582,  "1.5ct": 742,  "2ct": 906},
-          brilliant_earth:  {"1ct": 901,  "1.5ct": 1212, "2ct": 1642},
-          vrai:             {"1ct": 1159, "1.5ct": 707,  "2ct": null, non_igi: true}
+          ritani: {"1ct": 190, "1.5ct": 185, "2ct": 190},
+          clean_origin: {"1ct": null, "1.5ct": 552, "2ct": 561},
+          grown_brilliance: {"1ct": 576, "1.5ct": 558, "2ct": 738},
+          with_clarity: {"1ct": 618, "1.5ct": 687, "2ct": 703},
+          blue_nile: {"1ct": 582, "1.5ct": 742, "2ct": 906},
+          brilliant_earth: {"1ct": 901, "1.5ct": 1212, "2ct": 1642},
+          vrai: {"1ct": 1159, "1.5ct": 707, "2ct": null, non_igi: true}
         }
       },
       {
         month: "July 2026",
         total_listings: 208903,
         retailers: {
-          ritani:           {"1ct": 295,  "1.5ct": 258,  "2ct": 266},
-          clean_origin:     {"1ct": 342,  "1.5ct": 361,  "2ct": 421},
-          grown_brilliance: {"1ct": null, "1.5ct": 650,  "2ct": 659},
-          with_clarity:     {"1ct": 620,  "1.5ct": 698,  "2ct": 728},
-          blue_nile:        {"1ct": null, "1.5ct": 749,  "2ct": 905},
-          brilliant_earth:  {"1ct": 899,  "1.5ct": 1212, "2ct": 1642},
-          vrai:             {"1ct": null, "1.5ct": 707,  "1.5ct_total": 1229, "2ct": null, non_igi: true}
+          ritani: {"1ct": 295, "1.5ct": 258, "2ct": 266},
+          clean_origin: {"1ct": 342, "1.5ct": 361, "2ct": 421},
+          grown_brilliance: {"1ct": null, "1.5ct": 650, "2ct": 659},
+          with_clarity: {"1ct": 620, "1.5ct": 698, "2ct": 728},
+          blue_nile: {"1ct": null, "1.5ct": 749, "2ct": 905},
+          brilliant_earth: {"1ct": 899, "1.5ct": 1212, "2ct": 1642},
+          vrai: {"1ct": null, "1.5ct": 707, "1.5ct_total": 1229, "2ct": null, non_igi: true}
+        }
+      },
+      {
+        month: "August 2026",
+        total_listings: 250502,
+        retailers: {
+          ritani: {"1ct": 223, "1.5ct": 212, "2ct": 248},
+          clean_origin: {"1ct": null, "1.5ct": null, "2ct": 278},
+          grown_brilliance: {"1ct": 500, "1.5ct": 648, "2ct": 659},
+          with_clarity: {"1ct": null, "1.5ct": null, "2ct": null},
+          blue_nile: {"1ct": null, "1.5ct": null, "2ct": null},
+          brilliant_earth: {"1ct": 856, "1.5ct": 1151, "2ct": 1365},
+          vrai: {"1ct": 1583, "1.5ct": 1250, "1.5ct_total": 2160, "2ct": null, non_igi: true}
         }
       }
     ],
     retailers: [
-      { name: "Ritani",           slug: "ritani",           cells: {"1ct": {status:"ok", stone_count:302, median_price_per_carat:295}, "1.5ct": {status:"ok", stone_count:1506, median_price_per_carat:258}, "2ct": {status:"ok", stone_count:1650, median_price_per_carat:266}} },
-      { name: "Clean Origin",     slug: "clean_origin",     cells: {"1ct": {status:"ok", stone_count:725, median_price_per_carat:342}, "1.5ct": {status:"ok", stone_count:46, median_price_per_carat:361}, "2ct": {status:"ok", stone_count:417, median_price_per_carat:421}} },
-      { name: "Grown Brilliance", slug: "grown_brilliance", cells: {"1ct": {status:"thin", stone_count:1, note:"Below the 30-listing minimum this edition."}, "1.5ct": {status:"ok", stone_count:47, median_price_per_carat:650}, "2ct": {status:"ok", stone_count:179, median_price_per_carat:659}} },
-      { name: "With Clarity",     slug: "with_clarity",     cells: {"1ct": {status:"ok", stone_count:660, median_price_per_carat:620}, "1.5ct": {status:"ok", stone_count:945, median_price_per_carat:698, note:"Partial capture, about 74% of the band."}, "2ct": {status:"ok", stone_count:912, median_price_per_carat:728}} },
-      { name: "Blue Nile",        slug: "blue_nile",        cells: {"1ct": {status:"thin", stone_count:18,  note:"Below the 30-listing minimum this edition."}, "1.5ct": {status:"ok", stone_count:47,  median_price_per_carat:749}, "2ct": {status:"ok", stone_count:54,  median_price_per_carat:905}} },
-      { name: "Brilliant Earth",  slug: "brilliant_earth",  cells: {"1ct": {status:"ok", stone_count:200,  median_price_per_carat:899}, "1.5ct": {status:"ok", stone_count:229,  median_price_per_carat:1212}, "2ct": {status:"ok", stone_count:191,  median_price_per_carat:1642}} },
-      { name: "VRAI",             slug: "vrai",             non_igi: true, approximate_windows: true, cells: {"1ct": {status:"thin", stone_count:29, note:"One listing short of the 30-listing minimum.", actual_range:"1.0-1.09ct"}, "1.5ct": {status:"ok", stone_count:65, median_price_per_carat:707, median_total_price:1229, actual_range:"1.6-1.9ct"}, "2ct": {status:"thin", stone_count:17, note:"Fewer than 30 qualifying listings.", actual_range:"2.1-2.45ct"}} }
+      { name: "Ritani", slug: "ritani", cells: {"1ct": {status:"ok", stone_count:1126, median_price_per_carat:223, note:"Collection now covers the full 0.95-1.05ct cell; on July's narrower 1.00-1.05ct window the August median is $245/ct (n=296). See Coverage this edition."}, "1.5ct": {status:"ok", stone_count:1394, median_price_per_carat:212}, "2ct": {status:"ok", stone_count:1079, median_price_per_carat:248}} },
+      { name: "Clean Origin", slug: "clean_origin", cells: {"1ct": {status:"thin", stone_count:1, note:"Below the 30-listing minimum this edition; Clean Origin's listed E-color inventory contracted sharply, see Coverage this edition."}, "1.5ct": {status:"thin", stone_count:24, note:"Below the 30-listing minimum this edition; see Coverage this edition."}, "2ct": {status:"ok", stone_count:187, median_price_per_carat:278}} },
+      { name: "Grown Brilliance", slug: "grown_brilliance", cells: {"1ct": {status:"ok", stone_count:795, median_price_per_carat:500, note:"Published again after July's single-stone cell; collection returned 61,542 listings this month against 4,141 in July. See Coverage this edition."}, "1.5ct": {status:"ok", stone_count:371, median_price_per_carat:648}, "2ct": {status:"ok", stone_count:920, median_price_per_carat:659}} },
+      { name: "With Clarity", slug: "with_clarity", cells: {"1ct": {status:"no_data", stone_count:0, note:"No data this edition: collection blocked by the site's access restrictions."}, "1.5ct": {status:"no_data", stone_count:0, note:"No data this edition: collection blocked by the site's access restrictions."}, "2ct": {status:"no_data", stone_count:0, note:"No data this edition: collection blocked by the site's access restrictions."}} },
+      { name: "Blue Nile", slug: "blue_nile", cells: {"1ct": {status:"thin", stone_count:18, note:"Below the 30-listing minimum, as in July (n=18 both months): genuinely thin E VS1 IGI inventory, not a collection issue."}, "1.5ct": {status:"thin", stone_count:5, note:"Below the 30-listing minimum this edition; a larger share of Blue Nile's E-color inventory now carries GCAL or GIA reports rather than IGI, not a collection issue."}, "2ct": {status:"thin", stone_count:27, note:"Below the 30-listing minimum this edition; a larger share of Blue Nile's E-color inventory now carries GCAL or GIA reports rather than IGI, not a collection issue."}} },
+      { name: "Brilliant Earth", slug: "brilliant_earth", cells: {"1ct": {status:"ok", stone_count:254, median_price_per_carat:856}, "1.5ct": {status:"ok", stone_count:302, median_price_per_carat:1151}, "2ct": {status:"ok", stone_count:303, median_price_per_carat:1365}} },
+      { name: "VRAI", slug: "vrai", non_igi: true, approximate_windows: true, cells: {"1ct": {status:"ok", stone_count:36, median_price_per_carat:1583, note:"Published again after one edition below the minimum (n=29 in July). Same-lot repricing since July, see the VRAI methodology note.", actual_range:"1.0-1.09ct"}, "1.5ct": {status:"ok", stone_count:95, median_price_per_carat:1250, median_total_price:2160, actual_range:"1.6-1.9ct"}, "2ct": {status:"thin", stone_count:14, note:"Fewer than 30 qualifying listings in this cell.", actual_range:"2.1-2.45ct"}} }
     ]
   };
 
   var METHODOLOGY = [
-    "<strong>Scope.</strong> This index tracks listed retail prices (not transaction prices) across major U.S. online lab-grown diamond retailers. The July 2026 edition analyzed 208,903 lab-grown diamond listings across seven retailers. Data was collected on July 23, 2026.",
-    "<strong>Retailer panel.</strong> This edition tracks seven retailers: Ritani, Clean Origin, Grown Brilliance, With Clarity, Blue Nile, Brilliant Earth, and VRAI. The panel is fixed and disclosed for comparability. Any additions, removals, or reclassifications will be explicitly noted in that month's report.",
+    "<strong>Scope.</strong> This index tracks listed retail prices (not transaction prices) across major U.S. online lab-grown diamond retailers. The August 2026 edition analyzed 250,502 lab-grown diamond listings across seven retailers, six of which were collected this month. Data was collected on August 29, 2026.",
+    "<strong>Retailer panel.</strong> This edition tracks seven retailers: Ritani, Clean Origin, Grown Brilliance, With Clarity, Blue Nile, Brilliant Earth, and VRAI. The panel is fixed and disclosed for comparability. Any additions, removals, or reclassifications will be explicitly noted in that month's report. With Clarity remains on the panel; its cells show no data this edition because collection was blocked, see Coverage this edition: With Clarity.",
     "<strong>Price inputs.</strong> Prices are the publicly visible list price at the time of data collection, including any site-wide or automatic reductions that do not require a membership or promotional code. Excluded: promotional codes, membership discounts, negotiated pricing, strikethrough compare-at prices. All prices in USD, excluding sales tax and shipping.",
     "<strong>Benchmark specification.</strong> E color, VS1 clarity, round brilliant, Excellent cut, IGI-certified. Three weight cells: 1ct (0.95-1.05ct), 1.5ct (1.45-1.55ct), and 2ct (1.95-2.05ct).",
-    "<strong>Statistical method.</strong> Each published figure is the median total stone price across all qualifying listings within that cell. A minimum of 30 qualifying listings is required for publication. Per-cell sample sizes (n) are visible as tooltips when hovering over any price. Total Stone Price figures in the price table (all cells except VRAI's 1.5ct, corrected in the VRAI note below) are computed as the median price-per-carat for that cell multiplied by the cell's nominal carat weight, not the raw median of actual listing prices; the two typically differ by 0.5-2%. Grown Brilliance 1ct (n=1) falls below the threshold and is not published. Blue Nile 1ct (n=18) falls below the threshold and is not published. VRAI 1ct (n=29) falls below the threshold and is not published. VRAI 2ct (n=17) falls below the threshold and is not published.",
-    "<strong>Coverage this edition.</strong> Two retailers have reduced coverage this edition. Ritani and Grown Brilliance were scraped within three fixed carat bands (1.00-1.09ct, 1.40-1.59ct, 1.90-2.09ct, all colors) rather than a full-inventory census, adopted this cycle to avoid the multi-hour timeouts and rate-limit hangs both retailers have produced in past months. Because the published 1ct benchmark cell (0.95-1.05ct) only partially overlaps the scraped band (1.00-1.05ct of the scraped 1.00-1.09ct), 1ct sample sizes for these two retailers are thinner than in prior editions; Grown Brilliance's 1ct cell (n=1) falls below the 30-listing minimum and is not published, while Ritani's 1ct cell (n=302) remains above the minimum but is materially smaller than its typical range in past editions (780 in April, 843 in May, 1,296 in June). The 1.5ct and 2ct bands are fully contained within the scraped range for both retailers and are unaffected by this change. With Clarity's original July 23 collection used a server-side G-color filter rather than the benchmark's E color and collected no E-color data; a supplemental scrape on July 25 (E-color, benchmark bands, one fresh IP per band) closed this. 1ct (n=660) and 2ct (n=912) completed as full captures. 1.5ct took four attempts across three IPs and topped out at 74% (3,920 of 5,312 raw stones, 945 qualifying), reproduced identically on two separate IPs, read as a real ceiling for this query rather than random per-IP variance; published as a partial capture, disclosed in the price table. Blue Nile's 1ct cell (n=18) is thin because of genuinely low VS1-clarity inventory in this month's E-color listings (most graded VVS2 instead), not a collection issue. VRAI's 1ct cell (n=29) falls one listing short of the 30-listing minimum and is not published this month. With Grown Brilliance and Blue Nile still unable to contribute a published 1ct figure, four of the six IGI retailers have a 1ct figure this month (up from three before the With Clarity top-up); the 1ct Market Median is not published this edition, see the Market Median entry below. The four published 1ct figures (Ritani, Clean Origin, With Clarity, Brilliant Earth) are shown individually in the price table instead. The 1.5ct and 2ct Market Medians now retain all six IGI retailers.",
+    "<strong>Statistical method.</strong> Each published figure is the median total stone price across all qualifying listings within that cell. A minimum of 30 qualifying listings is required for publication. Per-cell sample sizes (n) are visible as tooltips when hovering over any price. Total Stone Price figures in the price table (all cells except VRAI's 1.5ct, corrected in the VRAI note below) are computed as the median price-per-carat for that cell multiplied by the cell's nominal carat weight, not the raw median of actual listing prices; the two differ by up to a few percent (this edition, between 0% and 3.9% across the published IGI cells, the largest gap being Grown Brilliance's 1ct cell, $500 published against a raw median of $520). This is a candidate for a deliberate, disclosed methodology change in a future edition, not something being silently recomputed now. Clean Origin 1ct (n=1) falls below the threshold and is not published. Clean Origin 1.5ct (n=24) falls below the threshold and is not published. With Clarity 1ct has no qualifying data this month. With Clarity 1.5ct has no qualifying data this month. With Clarity 2ct has no qualifying data this month. Blue Nile 1ct (n=18) falls below the threshold and is not published. Blue Nile 1.5ct (n=5) falls below the threshold and is not published. Blue Nile 2ct (n=27) falls below the threshold and is not published. VRAI 2ct (n=14) falls below the threshold and is not published.",
+    "<strong>Coverage this edition: Ritani and Grown Brilliance.</strong> Both were scraped within three fixed carat bands rather than a full-inventory census, the collection method adopted in July to avoid the multi-hour timeouts and rate-limit hangs both retailers have produced. The band requests now start at 0.95ct (0.95-1.09ct, 1.40-1.59ct, 1.90-2.09ct, all colors). For Ritani this covers the published 1ct cell (0.95-1.05ct) in full; July's 1.00-1.09ct band covered only its upper half. This raises Ritani's 1ct sample from 302 to 1,126 stones and contributes part of the reported 1ct decline (see Key Findings for the like-for-like figure on July's window). Grown Brilliance returned no listings between 0.95 and 0.99ct in either month, so its 1ct figure covers 1.00-1.05ct; this index does not know whether Grown Brilliance stocks stones in that range. Grown Brilliance's collection returned 61,542 listings against 4,141 in July, restoring its 1ct cell (n=795, unpublished in July at n=1); July's report attributed that thin cell to genuine inventory scarcity on the strength of a live re-scrape that reproduced the same small set, and this month's return from the same method, nearly fifteen times larger, shows that reading was at best short-lived. This index does not know whether Grown Brilliance restocked or whether its July inventory was under-served to collection; July's single 1ct stone was listed at $500 per carat, identical to this month's median, and the 1.5ct and 2ct medians are within $2 of July's either way.",
+    "<strong>Coverage this edition: With Clarity.</strong> With Clarity was not collected this edition. The site's access restrictions on high-volume data collection blocked the first request of the benchmark-band collection (HTTP 403) on both collection paths, from an IP address that had not queried the site since July 25. Its cells are shown as no data, it is excluded from every Market Median computation and every price range on this page, and a supplemental collection will be attempted; if that succeeds, the figures will be added in a dated revision of this edition.",
+    "<strong>Coverage this edition: Clean Origin and Blue Nile.</strong> Clean Origin's full-inventory collection returned 6,886 listings against 26,972 in July; its own site count for round stones between 0.90ct and 2.50ct was 5,247 at collection, the delivered file holds 5,103 round listings (17,764 in July's collection, 3,982 in June's), and wider site queries (7,715 between 0.50ct and 3.00ct, 10,367 between 0.30ct and 5.00ct) confirm the contraction is in the listed inventory, not in the collection. Its E-color round inventory in the 1ct cell fell from 2,546 listings to 51 (one VS1), so the 1ct (n=1) and 1.5ct (n=24) cells are not published; the 2ct cell (n=187) is. Blue Nile was a full-inventory pull as usual (28,836 listings, against 29,857 in July) and its E-color round inventory is of similar size to July's. Its 1ct E VS1 IGI cell is thin for the second month (n=18 in both), genuinely thin inventory; its 1.5ct and 2ct cells (n=5 and 27, against 47 and 54 in July) thinned because a larger share of that inventory now carries GCAL or GIA reports rather than IGI, and VS1 remains a minority clarity grade behind VVS2. No Blue Nile cell is published this edition.",
+    "<strong>Coverage this edition: what is published at 1ct.</strong> Three of the six IGI retailers have a published 1ct figure this month (Ritani, Grown Brilliance, Brilliant Earth), down from four in July with a different composition (Clean Origin and With Clarity out, Grown Brilliance in). The 1ct Market Median is not published this edition, see the Market Median entry below; the three published figures are shown individually in the price table. The 1.5ct Market Median draws on the same three retailers. Four IGI retailers have a published 2ct figure (Ritani, Clean Origin, Grown Brilliance, Brilliant Earth); the 2ct Market Median is not published, see below.",
     "<strong>Deduplication.</strong> Listings are deduplicated within each retailer by URL. Stones with identical IGI certificate numbers may appear at more than one retailer and are counted as independent listings at each retailer where they appear.",
-    "<strong>Market Median.</strong> Computed as the median of the per-retailer median prices across all IGI-panel retailers with qualifying (published) data in that cell. VRAI is excluded from this computation (non-IGI, non-comparable). The 1ct cell is not published this edition: its panel (now four of six IGI retailers, up from three before With Clarity's July 25 top-up) turns over too much month to month to blend meaningfully. Comparing June's 1ct panel ($582, 5 retailers) to July's ($481, the 4 currently-published retailers, blended for this comparison only) shows a -17% move, but the three retailers reporting in both months (Ritani, With Clarity, Brilliant Earth) were essentially flat, +0.3% ($618 to $620); the swing is a composition artifact (Clean Origin newly qualifying, Grown Brilliance and Blue Nile dropping out), not a price move. The four published 1ct figures are shown individually in the price table instead of a blended number.",
-    "<strong>VRAI.</strong> VRAI uses Diamond Foundry proprietary grading exclusively and carries no IGI-certified inventory. Included as a non-comparable reference point. Weight windows: 1ct = 1.0-1.09ct (D-F colors); 1.5ct = 1.6-1.9ct (D-G colors); 2ct = 2.1-2.45ct (D-G colors). VRAI's 1ct cell (n=29) and 2ct cell (n=17) both fall below the 30-listing minimum this edition and are not published; only the 1.5ct figure is published this month. Because VRAI's 1.5ct window (1.6-1.9ct, median actual weight 1.72ct) diverges substantially from the nominal 1.5ct label, its published Total Stone Price figure ($1,229) is the true median of actual listing prices for this cell, not median $/ct ($707) x 1.5 (which would understate it by about $168, or 14%).",
-    "<strong>Comparability.</strong> Historical index figures may not be directly comparable when the benchmark specification or retailer panel changes. Such changes are explicitly noted in the relevant month's report. James Allen was retired from the panel in the June 2026 edition following the closure of its independent storefront. This edition's narrower Ritani and Grown Brilliance carat-band collection is a collection-methodology change, not a benchmark-specification change; coverage within the unchanged spec is reduced for these two retailers. With Clarity had the same kind of gap after its original July 23 collection; a supplemental scrape on July 25 closed it, in full for 1ct and 2ct and to about 74% for 1.5ct.",
+    "<strong>Market Median.</strong> Computed as the median of the per-retailer median prices per carat across all IGI-panel retailers with qualifying (published) data in that cell, rounded, then multiplied by the cell's nominal weight. VRAI is excluded from this computation (non-IGI, non-comparable). Publication rule, applied from this edition: a cell's Market Median is published only when every retailer contributing to it also had a published figure in that cell in the prior edition, and the blended month-over-month move agrees with the move of those same retailers to within five percentage points; otherwise the blended figure mostly measures who is in the panel and is withheld. 1.5ct passes and is published: $972, from Ritani, Grown Brilliance, and Brilliant Earth, against July's six-retailer $1,011, an apparent -4% that is -0.3% on the same three retailers ($975 to $972). 1ct fails the first test: Grown Brilliance had no published 1ct figure in July (a blended $500 would compare Ritani, Grown Brilliance, and Brilliant Earth with July's unpublished $481 from Ritani, Clean Origin, With Clarity, and Brilliant Earth; the two retailers in both months, Ritani and Brilliant Earth, moved -10% together). 2ct fails the second test: the blended figure ($938, against July's six-retailer $1,388, an apparent -32%) disagrees with the move of the four retailers in both months (Ritani, Clean Origin, Grown Brilliance, Brilliant Earth: -13%, $1,080 to $938), With Clarity and Blue Nile having dropped out. Those figures are computed here only to show why the blended numbers are not published; the published per-retailer figures are shown individually in the price table instead.",
+    "<strong>VRAI.</strong> VRAI uses Diamond Foundry proprietary grading exclusively and carries no IGI-certified inventory. Included as a non-comparable reference point. Weight windows: 1ct = 1.0-1.09ct (D-F colors); 1.5ct = 1.6-1.9ct (D-G colors); 2ct = 2.1-2.45ct (D-G colors). VRAI's 1ct (n=36) and 1.5ct (n=95) cells are published this edition; its 2ct cell (n=14) is not. The 1ct figure is median $/ct x 1 ($1,583; the raw median listing price in that window, median weight 1.04ct, is $1,650). Because VRAI's 1.5ct window (median actual weight 1.75ct) diverges substantially from the nominal 1.5ct label, its published Total Stone Price figure ($2,160) is the true median of actual listing prices for this cell, not median $/ct ($1,250) x 1.5. VRAI repriced its inventory upward between the July 23 and August 29 collections: of the 413 lots listed in both, the median same-lot price change is +76% (carat and color unrestricted); restricted to VRAI's own cell windows as defined above it is +33% for the 18 lots in the 1ct window and +69% for the 62 lots in the 1.5ct window. This index checked that the change is not a currency or collection artifact (VRAI's listing API returns the same price for the same lot regardless of the requesting location, and the change is not a uniform multiplier); it is VRAI's own pricing.",
+    "<strong>Comparability.</strong> Historical index figures may not be directly comparable when the benchmark specification or retailer panel changes. Such changes are explicitly noted in the relevant month's report. James Allen was retired from the panel in the June 2026 edition following the closure of its independent storefront. The Ritani and Grown Brilliance carat-band collection is a collection-methodology choice, not a benchmark-specification change; this edition's band request starts at 0.95ct, which brings Ritani's 1ct cell to full coverage and affects its 1ct sample as described above, while Grown Brilliance's 1ct coverage is unchanged at 1.00-1.05ct. With Clarity's absence this edition is a collection failure, not a panel change; its July figures remain as published.",
     "<strong>Independence.</strong> Rings.com receives no compensation from the retailers included in this index for inclusion or ranking, and no retailer has any editorial control over the methodology or results."
   ];
 
@@ -113,8 +130,15 @@
       var tip = (cell && cell.note) || (cell && cell.status === "thin" ? "Fewer than 30 stones." : "No qualifying listings.");
       return "<td style=\"" + base + "color:#aaa;\" title=\"" + tip.replace(/"/g, "&quot;") + "\">-</td>";
     }
-    var tpStr = cell.median_total_price != null ? ("$" + cell.median_total_price.toLocaleString("en-US")) : fmtDual(cell.median_price_per_carat, wt || 1);
-    return "<td style=\"" + base + "font-variant-numeric:tabular-nums;\" title=\"n=" + cell.stone_count + "\">" + tpStr + "</td>";
+    var hasOverride = cell.median_total_price != null;
+    var tpStr = hasOverride ? ("$" + cell.median_total_price.toLocaleString("en-US")) : fmtDual(cell.median_price_per_carat, wt || 1);
+    // An override means the cell's actual weight window diverges from the
+    // nominal label (VRAI 1.5ct) - flag it inline, tied to the table footnote.
+    // NOTE: never put a space before "<" inside a string here - Shopify's
+    // serving pipeline line-wraps before "<" after a space, which splits the
+    // string literal and kills the whole script with a SyntaxError.
+    var dagger = hasOverride ? "<span style=\"font-size:0.78rem;color:#888;\" title=\"Actual window diverges from the nominal weight label; see table footnote\">&nbsp;&#8224;</span>" : "";
+    return "<td style=\"" + base + "font-variant-numeric:tabular-nums;\" title=\"n=" + cell.stone_count + "\">" + tpStr + dagger + "</td>";
   }
 
   function nextMonthOf(monthStr) {
@@ -220,6 +244,14 @@
       var p = data.last_updated.split("-");
       dateEl.innerHTML = "Published " + mn[parseInt(p[1], 10) - 1] + " " + parseInt(p[2], 10) + ", " + p[0] + " &nbsp;&middot;&nbsp; E&nbsp;VS1 Round Excellent IGI &nbsp;&middot;&nbsp; USD";
     }
+    if (dateEl && data.correction_note) {
+      var corrEl = document.getElementById("lgd-corrected-note");
+      if (!corrEl) {
+        dateEl.insertAdjacentHTML("afterend", "<p id=\"lgd-corrected-note\" style=\"font-size:0.78rem;color:#999;margin:6px 0 0;line-height:1.5;\"></p>");
+        corrEl = document.getElementById("lgd-corrected-note");
+      }
+      corrEl.textContent = data.correction_note;
+    }
 
     var cells = data.benchmark_cells || ["1ct", "1.5ct", "2ct"];
 
@@ -240,11 +272,12 @@
         if (v2 > _max2) _max2 = v2;
       }
     });
-    var _calloutHtml = "<p style=\"font-size:0.92rem;color:#444;margin:0 0 16px;line-height:1.6;\">"
-      + "The same 1ct E VS1 IGI round costs $" + Math.round(_min1).toLocaleString("en-US") + " at " + _minR1
-      + " and $" + Math.round(_max1).toLocaleString("en-US") + " at " + _maxR1
-      + " — a $" + (Math.round(_max1) - Math.round(_min1)).toLocaleString("en-US") + " difference for identical specs."
-      + " At 2ct, that gap reaches $" + (_max2 - _min2).toLocaleString("en-US") + "."
+    // Same wording as the static block's callout (generate_us_gempages_block.py),
+    // so the crawler render and the JS render say the same thing.
+    var _calloutHtml = "<p style=\"font-size:0.95rem;color:#333;margin:0 0 20px;line-height:1.6;\">"
+      + "At 1ct, prices range from<strong> $" + Math.round(_min1).toLocaleString("en-US") + " to $" + Math.round(_max1).toLocaleString("en-US") + "</strong> depending on where you buy."
+      + " At 2ct, the gap widens to<strong> $" + _min2.toLocaleString("en-US") + " to $" + _max2.toLocaleString("en-US") + "</strong>."
+      + " Same certification. Same grade. Different retailer."
       + "</p>";
 
     tableWrap.insertAdjacentHTML("beforebegin", "<span id=\"price-table\" aria-hidden=\"true\" style=\"display:block;height:0;overflow:hidden;\"></span>" + _calloutHtml);
@@ -260,7 +293,7 @@
       var bg = r.non_igi ? "#f5f5f5" : (i % 2 === 0 ? "#fafafa" : "#ffffff");
       var rowStyle = r.non_igi ? " style=\"border-top:2px solid #e0e0e0;\"" : "";
       var label = r.non_igi ? "<span style=\"margin-left:4px;font-size:0.75rem;font-weight:400;color:#999;\">(non-IGI)</span>" : "";
-      var ritaniNote = r.slug === "ritani" ? "<a href=\"#key-findings\" style=\"margin-left:4px;font-size:0.78rem;font-weight:400;color:#888;text-decoration:none;\" title=\"Largest month-over-month move; see Key Findings\">*</a>" : "";
+      var ritaniNote = r.slug === "ritani" ? "<a href=\"#key-findings\" style=\"margin-left:4px;font-size:0.78rem;font-weight:400;color:#888;text-decoration:none;\" title=\"Largest month-over-month moves at 1ct and 1.5ct; see Key Findings\">*</a>" : "";
       tableHtml += "<tr" + rowStyle + "><td style=\"padding:10px 12px;font-weight:700;white-space:nowrap;background:" + bg + ";color:#1a1a1a;\">" + r.name + label + ritaniNote + "</td>"
         + cellHtml(r.cells["1ct"], bg, 1) + cellHtml(r.cells["1.5ct"], bg, 1.5) + cellHtml(r.cells["2ct"], bg, 2) + "</tr>";
     });
@@ -285,11 +318,11 @@
         : "<td style=\"text-align:right;padding:10px 12px;background:" + medBg + ";color:#aaa;\">-</td>";
     });
     tableHtml += "</tr></tbody></table>"
-      + "<p style=\"font-size:0.8rem;color:#666;margin:8px 0 0;line-height:1.4;\">Total stone price. E VS1 Round Excellent IGI. Median. All prices USD. Hover any price for sample size (n). VRAI: proprietary Diamond Foundry grading, not matched to E VS1. * Largest month-over-month move. See Key Findings.</p>";
+      + "<p style=\"font-size:0.8rem;color:#666;margin:8px 0 0;line-height:1.4;\">Total stone price. E VS1 Round Excellent IGI. Median. All prices USD. VRAI: proprietary Diamond Foundry grading, not matched to E VS1 IGI specification. * Largest month-over-month moves at 1ct and 1.5ct. See Key Findings. &#8224; VRAI's 1.5ct cell covers a 1.6&#8211;1.9ct window (median actual weight 1.75ct, not 1.5ct) and is not directly comparable to the other retailers in that column; see the VRAI methodology note. A dash (&#8212;) means fewer than 30 qualifying listings, or no data collected (With Clarity this edition); in the Market Median row it means the median is not published this edition (the 1ct and 2ct cells fail this edition's publication rule; see Key Findings and the Market Median methodology note).</p>";
     tableWrap.innerHTML = tableHtml;
 
     var shareUrl = encodeURIComponent(PAGE_URL);
-    var shareText = encodeURIComponent("Lab-grown diamond prices vary across major U.S. retailers. 1ct: $295-$899/ct. Rings.com Lab-Grown Diamond Price Index, July 2026. " + PAGE_URL);
+    var shareText = encodeURIComponent("Lab-grown diamond prices vary across major U.S. retailers: published 1ct E VS1 IGI medians run from $223 to $856 by retailer. Rings.com Lab-Grown Diamond Price Index, August 2026. " + PAGE_URL);
     var iconX    = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.259 5.622 5.905-5.372zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="currentColor"/></svg>';
     var iconIn   = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.5 8h-3v12h3V8zm-1.5-1.5a1.75 1.75 0 1 0 0-3.5 1.75 1.75 0 0 0 0 3.5zM20.5 20h-3v-5.5c0-1.4-.56-2.1-1.75-2.1-1.3 0-2 .85-2 2.1V20h-3V8h3v1.55c.55-.95 1.7-1.65 3-1.65 2.55 0 3.75 1.65 3.75 4.85V20z" fill="currentColor"/></svg>';
     var iconFb   = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>';
@@ -312,14 +345,15 @@
 
     calloutWrap.innerHTML = "<div style=\"background:#1a1a1a;color:#ffffff;border-radius:6px;padding:20px 24px;line-height:1.7;font-size:0.95rem;\">"
       + "<strong style=\"display:block;margin-bottom:10px;font-size:1rem;color:#ffffff;\">Key Findings: " + data.month + "</strong>"
-      + "<p style=\"margin:0 0 14px;color:#c8c8c8;font-size:0.9rem;line-height:1.6;\">Seven retailers. 208,903 listings. E VS1 Round Excellent IGI.</p>"
+      + "<p style=\"margin:0 0 14px;color:#c8c8c8;font-size:0.9rem;line-height:1.6;\">Seven retailers tracked, six collected. 250,502 listings. E VS1 Round Excellent IGI.</p>"
       + "<ul style=\"margin:0;padding:0 0 0 18px;color:#ffffff;line-height:1.65;\">"
-      + "<li style=\"margin:0 0 9px;\">If you're shopping for a 1ct E VS1 IGI round this month, published prices range from $295 to $899 depending on where you buy. That gap is not a quality difference. It's a retailer difference, and this month it's a narrower comparison set than usual (see the Coverage note below).</li>"
-      + "<li style=\"margin:0 0 9px;\">Ritani reversed course after two straight months of cuts, posting the panel's largest move again, this time upward: +55% at 1ct ($190 to $295 per carat), +39% at 1.5ct ($185 to $258 per carat), and +40% at 2ct ($190 to $266 per carat). July's prices land close to where Ritani started in May, before its June markdown. A retrospective check applying this month's narrower carat window (1.00-1.05ct) to Ritani's own May data reproduces a median of $300 per carat (n=391) against May's published $290 per carat, a $10 (3.4%) gap, close enough to support that this is a real repricing rather than a sampling artifact, though not an exact match. This month's Ritani 1ct sample (n=302) is thinner than its typical range in past editions: 780 in April, 843 in May, 1,296 in June.</li>"
-      + "<li style=\"margin:0 0 9px;\">Clean Origin's 1ct cell cleared the 30-listing publication minimum for the first time since this index adopted full-inventory collection (n=725, $342 per carat), while its 1.5ct and 2ct cells fell 35% and 25% respectively. Clean Origin's overall round inventory rebounded sharply, from roughly 3,980 round listings in June to about 17,760 in July, its highest level tracked since this index began in April, which is almost certainly why the 1ct cell finally cleared the publication minimum.</li>"
-      + "<li style=\"margin:0 0 9px;\">With Clarity is published in all three cells this edition after a supplemental top-up scrape on July 25. The original July 23 collection had narrowed to a single non-benchmark color grade to survive IP-level blocking, leaving no E-color data; a dedicated re-scrape (E-color, benchmark bands, one fresh IP per band) recovered $620 at 1ct (n=660, full capture), $698 at 1.5ct (n=945, a partial capture, about 74% of the band), and $728 at 2ct (n=912, full capture). Versus June, With Clarity was essentially flat: +$2/ct at 1ct, +$11/ct at 1.5ct, +$25/ct at 2ct.</li>"
-      + "<li style=\"margin:0 0 9px;\">With Grown Brilliance and Blue Nile still unable to contribute a published 1ct figure this month, four of the six IGI retailers now have a 1ct figure (Ritani $295, Clean Origin $342, With Clarity $620, Brilliant Earth $899) after With Clarity's top-up. We are still not publishing a blended 1ct Market Median this edition. Comparing June's 1ct panel ($582, 5 retailers) to July's ($481, the 4 retailers above, blended for this comparison only) shows what looks like a 17% drop, but the three retailers that reported in both months, Ritani, With Clarity, and Brilliant Earth, were essentially flat, $618 to $620 (+0.3%). The apparent swing is a composition artifact: Clean Origin newly qualifying and Grown Brilliance and Blue Nile dropping out of the panel, not a real price move. The four individual figures are shown instead of a blended number. The 1.5ct and 2ct Market Medians now draw on all six IGI retailers: 1.5ct rose 8% while 2ct eased 4%, neither large.</li>"
-      + "<li style=\"margin:0;\">Brilliant Earth held its position as the panel's premium end and didn't move this month: -$2/ct at 1ct (basically flat, $901 to $899), unchanged at 1.5ct and 2ct.</li>"
+      + "<li style=\"margin:0 0 9px;\"><strong>$223 to $856 for the same 1ct stone, depending on where you buy.</strong> That is the published price range for a 1ct E VS1 IGI round this month, from three of the six IGI retailers (Ritani, Grown Brilliance, Brilliant Earth); the other three have no published 1ct figure this edition (see the Coverage notes below). At 2ct the published range runs from $496 to $2,730 across four retailers.</li>"
+      + "<li style=\"margin:0 0 9px;\"><strong>Ritani cut prices, reversing July's increase, with the panel's largest moves at 1ct and 1.5ct.</strong> Its 1ct median fell from $295 to $223 per carat (-24%), 1.5ct from $258 to $212 (-18%), and 2ct from $266 to $248 (-7%). Part of the 1ct figure is a coverage change, not a price move: this edition's collection covers the full 0.95-1.05ct cell (July's band began at 1.00ct), and on July's narrower 1.00-1.05ct window Ritani's August median is $245 per carat (n=296), a like-for-like -17%. The 1ct sample is 1,126 stones this month against 302 in July.</li>"
+      + "<li style=\"margin:0 0 9px;\"><strong>Brilliant Earth moved, and downward, after two editions unchanged at 1.5ct and 2ct.</strong> Having held $1,212 per carat at 1.5ct and $1,642 at 2ct in both June and July, it posted -5% at 1ct ($899 to $856), -5% at 1.5ct ($1,212 to $1,151), and -17% at 2ct ($1,642 to $1,365). It remains the IGI panel's premium end in every published cell.</li>"
+      + "<li style=\"margin:0 0 9px;\"><strong>Grown Brilliance is back at 1ct: $500 per carat (n=795).</strong> Its band collection returned 61,542 listings this month against 4,141 in July, nearly fifteen times as many, when the 1ct cell held a single stone and went unpublished. July's reading of that cell as genuine inventory scarcity did not hold: the same collection method, one month later, returned the inventory. July's single 1ct stone was itself listed at $500 per carat, identical to this month's median, and the 1.5ct ($648) and 2ct ($659) medians are within $2 of July's, so July's small sample was not price-biased. Against June's last published 1ct figure ($576), Grown Brilliance is -13% over two months. Note that Grown Brilliance's 1ct figure covers 1.00-1.05ct: its collection returned no listings between 0.95 and 0.99ct in either month.</li>"
+      + "<li style=\"margin:0 0 9px;\"><strong>Clean Origin's listed inventory contracted sharply, and only its 2ct cell is published: $278 per carat, -34% from July's $421.</strong> Clean Origin's own site count for round stones between 0.90ct and 2.50ct was 5,247 at collection (the delivered file holds 5,103 round listings), against 17,764 round listings delivered in July's collection and 3,982 in June's; its E-color round inventory in the 1ct cell fell from 2,546 listings to 51 (one of them VS1), so the 1ct and 1.5ct cells (n=1 and n=24) are not published. This closes July's open question about Clean Origin's June-to-July inventory jump only partially: the listed count swings widely month to month, and this index reports the count without knowing the cause.</li>"
+      + "<li style=\"margin:0 0 9px;\"><strong>Blue Nile has no published cell this month; VRAI repriced its inventory upward.</strong> Blue Nile's E VS1 IGI cells hold 18, 5 and 27 listings on a full-inventory pull of similar size to July's (28,836 listings against 29,857). Its 1ct cell was equally thin in July (n=18): genuinely thin E VS1 IGI inventory. Its 1.5ct and 2ct cells (47 and 54 in July) thinned because a larger share of its E-color round inventory now carries GCAL or GIA reports rather than IGI, and VS1 remains a minority clarity grade; a share shift, not a collection issue. VRAI, tracked as a non-IGI reference point, raised prices across its inventory: the 413 lots listed in both months rose a median 76% (on VRAI's own cell windows: +33% for the 18 lots in the 1ct window, 1.0-1.09ct D-F, and +69% for the 62 lots in the 1.5ct window, 1.6-1.9ct D-G). Its 1ct cell is published at $1,583 per carat (n=36), +34% against July's unpublished $1,180 (n=29) and +37% against June's last published $1,159; its 1.5ct cell's median stone price is $2,160 (1.6-1.9ct window, median 1.75ct) against $1,229 in July. This index verified the change against VRAI's own listings; it is VRAI's pricing, not a currency or collection effect.</li>"
+      + "<li style=\"margin:0;\"><strong>With Clarity has no data this edition, and only the 1.5ct Market Median is published.</strong> With Clarity's collection was blocked at the first request by the site's access restrictions on both collection paths; a supplemental collection will be attempted and, if it succeeds, folded into a dated revision of this edition. A Market Median is published this month only where every retailer in the cell also had a published figure in July and the blended move agrees with the same-retailers move to within five percentage points. The 1.5ct Market Median passes: $972 (Ritani, Grown Brilliance, Brilliant Earth) against July's six-retailer $1,011, an apparent -4% that is -0.3% on the same three retailers. The 1ct cell fails because Grown Brilliance was not published in July (a blended $500 against July's unpublished $481; the two retailers in both months, Ritani and Brilliant Earth, moved -10% together). The 2ct cell fails because the blended figure ($938 against July's six-retailer $1,388, an apparent -32%) disagrees with the same four retailers' move (-13%, $1,080 to $938, With Clarity and Blue Nile having dropped out). Neither blended number is published.</li>"
       + "</ul></div>";
 
     var nextEd = nextMonthOf(data.month);
@@ -336,7 +370,9 @@
     METHODOLOGY.forEach(function (para) { methodHtml += "<p style=\"margin:0 0 12px;color:#333;\">" + para + "</p>"; });
     methodWrap.innerHTML = methodHtml + "</div>";
 
-    footerWrap.innerHTML = "<p style=\"font-size:0.8rem;color:#888;margin:0;line-height:1.5;\">Updated monthly. Next edition: week of August 24, 2026.</p>";
+    var nextEdNote = data.next_edition_note || "Updated monthly. Next edition: week of September 28, 2026.";
+    footerWrap.innerHTML = "<p style=\"font-size:0.8rem;color:#888;margin:0 0 6px;line-height:1.5;\">" + nextEdNote + "</p>"
+      + "<p style=\"font-size:0.78rem;color:#999;margin:0;line-height:1.6;\">Rings.com Lab-Grown Diamond Price Index. &copy; 2026 Rings.com. All rights reserved.</p>";
   }
 
   window.lgdCopyLink = function (btn) {

@@ -56,11 +56,13 @@ def total_price(ppc, weight):
 
 
 def median_of(values):
+    """Median with JS Math.round semantics (half up) on even counts, so the
+    static block and theme.liquid's medianOf() agree to the dollar."""
     if not values:
         return None
     s = sorted(values)
     m = len(s) // 2
-    return round((s[m-1] + s[m]) / 2) if len(s) % 2 == 0 else s[m]
+    return math.floor((s[m-1] + s[m]) / 2 + 0.5) if len(s) % 2 == 0 else s[m]
 
 
 def band_ranges(data):
@@ -95,7 +97,16 @@ def temporal_coverage(month):
 
 def retailer_list(retailers):
     names = [r["name"] for r in retailers]
+    if len(names) == 1:
+        return names[0]
     return ", ".join(names[:-1]) + ", and " + names[-1]
+
+
+def collected_retailers(retailers):
+    """Retailers with any data this edition (a retailer whose every cell is
+    no_data was not collected, e.g. With Clarity in August 2026)."""
+    return [r for r in retailers
+            if any(c.get("status") != "no_data" for c in r["cells"].values())]
 
 
 def total_listings_for_month(data):
@@ -146,14 +157,20 @@ def generate_jsonld(data, ranges, pub_date):
     month = data.get("month", "")
     listings = total_listings_for_month(data)
     listings_str = f"{listings:,}" if listings else "N/A"
+    collected = collected_retailers(data["retailers"])
+    not_collected = [r for r in data["retailers"] if r not in collected]
 
     vm = []
+    n_igi = sum(1 for r in data["retailers"] if not r.get("non_igi"))
     for key, _, band_range in BANDS:
         if key in ranges:
             r = ranges[key]
+            k_pub = sum(1 for x in data["retailers"] if not x.get("non_igi")
+                        and x["cells"].get(key, {}).get("status") == "ok")
             vm.append({
                 "@type": "PropertyValue",
-                "name": f"Median total stone price, {key} cell ({band_range}), IGI retailers",
+                "name": f"Median total stone price, {key} cell ({band_range}), "
+                        f"IGI retailers ({k_pub} of {n_igi} published)",
                 "unitCode": "USD",
                 "minValue": r["min"],
                 "maxValue": r["max"],
@@ -166,7 +183,11 @@ def generate_jsonld(data, ranges, pub_date):
         "description": (
             f"Monthly benchmark prices for lab-grown diamonds (E VS1 Round Excellent IGI-certified) "
             f"across major U.S. online retailers. {month} edition covers {listings_str} listings "
-            f"across {len(data['retailers'])} retailers: {retailer_list(data['retailers'])}."
+            + (f"across {len(data['retailers'])} retailers: {retailer_list(data['retailers'])}."
+               if len(collected) == len(data['retailers']) else
+               f"across {len(collected)} of {len(data['retailers'])} tracked retailers: "
+               f"{retailer_list(collected)}; not collected this edition: "
+               f"{retailer_list(not_collected)}.")
         ),
         "url": "https://rings.com/pages/lab-grown-diamond-price-index",
         "datePublished": pub_date,
@@ -203,11 +224,18 @@ def generate_jsonld(data, ranges, pub_date):
 def cell_td(cell, bg, weight):
     base = f'text-align:right;padding:10px 12px;background:{bg};'
     if not cell or cell.get("status") != "ok":
-        return f'<td style="{base}color:#aaa;">&#8212;</td>'
+        tip = cell.get("note") if cell and cell.get("note") else "Fewer than 30 qualifying listings."
+        tip = tip.replace('"', "&quot;")
+        return f'<td style="{base}color:#aaa;" title="{tip}">&#8212;</td>'
     tp = cell.get("median_total_price")
+    n_tip = f' title="n={cell.get("stone_count")}"' if cell.get("stone_count") is not None else ""
+    # A median_total_price override means the cell's actual weight window
+    # diverges from the nominal label (VRAI 1.5ct) — flag it inline with a
+    # dagger tied to the table footnote.
+    dagger = ' <span style="font-size:0.78rem;color:#888;">&#8224;</span>' if tp is not None else ""
     if tp is None:
         tp = total_price(cell["median_price_per_carat"], weight)
-    return f'<td style="{base}font-variant-numeric:tabular-nums;">${tp:,}</td>'
+    return f'<td style="{base}font-variant-numeric:tabular-nums;"{n_tip}>${tp:,}{dagger}</td>'
 
 
 def generate_html(data):
@@ -293,6 +321,10 @@ def generate_html(data):
     listings_str = f"{listings:,}" if listings else ""
     n_retailers = len(retailers)
     n_retailers_word_cap = num_to_word(n_retailers).capitalize()
+    n_collected = len(collected_retailers(retailers))
+    # "Seven retailers." when all collected; otherwise say so plainly.
+    panel_line = (f"{n_retailers_word_cap} retailers." if n_collected == n_retailers
+                  else f"{n_retailers_word_cap} retailers tracked, {num_to_word(n_collected)} collected.")
 
     # Substitution context for editorial copy held in index-data.json.
     # Counts and the retailer panel are derived from retailers[] so they can
@@ -347,6 +379,28 @@ def generate_html(data):
 
     jsonld_str = generate_jsonld(data, ranges, pub_date)
 
+    # Table footnote: edition-specific (dagger/dash explanations depend on
+    # which cells are overridden or suppressed), so it lives in the JSON as
+    # `table_footnote` (added 2026-08-29); sync_theme_liquid.py reads the
+    # same field so the two surfaces cannot disagree. The default below is
+    # the July 2026 text, kept only so an older JSON still renders.
+    table_footnote = data.get("table_footnote") or (
+        "Total stone price. E VS1 Round Excellent IGI. Median. All prices USD. VRAI: proprietary Diamond Foundry grading, not matched to E VS1 IGI specification. * Largest month-over-month move. See Key Findings. &#8224; VRAI's 1.5ct cell covers a 1.6&#8211;1.9ct window (median actual weight 1.72ct, not 1.5ct) and is not directly comparable to the other retailers in that column; see the VRAI methodology note. A dash (&#8212;) means fewer than 30 qualifying listings; in the Market Median row it means the median is not published this edition (the 1ct panel changed too much from June to blend meaningfully; see Key Findings and the Market Median methodology note)."
+    )
+
+    # Cadence line for the static footer, from next_edition_note in the JSON.
+    next_ed = data.get("next_edition_note", "")
+    next_edition_html = (
+        f'\n    <p style="font-size:0.8rem;color:#888;margin:0 0 6px;line-height:1.5;">{next_ed}</p>'
+    ) if next_ed else ""
+
+    # Optional correction disclosure rendered directly under the Published line.
+    corr_note = data.get("correction_note", "")
+    correction_html = (
+        f'\n    <p id="lgd-corrected-note" style="font-size:0.78rem;color:#999;'
+        f'margin:6px 0 0;line-height:1.5;">{corr_note}</p>'
+    ) if corr_note else ""
+
     html = f"""\
 <div id="lgd-index" style="font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1a1a;max-width:860px;margin:0 auto;padding:0 16px 24px;">
 
@@ -358,14 +412,14 @@ def generate_html(data):
   <div style="border-top:3px solid #1a1a1a;padding-top:20px;margin-bottom:32px;">
     <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#888;margin:0 0 14px;">Rings.com Research</p>
     <h1 style="font-size:clamp(1.6rem,4.5vw,2.4rem);font-weight:700;margin:0 0 10px;line-height:1.15;letter-spacing:-0.01em;">
-      Lab-Grown Diamond Price Index
+      Lab Grown Diamond Price Per Carat
     </h1>
     <p style="font-size:1rem;color:#555;margin:0 0 16px;line-height:1.55;max-width:560px;">
-      Monthly benchmark prices for lab-grown diamonds across major U.S. online retailers.
+      The Rings.com Lab-Grown Diamond Price Index: monthly benchmark prices per carat across major U.S. online retailers.
     </p>
     <p id="lgd-published-date" style="font-size:0.78rem;color:#999;margin:0;padding-top:14px;border-top:1px solid #ebebeb;">
       Published {pub_disp} &nbsp;&middot;&nbsp; E&nbsp;VS1 Round Excellent IGI &nbsp;&middot;&nbsp; USD
-    </p>
+    </p>{correction_html}
   </div>
 
   <!--
@@ -396,7 +450,7 @@ def generate_html(data):
     </table>
 
     <p style="font-size:0.8rem;color:#666;margin:8px 0 0;line-height:1.4;">
-      Total stone price. E VS1 Round Excellent IGI. Median. All prices USD. VRAI: proprietary Diamond Foundry grading, not matched to E VS1 IGI specification. * Largest month-over-month move. See Key Findings.
+      {table_footnote}
     </p>
 
   </div>
@@ -408,7 +462,7 @@ def generate_html(data):
   <div id="lgd-callout-wrap" style="margin-bottom:32px;">
     <div style="background:#1a1a1a;color:#ffffff;border-radius:6px;padding:20px 24px;line-height:1.7;font-size:0.95rem;">
       <strong style="display:block;margin-bottom:10px;font-size:1rem;color:#ffffff;">Key Findings: {month}</strong>
-      <p style="margin:0 0 14px;color:#c8c8c8;font-size:0.9rem;line-height:1.6;">{n_retailers_word_cap} retailers. {listings_str} listings. E VS1 Round Excellent IGI.</p>
+      <p style="margin:0 0 14px;color:#c8c8c8;font-size:0.9rem;line-height:1.6;">{panel_line} {listings_str} listings. E VS1 Round Excellent IGI.</p>
       <ul style="margin:0;padding:0 0 0 18px;color:#ffffff;line-height:1.65;">
 {key_findings_html}
       </ul>
@@ -427,10 +481,27 @@ def generate_html(data):
   </div>
 
   <!--
-    lgd-footer-wrap: pre-rendered footer for crawlers.
-    JS replaces this with the interactive version.
+    lgd-more-research: internal links to the research cluster
+    (published 2026-08-10). Static, no JS involvement. Added to the
+    generator 2026-08-29 so the monthly paste carries it (Rodney pasted
+    it by hand on 2026-08-10; the July-27 generated block predates it).
   -->
-  <div id="lgd-footer-wrap" style="border-top:1px solid #eee;padding-top:16px;">
+  <div style="margin:0 0 24px;padding:18px 22px;border:1px solid #ddd;border-radius:6px;">
+    <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#888;margin:0 0 10px;">More from Rings.com Research</p>
+    <ul style="margin:0;padding-left:18px;">
+      <li style="font-size:0.95rem;line-height:2;color:#1a1a1a;"><a href="/pages/lab-grown-diamond-price-comparison" style="color:#1a1a1a;font-weight:600;text-decoration:underline;text-underline-offset:2px;">Lab grown diamond price comparison: medians by carat and shape</a></li>
+      <li style="font-size:0.95rem;line-height:2;color:#1a1a1a;"><a href="/pages/how-much-does-a-lab-grown-diamond-cost" style="color:#1a1a1a;font-weight:600;text-decoration:underline;text-underline-offset:2px;">How much does a lab grown diamond cost?</a></li>
+      <li style="font-size:0.95rem;line-height:2;color:#1a1a1a;"><a href="/pages/lab-grown-diamond-resale-value" style="color:#1a1a1a;font-weight:600;text-decoration:underline;text-underline-offset:2px;">Lab grown diamond resale value: what listing history shows</a></li>
+    </ul>
+  </div>
+
+  <!--
+    lgd-footer-wrap: pre-rendered footer for crawlers.
+    JS replaces this with the interactive version (same content).
+    The cadence line comes from next_edition_note in index-data.json so the
+    static block and the theme.liquid script can never disagree on it.
+  -->
+  <div id="lgd-footer-wrap" style="border-top:1px solid #eee;padding-top:16px;">{next_edition_html}
     <p style="font-size:0.78rem;color:#999;margin:0;line-height:1.6;">
       Rings.com Lab-Grown Diamond Price Index. &copy; 2026 Rings.com. All rights reserved.
     </p>

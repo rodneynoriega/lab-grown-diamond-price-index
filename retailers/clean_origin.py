@@ -165,11 +165,19 @@ def _fetch_detail(page, url: str) -> dict:
     attrs = {label.strip(): val.strip() for label, val in attr_pairs}
 
     lab_m = re.search(r'"diamond_lab"\s*:\s*"([^"]+)"', html)
-    cert_img_m = re.search(r'"certImage"\s*:\s*"([^"\\]+)', html)
+    # Primary source: the media-gallery JSON carries the cert directly
+    # ("certificateNumber":"817692257"). The old certImage path is kept as a
+    # fallback but is null on current pages, which is why cert_number was
+    # never captured before 2026-08-08.
     cert_number = None
-    if cert_img_m:
-        cn_m = re.search(r'/([A-Z0-9]+)\.pdf', cert_img_m.group(1))
-        cert_number = cn_m.group(1) if cn_m else None
+    cn_m = re.search(r'"certificateNumber"\s*:\s*"([A-Za-z0-9-]+)"', html)
+    if cn_m:
+        cert_number = cn_m.group(1)
+    else:
+        cert_img_m = re.search(r'"certImage"\s*:\s*"([^"\\]+)', html)
+        if cert_img_m:
+            pdf_m = re.search(r'/([A-Z0-9]+)\.pdf', cert_img_m.group(1))
+            cert_number = pdf_m.group(1) if pdf_m else None
 
     return {
         "polish":       attrs.get("Polish"),
