@@ -222,7 +222,7 @@
     });
 
     html += "</tbody></table></div>";
-    html += "<p style=\"font-size:0.78rem;color:#888;margin:6px 0 0;line-height:1.5;\">Total stone price. E VS1 Round Excellent IGI. VRAI: non-IGI, not matched to spec. A dash (&mdash;) means no qualifying data that month, or the retailer was not yet tracked. James Allen was retired from the panel in June 2026 and is omitted.</p>";
+    html += "<p style=\"font-size:0.78rem;color:#888;margin:6px 0 0;line-height:1.5;\">Total stone price. E VS1 Round Excellent IGI. VRAI: non-IGI, not matched to spec. A dash (&mdash;) means fewer than 30 qualifying listings that month (the publication minimum), no data collected, or the retailer was not yet tracked. James Allen was retired from the panel in June 2026 and is omitted.</p>";
     html += "</div></div>";
     return html;
   }
@@ -308,9 +308,12 @@
       Object.keys(r.cells || {}).forEach(function (k) { if (r.cells[k] && r.cells[k].status === "ok") anyOk = true; });
       return anyOk;
     });
-    tableRows.forEach(function (r, i) {
-      var bg = r.non_igi ? "#f5f5f5" : (i % 2 === 0 ? "#fafafa" : "#ffffff");
-      var rowStyle = r.non_igi ? " style=\"border-top:2px solid #e0e0e0;\"" : "";
+    var stripe = 0;   // stripe index counts benchmark rows only
+    tableRows.forEach(function (r) {
+      var bg = r.non_igi ? "#f5f5f5" : (stripe % 2 === 0 ? "#fafafa" : "#ffffff");
+      if (!r.non_igi) stripe++;
+      // separator border marks the trailing non-comparable block only; a reference row sits mid-table
+      var rowStyle = (r.non_igi && !r.reference_row_of) ? " style=\"border-top:2px solid #e0e0e0;\"" : "";
       var label = r.non_igi ? "<span style=\"margin-left:4px;font-size:0.75rem;font-weight:400;color:#999;\">" + (r.row_label || "(non-IGI)") + "</span>" : "";
       var ritaniNote = r.slug === "ritani" ? "<a href=\"#key-findings\" style=\"margin-left:4px;font-size:0.78rem;font-weight:400;color:#888;text-decoration:none;\" title=\"Largest month-over-month moves at 1ct and 1.5ct; see Key Findings\">*</a>" : "";
       tableHtml += "<tr" + rowStyle + "><td style=\"padding:10px 12px;font-weight:700;white-space:nowrap;background:" + bg + ";color:#1a1a1a;\">" + r.name + label + ritaniNote + "</td>"

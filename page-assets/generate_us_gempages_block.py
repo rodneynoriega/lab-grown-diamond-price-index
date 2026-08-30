@@ -299,10 +299,16 @@ def generate_html(data):
         return (r["slug"] in covered
                 and not any(c.get("status") == "ok" for c in r["cells"].values()))
     rows = []
-    for i, r in enumerate([x for x in retailers if not _hidden(x)]):
+    stripe = 0   # stripe index counts benchmark rows only (grey rows do not consume one)
+    for r in [x for x in retailers if not _hidden(x)]:
         is_vrai = r.get("non_igi", False)
-        bg = "#f5f5f5" if is_vrai else ("#fafafa" if i % 2 == 0 else "#ffffff")
-        row_style = ' style="border-top:2px solid #e0e0e0;"' if is_vrai else ""
+        is_ref = bool(r.get("reference_row_of"))
+        bg = "#f5f5f5" if is_vrai else ("#fafafa" if stripe % 2 == 0 else "#ffffff")
+        if not is_vrai:
+            stripe += 1
+        # The separator border marks the trailing non-comparable block (VRAI);
+        # a reference row sits mid-table and must not draw a section line.
+        row_style = ' style="border-top:2px solid #e0e0e0;"' if (is_vrai and not is_ref) else ""
         name = r["name"]
         if is_vrai:
             name += f' <span style="font-size:0.75rem;font-weight:400;color:#999;">{r.get("row_label", "(non-IGI)")}</span>'
