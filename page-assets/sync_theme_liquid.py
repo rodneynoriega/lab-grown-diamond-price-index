@@ -38,7 +38,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from generate_us_gempages_block import (  # noqa: E402
     BANDS, band_ranges, build_stat_notes, num_to_word, retailer_list,
-    total_listings_for_month, apply_ctx, collected_retailers,
+    total_listings_for_month, apply_ctx, collected_retailers, panel_retailers,
 )
 
 ROOT = os.path.dirname(HERE)
@@ -108,6 +108,10 @@ def fallback_block(data):
             head += ", non_igi: true"
         if r.get("approximate_windows"):
             head += ", approximate_windows: true"
+        if r.get("reference_row_of"):
+            head += f", reference_row_of: {js_val(r['reference_row_of'])}"
+        if r.get("row_label"):
+            head += f", row_label: {js_val(r['row_label'])}"
         cellparts = []
         for key, _, _ in BANDS:
             c = r["cells"].get(key)
@@ -136,14 +140,14 @@ def build_ctx(data):
     retailers = data["retailers"]
     ranges = band_ranges(data)
     listings = total_listings_for_month(data)
-    n = len(retailers)
+    n = len(panel_retailers(retailers))
     return {
         "month": data.get("month", ""),
         "listings": f"{listings:,}" if listings else "",
         "n_retailers": n,
         "n_retailers_word": num_to_word(n),
         "collection_date": data.get("collection_date", ""),
-        "retailer_panel_list": retailer_list(retailers),
+        "retailer_panel_list": retailer_list(panel_retailers(retailers)),
         "stat_notes": build_stat_notes(retailers),
         "min1ct": f"{ranges['1ct']['min']:,}" if "1ct" in ranges else "",
         "max1ct": f"{ranges['1ct']['max']:,}" if "1ct" in ranges else "",
@@ -160,9 +164,10 @@ def methodology_block(data, ctx):
 
 
 def key_findings_block(data, ctx):
-    n_word_cap = num_to_word(len(data["retailers"])).capitalize()
+    n_panel = len(panel_retailers(data["retailers"]))
+    n_word_cap = num_to_word(n_panel).capitalize()
     n_collected = len(collected_retailers(data["retailers"]))
-    panel_line = (f"{n_word_cap} retailers." if n_collected == len(data["retailers"])
+    panel_line = (f"{n_word_cap} retailers." if n_collected == n_panel
                   else f"{n_word_cap} retailers tracked, {num_to_word(n_collected)} collected.")
     lines = [
         '      + "<p style=\\"margin:0 0 14px;color:#c8c8c8;font-size:0.9rem;line-height:1.6;\\">'

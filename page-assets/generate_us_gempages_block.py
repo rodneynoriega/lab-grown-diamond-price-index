@@ -102,10 +102,17 @@ def retailer_list(retailers):
     return ", ".join(names[:-1]) + ", and " + names[-1]
 
 
+def panel_retailers(retailers):
+    """The retailer PANEL: one entry per retailer. Rows flagged
+    `reference_row_of` (e.g. Blue Nile (GIA), added 2026-08-29) are extra
+    labeled rows for a retailer already in the panel and never count."""
+    return [r for r in retailers if not r.get("reference_row_of")]
+
+
 def collected_retailers(retailers):
     """Retailers with any data this edition (a retailer whose every cell is
     no_data was not collected, e.g. With Clarity in August 2026)."""
-    return [r for r in retailers
+    return [r for r in panel_retailers(retailers)
             if any(c.get("status") != "no_data" for c in r["cells"].values())]
 
 
@@ -132,7 +139,7 @@ def build_stat_notes(retailers):
     paragraph from the actual cell statuses (no_data / thin). This keeps the
     methodology copy honest without hand-editing each month."""
     notes = []
-    for r in retailers:
+    for r in panel_retailers(retailers):
         for key, _, _ in BANDS:
             cell = r["cells"].get(key, {})
             st = cell.get("status")
@@ -157,11 +164,12 @@ def generate_jsonld(data, ranges, pub_date):
     month = data.get("month", "")
     listings = total_listings_for_month(data)
     listings_str = f"{listings:,}" if listings else "N/A"
+    panel = panel_retailers(data["retailers"])
     collected = collected_retailers(data["retailers"])
-    not_collected = [r for r in data["retailers"] if r not in collected]
+    not_collected = [r for r in panel if r not in collected]
 
     vm = []
-    n_igi = sum(1 for r in data["retailers"] if not r.get("non_igi"))
+    n_igi = sum(1 for r in panel if not r.get("non_igi"))
     for key, _, band_range in BANDS:
         if key in ranges:
             r = ranges[key]
@@ -183,9 +191,9 @@ def generate_jsonld(data, ranges, pub_date):
         "description": (
             f"Monthly benchmark prices for lab-grown diamonds (E VS1 Round Excellent IGI-certified) "
             f"across major U.S. online retailers. {month} edition covers {listings_str} listings "
-            + (f"across {len(data['retailers'])} retailers: {retailer_list(data['retailers'])}."
-               if len(collected) == len(data['retailers']) else
-               f"across {len(collected)} of {len(data['retailers'])} tracked retailers: "
+            + (f"across {len(panel)} retailers: {retailer_list(panel)}."
+               if len(collected) == len(panel) else
+               f"across {len(collected)} of {len(panel)} tracked retailers: "
                f"{retailer_list(collected)}; not collected this edition: "
                f"{retailer_list(not_collected)}.")
         ),
@@ -284,7 +292,7 @@ def generate_html(data):
         row_style = ' style="border-top:2px solid #e0e0e0;"' if is_vrai else ""
         name = r["name"]
         if is_vrai:
-            name += ' <span style="font-size:0.75rem;font-weight:400;color:#999;">(non-IGI)</span>'
+            name += f' <span style="font-size:0.75rem;font-weight:400;color:#999;">{r.get("row_label", "(non-IGI)")}</span>'
         if r["slug"] == "ritani":
             name += " *"
 
@@ -319,7 +327,7 @@ def generate_html(data):
     max2ct = ranges["2ct"]["max"] if "2ct" in ranges else 0
     listings = total_listings_for_month(data)
     listings_str = f"{listings:,}" if listings else ""
-    n_retailers = len(retailers)
+    n_retailers = len(panel_retailers(retailers))
     n_retailers_word_cap = num_to_word(n_retailers).capitalize()
     n_collected = len(collected_retailers(retailers))
     # "Seven retailers." when all collected; otherwise say so plainly.
@@ -335,7 +343,7 @@ def generate_html(data):
         "n_retailers": n_retailers,
         "n_retailers_word": num_to_word(n_retailers),
         "collection_date": data.get("collection_date", ""),
-        "retailer_panel_list": retailer_list(retailers),
+        "retailer_panel_list": retailer_list(panel_retailers(retailers)),
         "stat_notes": build_stat_notes(retailers),
         "min1ct": f"{min1ct:,}",
         "max1ct": f"{max1ct:,}",
