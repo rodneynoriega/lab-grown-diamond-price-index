@@ -160,46 +160,125 @@
     return names[i] + " " + y;
   }
 
-  function buildHistoryHtml(data) {
-    if (!data.history || data.history.length < 2) return "";
+  var lgdHistoryData = null;
+  var lgdHistoryBuiltNarrow = null;   // viewport class the current table HTML was built for
+  var lgdHistoryUserTier = null;      // weight the visitor picked explicitly, if any
+
+  function lgdHistoryNarrow() {
+    return !!(window.matchMedia && window.matchMedia("(max-width: 540px)").matches);
+  }
+
+  // Weight picker above the history table. "all" is the full grid; a single
+  // weight collapses the table to one column per month.
+  function lgdPickerStyle(sel) {
+    var base = "font-size:0.8rem;padding:4px 12px;margin:0;border-radius:3px;cursor:pointer;font-family:inherit;line-height:1.4;font-weight:600;";
+    return base + (sel ? "background:#1a1a1a;color:#fff;border:1px solid #1a1a1a;" : "background:#fff;color:#1a1a1a;border:1px solid #bbb;");
+  }
+
+  function buildHistoryPicker(tier) {
+    var opts = [["1ct", "1ct"], ["1.5ct", "1.5ct"], ["2ct", "2ct"], ["all", "All weights"]];
+    var html = "<div id=\"lgd-history-picker\" role=\"group\" aria-label=\"Weight shown in the history table\" style=\"display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 10px;\">";
+    html += "<span style=\"font-size:0.8rem;color:#555;margin-right:2px;\">Show:</span>";
+    opts.forEach(function (o) {
+      var sel = o[0] === tier;
+      html += "<button type=\"button\" data-tier=\"" + o[0] + "\" aria-pressed=\"" + (sel ? "true" : "false") + "\" onclick=\"lgdHistoryTier(this)\" style=\"" + lgdPickerStyle(sel) + "\">" + o[1] + "</button>";
+    });
+    html += "</div>";
+    return html;
+  }
+
+  // On phones, snap horizontal scrolling to month columns so the table never
+  // rests with a column half-hidden under the pinned retailer column.
+  // scroll-padding-left = the pinned column's width, measured once visible.
+  // A right-hand spacer on the inner wrapper makes the maximum scroll
+  // position itself a column boundary (browsers rest at the scroll end even
+  // when it is not a snap position).
+  function lgdHistorySnap() {
+    var wrap  = document.getElementById("lgd-history-table");
+    var inner = document.getElementById("lgd-history-inner");
+    if (!wrap || !inner) return;
+    inner.style.paddingRight = "0px";
+    var row = wrap.querySelector("tbody tr");
+    if (!lgdHistoryNarrow() || !row) {
+      wrap.style.scrollPaddingLeft = "";
+      wrap.style.scrollSnapType = "";
+      return;
+    }
+    var cells = row.children;
+    var sticky = cells[0].getBoundingClientRect();
+    wrap.style.scrollPaddingLeft = Math.round(sticky.width) + "px";
+    wrap.style.scrollSnapType = "x mandatory";
+    var maxScroll = wrap.scrollWidth - wrap.clientWidth;
+    if (0 >= maxScroll) return;
+    var table = wrap.querySelector("table");
+    var step = (table && parseInt(table.getAttribute("data-step"), 10)) || 1;
+    for (var i = 1; cells.length > i; i += step) {
+      var target = wrap.scrollLeft + cells[i].getBoundingClientRect().left - sticky.right;
+      if (target > maxScroll - 0.5) {
+        if (target - maxScroll > 0.5) inner.style.paddingRight = Math.ceil(target - maxScroll) + "px";
+        break;
+      }
+    }
+  }
+
+  // The table only. tier = "all" (retailer x month x weight grid with a
+  // two-row header) or one of "1ct" / "1.5ct" / "2ct" (retailer x month,
+  // one column per month, fits a phone without sideways scrolling).
+  function buildHistoryTable(data, tier) {
     var retailers = data.retailers || [];
-    var tiers = ["1ct", "1.5ct", "2ct"];
+    var tiers = tier === "all" ? ["1ct", "1.5ct", "2ct"] : [tier];
     // Show every month we have, oldest -> newest, so the toggle auto-extends
     // each edition. Cap the columns to the most recent 12 months so the table
     // stays usable; the JSON retains the full record regardless.
     var months = data.history.slice(-12);
-    var firstMonth = months[0].month;
-    var lastMonth  = months[months.length - 1].month;
+    var narrow = lgdHistoryNarrow();
+    lgdHistoryBuiltNarrow = narrow;
+    var pad  = narrow ? "7px 4px" : "9px 10px";
+    var hpad = narrow ? "4px" : "10px";
+    var name = narrow ? "white-space:normal;min-width:76px;" : "white-space:nowrap;";
+    // max-width on a table cell is ignored by auto table layout; cap the
+    // name via an inner block instead.
+    var nameOpen  = narrow ? "<div style=\"max-width:84px;\">" : "";
+    var nameClose = narrow ? "</div>" : "";
+    var snap = narrow ? "scroll-snap-align:start;" : "";
+    // The retailer column stays pinned while the months scroll. box-shadow,
+    // not border-right: borders on a collapsed table do not travel with a
+    // sticky cell.
+    var stick = "position:sticky;left:0;z-index:2;box-shadow:2px 0 0 #e0e0e0;";
 
-    var thL = "text-align:left;padding:10px 10px;border-bottom:2px solid #1a1a1a;font-weight:700;white-space:nowrap;color:#1a1a1a;background:#fff;vertical-align:bottom;";
-    var thG = "text-align:center;padding:6px 10px 5px;font-weight:700;font-size:0.8rem;color:#1a1a1a;background:#fff;border-bottom:1px solid #ddd;white-space:nowrap;";
-    var thR = "text-align:right;padding:6px 10px;border-bottom:2px solid #1a1a1a;font-weight:700;font-size:0.8rem;white-space:nowrap;color:#1a1a1a;background:#fff;";
+    var thL = "text-align:left;padding:" + pad + ";border-bottom:2px solid #1a1a1a;font-weight:700;color:#1a1a1a;background:#fff;vertical-align:bottom;" + name + stick;
+    var thG = "text-align:center;padding:6px " + hpad + " 5px;font-weight:700;font-size:0.8rem;color:#1a1a1a;background:#fff;border-bottom:1px solid #ddd;white-space:nowrap;";
+    var thR = "text-align:right;padding:6px " + hpad + ";border-bottom:2px solid #1a1a1a;font-weight:700;font-size:0.8rem;white-space:nowrap;color:#1a1a1a;background:#fff;vertical-align:bottom;";
 
-    var html = "<div style=\"margin:0 0 32px;\">";
-    html += "<button onclick=\"lgdToggleHistory(this)\" style=\"background:none;border:none;cursor:pointer;font-size:0.85rem;color:#555;padding:0;margin:0 0 8px;text-decoration:underline;display:block;\">+ Show monthly price history</button>";
-    html += "<div id=\"lgd-history-body\" style=\"display:none;\">";
-
-    html += "<p style=\"font-size:0.88rem;color:#555;margin:0 0 14px;line-height:1.6;\">"
-      + "Median total stone price by retailer and weight, " + firstMonth + " through " + lastMonth + ". "
-      + "Read across each row to see how a retailer's benchmark has moved month over month.</p>";
-
-    html += "<div style=\"overflow-x:auto;\">";
-    html += "<table style=\"width:100%;border-collapse:collapse;font-size:0.85rem;\">";
-
-    // Header: month groups on top, weight tiers beneath.
-    html += "<thead><tr><th rowspan=\"2\" style=\"" + thL + "\">Retailer</th>";
-    months.forEach(function (m, idx) {
-      var sep = idx > 0 ? "border-left:1px solid #e0e0e0;" : "";
-      html += "<th colspan=\"3\" style=\"" + thG + sep + "\">" + m.month + "</th>";
-    });
-    html += "</tr><tr>";
-    months.forEach(function (m, idx) {
-      tiers.forEach(function (t, ti) {
-        var sep = (idx > 0 && ti === 0) ? "border-left:1px solid #e0e0e0;" : "";
-        html += "<th style=\"" + thR + sep + "\">" + t + "</th>";
+    var html = "<table data-tier=\"" + tier + "\" data-step=\"" + tiers.length + "\" style=\"width:100%;border-collapse:collapse;font-size:" + (narrow ? "0.78rem" : "0.85rem") + ";\">";
+    if (tiers.length > 1) {
+      // Header: month groups on top, weight tiers beneath.
+      html += "<thead><tr><th rowspan=\"2\" style=\"" + thL + "\">Retailer</th>";
+      months.forEach(function (m, idx) {
+        var sep = idx > 0 ? "border-left:1px solid #e0e0e0;" : "";
+        html += "<th colspan=\"3\" style=\"" + thG + sep + "\">" + m.month + "</th>";
       });
-    });
-    html += "</tr></thead><tbody>";
+      html += "</tr><tr>";
+      months.forEach(function (m, idx) {
+        tiers.forEach(function (t, ti) {
+          var sep = (idx > 0 && ti === 0) ? "border-left:1px solid #e0e0e0;" : "";
+          html += "<th style=\"" + thR + sep + (ti === 0 ? snap : "") + "\">" + t + "</th>";
+        });
+      });
+      html += "</tr></thead>";
+    } else {
+      // Header: one column per month. On phones the label breaks into
+      // "Apr" over "2026" so five or six months fit the width.
+      html += "<thead><tr><th style=\"" + thL + "\">Retailer</th>";
+      months.forEach(function (m, idx) {
+        var sep = idx > 0 ? "border-left:1px solid #e0e0e0;" : "";
+        var parts = String(m.month).split(" ");
+        var label = (narrow && parts.length === 2) ? (parts[0].slice(0, 3) + "<br>" + parts[1]) : m.month;
+        html += "<th style=\"" + thR + sep + snap + "\">" + label + "</th>";
+      });
+      html += "</tr></thead>";
+    }
+    html += "<tbody>";
 
     var hStripe = 0;   // same rules as the price table: grey rows do not consume a stripe; reference rows draw no border
     retailers.forEach(function (r) {
@@ -207,13 +286,13 @@
       if (!r.non_igi) hStripe++;
       var rowStyle = (r.non_igi && !r.reference_row_of) ? " style=\"border-top:2px solid #e0e0e0;\"" : "";
       var dagger = r.non_igi ? "<span style=\"font-size:0.72rem;font-weight:400;color:#999;\"> " + (r.row_label || "(non-IGI)") + "</span>" : "";
-      html += "<tr" + rowStyle + "><td style=\"padding:9px 10px;font-weight:700;white-space:nowrap;background:" + bg + ";color:#1a1a1a;\">" + r.name + dagger + "</td>";
+      html += "<tr" + rowStyle + "><td style=\"padding:" + pad + ";font-weight:700;background:" + bg + ";color:#1a1a1a;" + name + stick + "\">" + nameOpen + r.name + dagger + nameClose + "</td>";
       months.forEach(function (m, idx) {
         var rd = m.retailers[r.slug];
         tiers.forEach(function (t, ti) {
           var wt  = t === "1ct" ? 1 : t === "1.5ct" ? 1.5 : 2;
           var sep = (idx > 0 && ti === 0) ? "border-left:1px solid #e0e0e0;" : "";
-          var td  = "text-align:right;padding:9px 10px;background:" + bg + ";font-variant-numeric:tabular-nums;" + sep;
+          var td  = "text-align:right;padding:" + pad + ";background:" + bg + ";font-variant-numeric:tabular-nums;" + sep + (ti === 0 ? snap : "");
           var val = rd ? rd[t] : null;
           var totalOverride = rd ? rd[t + "_total"] : null;
           var cellStr = totalOverride != null ? ("$" + totalOverride.toLocaleString("en-US")) : (val != null ? fmtDual(val, wt) : null);
@@ -223,11 +302,78 @@
       html += "</tr>";
     });
 
-    html += "</tbody></table></div>";
+    html += "</tbody></table>";
+    return html;
+  }
+
+  function buildHistoryHtml(data) {
+    if (!data.history || data.history.length < 2) return "";
+    lgdHistoryData = data;
+    var months = data.history.slice(-12);
+    var firstMonth = months[0].month;
+    var lastMonth  = months[months.length - 1].month;
+    // Phones open on the headline 1ct series (one column per month, no
+    // sideways scroll); wider screens open on the full grid.
+    var tier = lgdHistoryNarrow() ? "1ct" : "all";
+
+    var html = "<div style=\"margin:0 0 32px;\">";
+    html += "<button onclick=\"lgdToggleHistory(this)\" style=\"background:none;border:none;cursor:pointer;font-size:0.85rem;color:#555;padding:0;margin:0 0 8px;text-decoration:underline;display:block;\">+ Show monthly price history</button>";
+    html += "<div id=\"lgd-history-body\" style=\"display:none;\">";
+
+    html += "<p style=\"font-size:0.88rem;color:#555;margin:0 0 14px;line-height:1.6;\">"
+      + "Median total stone price by retailer and weight, " + firstMonth + " through " + lastMonth + ". "
+      + "Read across each row to see how a retailer's benchmark has moved month over month.</p>";
+
+    html += buildHistoryPicker(tier);
+    html += "<div id=\"lgd-history-table\" style=\"overflow-x:auto;width:0;min-width:100%;\"><div id=\"lgd-history-inner\" style=\"width:max-content;min-width:100%;\">" + buildHistoryTable(data, tier) + "</div></div>";
     html += "<p style=\"font-size:0.78rem;color:#888;margin:6px 0 0;line-height:1.5;\">Total stone price. E VS1 Round Excellent IGI. VRAI: non-IGI, not matched to spec. A dash (&mdash;) means fewer than 30 qualifying listings that month (the publication minimum), no data collected, or the retailer was not yet tracked. James Allen was retired from the panel in June 2026 and is omitted.</p>";
     html += "</div></div>";
     return html;
   }
+
+  function lgdHistoryRender(tier) {
+    var wrap = document.getElementById("lgd-history-table");
+    var picker = document.getElementById("lgd-history-picker");
+    if (!lgdHistoryData || !wrap) return;
+    var inner = document.getElementById("lgd-history-inner");
+    (inner || wrap).innerHTML = buildHistoryTable(lgdHistoryData, tier);
+    if (picker) {
+      // Restyle the existing buttons rather than replacing them, so the
+      // button that was just activated keeps keyboard focus.
+      var btns = picker.getElementsByTagName("button");
+      for (var i = 0; btns.length > i; i++) {
+        var sel = btns[i].getAttribute("data-tier") === tier;
+        btns[i].setAttribute("aria-pressed", sel ? "true" : "false");
+        btns[i].style.cssText = lgdPickerStyle(sel);
+      }
+    }
+    lgdHistorySnap();
+  }
+
+  function lgdHistoryCurrentTier() {
+    var t = document.querySelector("#lgd-history-table table");
+    return (t && t.getAttribute("data-tier")) || "all";
+  }
+
+  window.lgdHistoryTier = function (btn) {
+    lgdHistoryUserTier = btn.getAttribute("data-tier") || "all";
+    lgdHistoryRender(lgdHistoryUserTier);
+  };
+
+  // Viewport class changes while the table is open (phone rotation, window
+  // resize): rebuild for the new class at the same weight; otherwise just
+  // re-measure the snap spacer. Hidden tables are re-checked when opened.
+  function lgdHistoryOnResize() {
+    var body = document.getElementById("lgd-history-body");
+    if (!body || !lgdHistoryData || body.style.display === "none") return;
+    if (lgdHistoryNarrow() !== lgdHistoryBuiltNarrow) lgdHistoryRender(lgdHistoryCurrentTier());
+    else lgdHistorySnap();
+  }
+  var lgdHistoryResizeTimer = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(lgdHistoryResizeTimer);
+    lgdHistoryResizeTimer = setTimeout(lgdHistoryOnResize, 150);
+  });
 
   window.lgdToggleHistory = function (btn) {
     var body = document.getElementById("lgd-history-body");
@@ -235,6 +381,11 @@
     if (body.style.display === "none") {
       body.style.display = "block";
       btn.textContent = "- Hide monthly price history";
+      // If the viewport class changed while closed, rebuild: keep the
+      // visitor's chosen weight, else use the class's default.
+      var narrow = lgdHistoryNarrow();
+      if (lgdHistoryData && narrow !== lgdHistoryBuiltNarrow) lgdHistoryRender(lgdHistoryUserTier || (narrow ? "1ct" : "all"));
+      else lgdHistorySnap();
     } else {
       body.style.display = "none";
       btn.textContent = "+ Show monthly price history";
