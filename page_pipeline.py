@@ -78,9 +78,12 @@ CYCLE_LABELS = {"2026-04": "April 2026", "2026-05": "May 2026",
 CYCLE_TIMESTAMPS = {"2026-07": "2026-07-23",   # capture date of every source file
                     "2026-08": "2026-08-29"}
 CYCLE_ORDER = ["2026-04", "2026-05", "2026-06", "2026-07", "2026-08"]
+# Publish date shown in the page header next to the capture date (Rodney,
+# 2026-08-30: "ensure Date is August 30"); the capture date stays factual.
+CYCLE_PUBLISHED = {"2026-08": "2026-08-30"}
 DEFAULT_CYCLE = "2026-08"
 
-CYCLE = CYCLE_LABEL = DATA_TIMESTAMP = DATA_DATE_H = None
+CYCLE = CYCLE_LABEL = DATA_TIMESTAMP = DATA_DATE_H = PUBLISHED_H = None
 ALL_CYCLES = []
 
 
@@ -90,13 +93,14 @@ def _date_h(iso):
 
 
 def configure(cycle):
-    global CYCLE, CYCLE_LABEL, DATA_TIMESTAMP, DATA_DATE_H, ALL_CYCLES
+    global CYCLE, CYCLE_LABEL, DATA_TIMESTAMP, DATA_DATE_H, ALL_CYCLES, PUBLISHED_H
     if cycle not in CYCLE_TIMESTAMPS:
         raise SystemExit(f"unknown cycle {cycle}; known: {sorted(CYCLE_TIMESTAMPS)}")
     CYCLE = cycle
     CYCLE_LABEL = CYCLE_LABELS[cycle]
     DATA_TIMESTAMP = CYCLE_TIMESTAMPS[cycle]
     DATA_DATE_H = _date_h(DATA_TIMESTAMP)
+    PUBLISHED_H = _date_h(CYCLE_PUBLISHED[cycle]) if cycle in CYCLE_PUBLISHED else None
     ALL_CYCLES = CYCLE_ORDER[:CYCLE_ORDER.index(cycle) + 1]
 
 
@@ -558,6 +562,7 @@ def base_ctx():
         "cycle_label": CYCLE_LABEL,
         "data_date": DATA_TIMESTAMP,
         "data_date_h": DATA_DATE_H,
+        "published_h": PUBLISHED_H,
         "index_url": INDEX_URL,
         "brand_line": BRAND_LINE,
     }

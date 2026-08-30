@@ -1,7 +1,7 @@
 {% import "_shared.html.j2" as sh %}
 <div class="lgd-pilot lgd-agg-page" style="{{ sh.container }}">
 {# NO h1 in the body: the Flex default page template injects page.title as the served H1 (verified live 2026-08-09); page.title carries the scheme H1, the long SEO title lives in global.title_tag. #}
-{{ sh.header(h1, index_url, brand_line, cycle_label, data_date_h) }}
+{{ sh.header(h1, index_url, brand_line, cycle_label, data_date_h, published_h) }}
 
 <div style="{{ sh.callout }}">
   <p style="{{ sh.callout_p }}">Median listed prices for lab grown diamonds compared across <strong>{{ n_retailers }}</strong> US retailers, {{ cycle_label }}: <strong>{{ "{:,}".format(total_n) }}</strong> public listings, round and oval, all colors and clarities pooled, refreshed monthly.</p>

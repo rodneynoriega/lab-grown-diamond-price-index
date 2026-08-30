@@ -40,7 +40,7 @@
    <style> tags only affect the page they are on, so the hide cannot leak
    to other pages. Literal UTF-8 (· &), never entities: Shopify decodes
    entities on store and that breaks body-equality verification. #}
-{% macro header(h1, index_url, brand_line, cycle_label, data_date_h) %}
+{% macro header(h1, index_url, brand_line, cycle_label, data_date_h, published_h=None) %}
 <style>.heading-wrapper--page{display:none;}</style>
 <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 16px;padding-bottom:10px;border-bottom:1px solid #e5e5e5;margin-bottom:20px;">
   <span style="font-size:1rem;font-weight:600;letter-spacing:0.16em;color:#1a1a1a;">RINGS.COM</span>
@@ -50,7 +50,7 @@
   <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#888;margin:0 0 10px;">Rings.com Research</p>
   <h1 style="font-size:2.1rem;font-weight:700;line-height:1.15;margin:0 0 12px;color:#1a1a1a;">{{ h1 }}</h1>
   <p class="lgd-brand-line" style="margin:0 0 14px;color:#555;font-size:0.95rem;line-height:1.55;">{{ brand_line }}: <a href="{{ index_url }}" style="color:#1a1a1a;font-weight:600;text-decoration:underline;text-underline-offset:2px;">Lab Grown Diamond Price Per Carat</a>.</p>
-  <p style="margin:0;padding-top:10px;border-top:1px solid #ebebeb;font-size:0.78rem;color:#999;">Data: {{ cycle_label }} collection cycle · Captured {{ data_date_h }} · USD</p>
+  <p style="margin:0;padding-top:10px;border-top:1px solid #ebebeb;font-size:0.78rem;color:#999;">Data: {{ cycle_label }} collection cycle · Captured {{ data_date_h }}{% if published_h %} · Published {{ published_h }}{% endif %} · USD</p>
 </div>
 {% endmacro %}
 
