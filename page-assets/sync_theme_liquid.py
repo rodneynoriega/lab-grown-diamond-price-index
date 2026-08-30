@@ -126,6 +126,8 @@ def fallback_block(data):
                 kv.append(f"median_total_price:{js_val(c['median_total_price'])}")
             if c.get("note"):
                 kv.append(f"note:{js_val(c['note'])}")
+            if c.get("partial_capture"):
+                kv.append("partial_capture:true")
             if c.get("actual_range"):
                 kv.append(f"actual_range:{js_val(c['actual_range'])}")
             cellparts.append(f"{js_str(key)}: {{" + ", ".join(kv) + "}")

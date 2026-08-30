@@ -241,6 +241,11 @@ def cell_td(cell, bg, weight):
     # diverges from the nominal label (VRAI 1.5ct) — flag it inline with a
     # dagger tied to the table footnote.
     dagger = ' <span style="font-size:0.78rem;color:#888;">&#8224;</span>' if tp is not None else ""
+    # A partial_capture flag (With Clarity 1.5ct, August 2026) gets a double
+    # dagger tied to the table footnote, with the cell note as its tooltip.
+    if cell.get("partial_capture"):
+        ptip = (cell.get("note") or "Partial capture; see the table footnote.").replace('"', "&quot;")
+        dagger += f' <span style="font-size:0.78rem;color:#888;" title="{ptip}">&#8225;</span>'
     if tp is None:
         tp = total_price(cell["median_price_per_carat"], weight)
     return f'<td style="{base}font-variant-numeric:tabular-nums;"{n_tip}>${tp:,}{dagger}</td>'
