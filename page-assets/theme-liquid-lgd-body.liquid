@@ -92,7 +92,7 @@
       { name: "Grown Brilliance", slug: "grown_brilliance", cells: {"1ct": {status:"ok", stone_count:795, median_price_per_carat:500, note:"Published again after July's single-stone cell; collection returned 61,542 listings this month against 4,141 in July. See Coverage this edition."}, "1.5ct": {status:"ok", stone_count:371, median_price_per_carat:648}, "2ct": {status:"ok", stone_count:920, median_price_per_carat:659}} },
       { name: "With Clarity", slug: "with_clarity", cells: {"1ct": {status:"ok", stone_count:536, median_price_per_carat:628, note:"Supplemental pull, full capture (2,330 of 2,330 listings in the band)."}, "1.5ct": {status:"ok", stone_count:910, median_price_per_carat:691, note:"Supplemental pull, partial capture: 3,940 of 4,613 listings in the band (85%), collected in the site's price-ascending order, so the uncaptured 15% are the highest-priced listings and this figure is a floor on the true median. See Coverage this edition.", partial_capture:true}, "2ct": {status:"ok", stone_count:694, median_price_per_carat:694, note:"Supplemental pull, full capture (2,884 of 2,884 listings in the band)."}} },
       { name: "Blue Nile", slug: "blue_nile", cells: {"1ct": {status:"thin", stone_count:18, note:"Below the 30-listing minimum, as in July (n=18 both months): genuinely thin E VS1 IGI inventory, not a collection issue."}, "1.5ct": {status:"thin", stone_count:5, note:"Below the 30-listing minimum this edition; a larger share of Blue Nile's E-color inventory now carries GCAL or GIA reports rather than IGI, not a collection issue."}, "2ct": {status:"thin", stone_count:27, note:"Below the 30-listing minimum this edition; a larger share of Blue Nile's E-color inventory now carries GCAL or GIA reports rather than IGI, not a collection issue."}} },
-      { name: "Blue Nile (GIA)", slug: "blue_nile_gia", non_igi: true, reference_row_of: "blue_nile", row_label: "(reference)", cells: {"1ct": {status:"no_data", stone_count:0, note:"No GIA-graded E VS1 Excellent listings in this cell (Blue Nile's 1ct E VS1 stock is IGI or GCAL)."}, "1.5ct": {status:"thin", stone_count:3, note:"Fewer than 30 GIA-graded listings in this cell (n=3)."}, "2ct": {status:"ok", stone_count:191, median_price_per_carat:988}} },
+      { name: "Blue Nile (GIA)", slug: "blue_nile_gia", non_igi: true, reference_row_of: "blue_nile", row_label: "(GIA reference)", cells: {"1ct": {status:"no_data", stone_count:0, note:"No GIA-graded E VS1 Excellent listings in this cell (Blue Nile's 1ct E VS1 stock is IGI or GCAL)."}, "1.5ct": {status:"thin", stone_count:3, note:"Fewer than 30 GIA-graded listings in this cell (n=3)."}, "2ct": {status:"ok", stone_count:191, median_price_per_carat:988}} },
       { name: "Brilliant Earth", slug: "brilliant_earth", cells: {"1ct": {status:"ok", stone_count:254, median_price_per_carat:856}, "1.5ct": {status:"ok", stone_count:302, median_price_per_carat:1151}, "2ct": {status:"ok", stone_count:303, median_price_per_carat:1365}} },
       { name: "VRAI", slug: "vrai", non_igi: true, approximate_windows: true, cells: {"1ct": {status:"ok", stone_count:36, median_price_per_carat:1583, note:"Published again after one edition below the minimum (n=29 in July). Same-lot repricing since July, see the VRAI methodology note.", actual_range:"1.0-1.09ct"}, "1.5ct": {status:"ok", stone_count:95, median_price_per_carat:1250, median_total_price:2160, actual_range:"1.6-1.9ct"}, "2ct": {status:"thin", stone_count:14, note:"Fewer than 30 qualifying listings in this cell.", actual_range:"2.1-2.45ct"}} }
     ]
@@ -297,7 +297,18 @@
       + "<th style=\"" + thStyle + "\">1ct</th><th style=\"" + thStyle + "\">1.5ct</th><th style=\"" + thStyle + "\">2ct</th>"
       + "</tr></thead><tbody>";
 
-    data.retailers.forEach(function (r, i) {
+    // A retailer with no published cell whose figures are carried by a
+    // reference row (reference_row_of) is omitted from the price table only;
+    // the history table still shows both series.
+    var covered = {};
+    data.retailers.forEach(function (r) { if (r.reference_row_of) covered[r.reference_row_of] = true; });
+    var tableRows = data.retailers.filter(function (r) {
+      if (!covered[r.slug]) return true;
+      var anyOk = false;
+      Object.keys(r.cells || {}).forEach(function (k) { if (r.cells[k] && r.cells[k].status === "ok") anyOk = true; });
+      return anyOk;
+    });
+    tableRows.forEach(function (r, i) {
       var bg = r.non_igi ? "#f5f5f5" : (i % 2 === 0 ? "#fafafa" : "#ffffff");
       var rowStyle = r.non_igi ? " style=\"border-top:2px solid #e0e0e0;\"" : "";
       var label = r.non_igi ? "<span style=\"margin-left:4px;font-size:0.75rem;font-weight:400;color:#999;\">" + (r.row_label || "(non-IGI)") + "</span>" : "";
@@ -326,7 +337,7 @@
         : "<td style=\"text-align:right;padding:10px 12px;background:" + medBg + ";color:#aaa;\">-</td>";
     });
     tableHtml += "</tr></tbody></table>"
-      + "<p style=\"font-size:0.8rem;color:#666;margin:8px 0 0;line-height:1.4;\">Total stone price. E VS1 Round Excellent IGI. Median. All prices USD. VRAI: proprietary Diamond Foundry grading, not matched to E VS1 IGI specification. Blue Nile (GIA): Blue Nile's GIA-graded E VS1 Excellent stones, a reference row shown because its IGI cells are below the minimum this edition; not comparable to the IGI rows and not part of the Market Median. * Largest month-over-month moves at 1ct and 1.5ct. See Key Findings. &#8224; VRAI's 1.5ct cell covers a 1.6&#8211;1.9ct window (median actual weight 1.75ct, not 1.5ct) and is not directly comparable to the other retailers in that column; see the VRAI methodology note. &#8225; With Clarity's 1.5ct figure is a partial capture (85% of the band, collected price-ascending, so a floor on the true median; see Coverage this edition). A dash (&#8212;) means fewer than 30 qualifying listings; in the Market Median row it means the median is not published this edition (the 1ct and 2ct cells fail this edition's publication rule; see Key Findings and the Market Median methodology note).</p>";
+      + "<p style=\"font-size:0.8rem;color:#666;margin:8px 0 0;line-height:1.4;\">Total stone price. E VS1 Round Excellent IGI. Median. All prices USD. VRAI: proprietary Diamond Foundry grading, not matched to E VS1 IGI specification. Blue Nile (GIA reference): Blue Nile's GIA-graded E VS1 Excellent stones, shown in place of its benchmark row because none of its IGI cells met the 30-listing minimum this edition (n=18, 5, 27); not comparable to the IGI rows and not part of the Market Median. Blue Nile's IGI series continues in the monthly price history. * Largest month-over-month moves at 1ct and 1.5ct. See Key Findings. &#8224; VRAI's 1.5ct cell covers a 1.6&#8211;1.9ct window (median actual weight 1.75ct, not 1.5ct) and is not directly comparable to the other retailers in that column; see the VRAI methodology note. &#8225; With Clarity's 1.5ct figure is a partial capture (85% of the band, collected price-ascending, so a floor on the true median; see Coverage this edition). A dash (&#8212;) means fewer than 30 qualifying listings; in the Market Median row it means the median is not published this edition (the 1ct and 2ct cells fail this edition's publication rule; see Key Findings and the Market Median methodology note).</p>";
     tableWrap.innerHTML = tableHtml;
 
     var shareUrl = encodeURIComponent(PAGE_URL);

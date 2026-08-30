@@ -289,9 +289,17 @@ def generate_html(data):
         med_ppc = median_of(prices)
         medians[key] = total_price(med_ppc, wt) if med_ppc is not None else None
 
-    # Build retailer rows
+    # Build retailer rows. A retailer with NO published cell whose figures
+    # are carried by a reference row (reference_row_of, e.g. Blue Nile (GIA),
+    # 2026-08-30 at Rodney's request) is omitted from the PRICE TABLE only:
+    # an all-dash row above its reference row read as a duplicate. The
+    # monthly history table still shows both series.
+    covered = {r.get("reference_row_of") for r in retailers if r.get("reference_row_of")}
+    def _hidden(r):
+        return (r["slug"] in covered
+                and not any(c.get("status") == "ok" for c in r["cells"].values()))
     rows = []
-    for i, r in enumerate(retailers):
+    for i, r in enumerate([x for x in retailers if not _hidden(x)]):
         is_vrai = r.get("non_igi", False)
         bg = "#f5f5f5" if is_vrai else ("#fafafa" if i % 2 == 0 else "#ffffff")
         row_style = ' style="border-top:2px solid #e0e0e0;"' if is_vrai else ""
