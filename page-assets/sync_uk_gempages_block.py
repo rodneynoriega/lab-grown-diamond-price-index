@@ -140,7 +140,7 @@ def gap_callout(cells, gap_cell, gap2):
     c = cells[gap_cell]
     lo, hi = total(c["min"][1], wt), total(c["max"][1], wt)
     s = (f"The same {gap_cell} G VS1 IGI round costs <strong>{gbp(lo)}</strong> at {c['min'][0]} and "
-         f"<strong>{gbp(hi)}</strong> at {c['max'][0]}, a <strong>{gbp(hi - lo)}</strong> difference for identical specs.")
+         f"<strong>{gbp(hi)}</strong> at {c['max'][0]}, <strong>{gbp(hi - lo)}</strong> apart for identical specs.")
     if gap_cell != "2ct" and gap2 is not None:
         s += f" At 2ct, that gap reaches <strong>{gbp(gap2)}</strong> on a single stone."
     return s
