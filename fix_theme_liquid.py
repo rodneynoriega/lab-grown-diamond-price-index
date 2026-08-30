@@ -6,16 +6,19 @@ default: fetches layout/theme.liquid from the MAIN theme, locates the block
 `{% if page.handle == 'lab-grown-diamond-price-index' %} ... <script> ... </script> ... {% endif %}`
 (the bottom-of-body script block, NOT the <head> style block, which starts
 with the same tag), splices in page-assets/theme-liquid-lgd-body.liquid,
-checks Liquid tag balance (if/endif, capture/endcapture), prints a diff
-summary, and only writes with --yes. Re-fetches after writing to verify.
+runs theme_script_guard.py on the source block (space before '<' in a JS
+string, ASCII, '</script', node --check, block shape; refuses on any
+failure), checks Liquid tag balance (if/endif, capture/endcapture), prints
+a diff summary, and only writes with --yes. Re-fetches after writing to verify.
 
 Usage: python3 fix_theme_liquid.py [--yes] [--source page-assets/theme-liquid-lgd-body.liquid]
 """
-import argparse, re, sys
+import argparse, datetime, re, sys
 from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from kill_switch import Auth, gql, load_env  # noqa: E402
+from theme_script_guard import check_theme_script, RULES  # noqa: E402
 
 THEMES_Q = '{ themes(first: 20) { nodes { id name role } } }'
 FILE_Q = '''query($id: ID!){ theme(id:$id){ files(filenames:["layout/theme.liquid"], first:1){
@@ -56,7 +59,22 @@ def main():
     ap.add_argument("--yes", action="store_true")
     a = ap.parse_args()
     new_block = Path(a.source).read_text(encoding="utf-8").strip("\n")
-    assert new_block.startswith(START) and new_block.rstrip().endswith("{% endif %}"), "source must be the if...endif block"
+    if not (new_block.startswith(START) and new_block.rstrip().endswith("{% endif %}")):
+        raise SystemExit(f"source must be the US block: starts with {START} and ends with "
+                         "{% endif %} (this script replaces the US index block only)")
+    # Theme script guard (shared with sync_theme_liquid.py and publish_gate.py):
+    # a hand-edited body reaches the live theme only through this script, so
+    # the JS string rules are enforced HERE too, before dry run or write.
+    warn = []
+    fails = check_theme_script(new_block, warnings=warn)
+    if fails:
+        print("theme script guard FAILED on", a.source)
+        for f in fails:
+            print("  -", f)
+        raise SystemExit("refusing to compose or write: fix the source block first")
+    print("theme script guard: PASS (" + ", ".join(RULES) + ") on", a.source)
+    for w in warn:
+        print("  ~ warning (not fatal, flex passed):", w)
 
     auth = Auth(load_env(HERE / ".env"))
     themes = gql(auth, THEMES_Q, {})["themes"]["nodes"]
@@ -77,12 +95,19 @@ def main():
         raise SystemExit(f"tag imbalance in the composed file: {bad}; refusing")
     print(f"composed file: {len(new_content)} chars; new DATA_URL:",
           re.search(r"index-data\.json\?v=\d+", new_block).group(0))
-    Path("/tmp").mkdir(exist_ok=True)
-    (HERE / "manifests" / "theme-liquid-before-fix.liquid").write_text(content, encoding="utf-8")
-    print("backup of the live file written to manifests/theme-liquid-before-fix.liquid")
     if not a.yes:
-        print("DRY RUN: nothing written. Add --yes.")
+        print("DRY RUN: nothing written (no backup either). Add --yes.")
         return
+    # Backup of the live file, taken only on a real write: a dated copy that
+    # is never overwritten plus the fixed-name latest copy. The committed
+    # body in git stays the primary rollback source; these are the
+    # whole-file belt-and-braces.
+    stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    md5 = (f.get("checksumMd5") or "nomd5")[:8]
+    dated = HERE / "manifests" / f"theme-liquid-before-fix-{stamp}-md5-{md5}.liquid"
+    dated.write_text(content, encoding="utf-8")
+    (HERE / "manifests" / "theme-liquid-before-fix.liquid").write_text(content, encoding="utf-8")
+    print(f"backup of the live file written to manifests/{dated.name} (and theme-liquid-before-fix.liquid)")
     out = gql(auth, UPSERT_M, {"themeId": main_theme["id"], "files": [
         {"filename": "layout/theme.liquid", "body": {"type": "TEXT", "value": new_content}}]})["themeFilesUpsert"]
     if out["userErrors"]:

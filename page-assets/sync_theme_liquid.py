@@ -22,7 +22,9 @@ anchored regex that must match exactly once; the script refuses otherwise.
 
 JS string rules enforced (see MEMORY/feedback_gempages_shopify.md):
 no line breaks in strings, `"` escaped, ASCII only, never a space before
-`<` inside a string (Flex theme splits there and kills the script).
+`<` inside a string (Flex theme splits there and kills the script). The
+whole-file check is theme_script_guard.py, shared with fix_theme_liquid.py
+and publish_gate.py --theme-liquid.
 
 Usage:
     python3 page-assets/sync_theme_liquid.py --data-url-v 18 \
@@ -42,6 +44,8 @@ from generate_us_gempages_block import (  # noqa: E402
 )
 
 ROOT = os.path.dirname(HERE)
+sys.path.insert(0, ROOT)
+from theme_script_guard import check_theme_script  # noqa: E402
 
 
 def js_str(s):
@@ -238,18 +242,17 @@ def main():
         src = replace_once(src, r'      \+ "<p style=\\"font-size:0\.8rem;color:#666;margin:8px 0 0;line-height:1\.4;\\">Total stone price\..*?</p>";',
                            "      + " + fn + ";", "table_footnote")
 
-    # Whole-script guard (not just the regions synced here): no double-quoted
-    # JS string literal anywhere may contain a space before "<" (Flex theme
-    # split bug), and the script must be ASCII. Hand edits get caught too.
-    m = re.search(r"<script>\n(.*?)\n</script>", src, re.S)
-    script = m.group(1) if m else src
-    bad = [ln.strip()[:120] for ln in script.splitlines()
-           for lit in re.findall(r'"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\'', ln) if " <" in lit]
-    if bad:
-        raise SystemExit("space before '<' inside a JS string literal:\n  " + "\n  ".join(bad))
-    non_ascii = sorted({c for c in script if ord(c) > 127})
-    if non_ascii:
-        raise SystemExit(f"non-ASCII in theme script: {non_ascii!r}")
+    # Whole-script guard (not just the regions synced here), shared with
+    # fix_theme_liquid.py (publish time) and publish_gate.py --theme-liquid
+    # (gate time): space before "<" in any JS string literal (Flex split
+    # bug), ASCII only, no "</script" in the body, node --check, block shape.
+    # Hand edits get caught too.
+    warn = []
+    fails = check_theme_script(src, warnings=warn)
+    if fails:
+        raise SystemExit("theme script guard FAILED; nothing written:\n  " + "\n  ".join(fails))
+    for w in warn:
+        print("  ~ theme script guard warning (not fatal, flex passed):", w)
     out = args.out or args.liquid
     open(out, "w", encoding="utf-8").write(src)
     # Sanity: the script must stay ASCII-clean in the regions we touched.

@@ -54,6 +54,17 @@ Exit codes: 0 all pages pass; 1 at least one page fails (failing pages are
 excluded, the rest may proceed, per Rodney's rule; the caller decides);
 2 malformed manifest/arguments (nothing was checked).
 
+Check F (index-page theme refreshes), --theme-liquid PATH: runs
+theme_script_guard.py on the theme.liquid LGD block (the Flex ' <' split
+transform applied then node --check = ground truth; plus the per-line
+string-literal diagnostic, ASCII only, no '</script' in the body, node
+--check as written, block shape with exactly one <script>). Added 2026-08-30 (reviewer minor, August
+cycle): until then the rule ran only at write time in sync_theme_liquid.py,
+so a hand-edited body deployed by fix_theme_liquid.py was unguarded. The
+gate records the result; fix_theme_liquid.py enforces it at publish time.
+--qa-manifest and --theme-liquid may be given together or alone; exit 1 if
+either fails.
+
 Per SKILL.md check C: after ANY change to this file's check logic, re-run
 the negative-control test (a deliberately bad page MUST fail) before the
 gate's verdict is trusted again.
@@ -68,6 +79,8 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+from theme_script_guard import check_theme_script, RULES as GUARD_RULES  # noqa: E402
 DATA_DIRS = [HERE / "data" / "raw", HERE / "data" / "snapshots",
              HERE / "data" / "processed"]
 
@@ -335,11 +348,46 @@ def check_page(page, today):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--qa-manifest", required=True,
-                    help="JSON QA manifest for the batch")
+    ap.add_argument("--qa-manifest", default=None,
+                    help="JSON QA manifest for the batch (check D)")
+    ap.add_argument("--theme-liquid", default=None, action="append",
+                    help="theme.liquid LGD block to run the theme script "
+                         "guard on (check F); repeatable")
     ap.add_argument("--today", default=None,
                     help="override gate date YYYY-MM-DD (tests only)")
     args = ap.parse_args()
+    if not args.qa_manifest and not args.theme_liquid:
+        ap.error("give --qa-manifest and/or --theme-liquid")
+
+    guard_failed = 0
+    for tl in args.theme_liquid or []:
+        try:
+            text = Path(tl).read_text(encoding="utf-8")
+        except OSError as e:
+            print(f"theme-liquid {tl}: {e}")
+            raise SystemExit(2)
+        warn = []
+        fails = check_theme_script(text, warnings=warn)
+        print(f"{'FAIL' if fails else 'PASS'} theme-script-guard {tl} "
+              f"({len(text):,} chars; rules: {', '.join(GUARD_RULES)})")
+        for f in fails:
+            print(f"  - {f}")
+        for w in warn:
+            print(f"  ~ warning (not fatal, flex passed): {w}")
+        guard_failed += bool(fails)
+    check_f_line = None
+    if args.theme_liquid:
+        check_f_line = (f"publish_gate check F: {len(args.theme_liquid) - guard_failed} "
+                        f"passed, {guard_failed} failed, {len(args.theme_liquid)} total"
+                        + (" | A failing theme block must NOT be deployed "
+                           "(fix_theme_liquid.py refuses it independently)."
+                           if guard_failed else ""))
+        print(check_f_line)
+    if not args.qa_manifest:
+        print("publish_gate: check F only; checks A/B/C/D/E NOT run. This "
+              "exit status authorizes nothing by itself; a batch still needs "
+              "the full gate report.")
+        raise SystemExit(1 if guard_failed else 0)
 
     try:
         raw = json.loads(Path(args.qa_manifest).read_text())
@@ -376,7 +424,14 @@ def main():
         print("Failing pages are EXCLUDED from the batch; the remainder "
               "may proceed only under a current AUTHORIZED gate report "
               "(checks A/B/C/E still apply at batch level).")
-    raise SystemExit(1 if failed else 0)
+    # Check F verdict last so it is never buried above a long check D list.
+    if check_f_line:
+        print(check_f_line)
+    else:
+        print("publish_gate check F NOT run (no --theme-liquid): if this "
+              "batch touches theme.liquid, the theme block is unguarded by "
+              "this report.")
+    raise SystemExit(1 if (failed or guard_failed) else 0)
 
 
 if __name__ == "__main__":
