@@ -117,7 +117,8 @@ def static_table(data, cells):
                 tip = c.get("note") if c and c.get("note") else ("Fewer than 30 stones, not published." if c and c.get("status") == "thin" else "No qualifying inventory in this cell.")
                 tds.append(f'          <td style="text-align: right; padding: 10px 12px; background: {bg}; color: #aaa;" title="{tip}">-</td>')
             else:
-                tds.append(f'          <td style="text-align: right; padding: 10px 12px; background: {bg}; font-variant-numeric: tabular-nums;" title="n={c["stone_count"]}">{gbp(total(c["median_price_per_carat"], wt))}</td>')
+                tip = f'n={c["stone_count"]}' + (f'; {c["note"]}' if c.get("note") else "")
+                tds.append(f'          <td style="text-align: right; padding: 10px 12px; background: {bg}; font-variant-numeric: tabular-nums;" title="{tip}">{gbp(total(c["median_price_per_carat"], wt))}</td>')
         rows.append("        <tr>\n" + f'          <td style="padding: 10px 12px; font-weight: 700; white-space: nowrap; background: {bg}; color: #1a1a1a;">{r["name"]}</td>\n' + "\n".join(tds) + "\n        </tr>")
     med = []
     for key, wt, _ in BANDS:
