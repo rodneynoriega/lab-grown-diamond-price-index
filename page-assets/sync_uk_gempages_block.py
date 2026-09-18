@@ -42,6 +42,12 @@ MONTHS = ["January", "February", "March", "April", "May", "June", "July",
 NUMWORD = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight"]
 
 
+def pub_display(last_updated):
+    """'2026-09-18' -> 'September 18, 2026'"""
+    y, mo, d = last_updated.split("-")
+    return f"{MONTHS[int(mo)-1]} {int(d)}, {y}"
+
+
 def total(ppc, wt):
     # JS Math.round semantics (half up)
     import math
@@ -246,7 +252,7 @@ def main():
         src = once_inner(src, r'<p id="lgd-answer"[^>]*>', r'</p>', sub(data["answer_sentence"]), "static answer")
     # Rodney, 2026-09-18: keep the top-line date clean, one date, not a
     # separate "collected" date (mirrors the US generator's same change).
-    asof = f"Data as of {month}." + (" " + data["next_edition_note"] if data.get("next_edition_note") else "")
+    asof = f"Data as of {pub_display(data['last_updated'])}." + (" " + data["next_edition_note"] if data.get("next_edition_note") else "")
     src = once_inner(src, r'<p id="lgd-asof"[^>]*>', r'</p>', asof, "static as-of")
     src = once_inner(src, r'<summary id="lgd-facts-heading">Key figures in words, ', r' \(for quoting\)</summary>', month, "static facts heading")
     # stat strip (static): Market Median per cell + listings, same values as the table

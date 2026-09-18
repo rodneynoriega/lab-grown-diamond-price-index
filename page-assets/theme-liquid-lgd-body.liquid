@@ -470,8 +470,11 @@
     var ansEl = document.getElementById("lgd-answer");
     if (ansEl && data.answer_sentence) ansEl.textContent = lgdSub(data.answer_sentence);
     var asofEl = document.getElementById("lgd-asof");
-    if (asofEl && data.month) {
-      asofEl.textContent = "Data as of " + data.month + "." + (data.next_edition_note ? " " + data.next_edition_note : "");
+    if (asofEl && data.last_updated) {
+      var _asofMn = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      var _asofP = data.last_updated.split("-");
+      var _asofDate = _asofMn[parseInt(_asofP[1], 10) - 1] + " " + parseInt(_asofP[2], 10) + ", " + _asofP[0];
+      asofEl.textContent = "Data as of " + _asofDate + "." + (data.next_edition_note ? " " + data.next_edition_note : "");
     }
     var factsEl = document.getElementById("lgd-facts-list");
     if (factsEl && data.quotable_facts && data.quotable_facts.length) {

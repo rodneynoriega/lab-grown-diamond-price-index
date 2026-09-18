@@ -555,7 +555,7 @@ def generate_html(data):
     # Published line below it), not a separate "collected" date. The
     # collection date still appears in Methodology > Scope for anyone who
     # wants the precise capture-vs-publish distinction.
-    asof_line = f"Data as of {month}."
+    asof_line = f"Data as of {pub_disp}."
     if next_ed:
         asof_line += " " + next_ed
     facts = [apply_ctx(f, ctx) for f in (data.get("quotable_facts") or [])]
