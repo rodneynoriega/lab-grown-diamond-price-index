@@ -89,6 +89,29 @@ def once(text, pattern, repl, label, flags=re.S):
     return re.sub(pattern, lambda m: repl, text, count=1, flags=flags)
 
 
+def fold_html(items, dark=False):
+    """'<strong>Lead.</strong> body' strings -> native <details> folds (2026-09-03 redesign)."""
+    out = []
+    for it in items:
+        i = it.find("</strong>")
+        cls = "lgd-fold lgd-dark" if dark else "lgd-fold"
+        if it.startswith("<strong>") and i > 0:
+            out.append(f'<details class="{cls}"><summary>{it[8:i].strip()}</summary><div class="lgd-fold-body">{it[i + 9:].strip()}</div></details>')
+        else:
+            out.append(f'<div class="{cls}" style="padding: 9px 0; font-size: 0.9rem;">{it}</div>')
+    return "\n".join("      " + o for o in out)
+
+
+def once_inner(text, open_pat, close_pat, repl, label, flags=re.S):
+    """Replace the content between one opening and one closing pattern
+    (both kept), e.g. the text inside <p id="lgd-answer">...</p>."""
+    pattern = "(" + open_pat + ")(.*?)(" + close_pat + ")"
+    n = len(re.findall(pattern, text, flags))
+    if n != 1:
+        raise SystemExit(f"region '{label}': expected 1 match, found {n}")
+    return re.sub(pattern, lambda m: m.group(1) + repl + m.group(3), text, count=1, flags=flags)
+
+
 def compute(data):
     cells = {}
     for key, wt, _ in BANDS:
@@ -148,8 +171,16 @@ def gap_callout(cells, gap_cell, gap2):
 
 
 def fallback_block(data):
-    L = ["  var FALLBACK = {", f"    month: {js_val(data['month'])},", f"    last_updated: {js_val(data['last_updated'])},",
-         f"    benchmark_spec: {js_val(data['benchmark_spec'])},", '    currency: "GBP",',
+    L = ["  var FALLBACK = {", f"    month: {js_val(data['month'])},", f"    last_updated: {js_val(data['last_updated'])},"]
+    # Citability fields (2026-09-03): raw strings with {placeholders}; the block's lgdSub() substitutes them.
+    for k in ("next_edition_note", "collection_date", "answer_sentence"):
+        if data.get(k):
+            L.append(f"    {k}: {js_val(data[k])},")
+    if data.get("quotable_facts"):
+        L.append("    quotable_facts: [" + ", ".join(js_val(f) for f in data["quotable_facts"]) + "],")
+    if data.get("citation_line"):
+        L.append(f"    citation_line: {js_val(data['citation_line'])},")
+    L += [f"    benchmark_spec: {js_val(data['benchmark_spec'])},", '    currency: "GBP",',
          '    benchmark_cells: ["1ct", "1.5ct", "2ct"],',
          '    cell_ranges: {"1ct": "0.95-1.05ct", "1.5ct": "1.45-1.55ct", "2ct": "1.95-2.05ct"},',
          "    history: ["]
@@ -210,6 +241,28 @@ def main():
     kf = [sub(b) for b in data["key_findings"]]
     meth = [(sub(p["title"]), sub(p["body"])) for p in data["methodology"]]
 
+    # ---- static: citability block (2026-09-03), all from JSON fields
+    if data.get("answer_sentence"):
+        src = once_inner(src, r'<p id="lgd-answer"[^>]*>', r'</p>', sub(data["answer_sentence"]), "static answer")
+    # Rodney, 2026-09-18: keep the top-line date clean, one date, not a
+    # separate "collected" date (mirrors the US generator's same change).
+    asof = f"Data as of {month}." + (" " + data["next_edition_note"] if data.get("next_edition_note") else "")
+    src = once_inner(src, r'<p id="lgd-asof"[^>]*>', r'</p>', asof, "static as-of")
+    src = once_inner(src, r'<summary id="lgd-facts-heading">Key figures in words, ', r' \(for quoting\)</summary>', month, "static facts heading")
+    # stat strip (static): Market Median per cell + listings, same values as the table
+    tiles = []
+    for ci, (key, wt, _) in enumerate(BANDS):
+        mt = cells[key]["market_total"]
+        tiles.append((gbp(mt) if mt else "n/a", f"Market Median, {key}" + (" G VS1 IGI, inc-VAT" if ci == 0 else "")))
+    tiles.append((f"{listings:,}", f"listings, {ctx['n_retailers_word']} retailers" + (f", {data['collection_date']}" if data.get("collection_date") else "")))
+    tiles_html = "\n".join(f'    <div class="lgd-stat"><b>{v}</b><span>{l}</span></div>' for v, l in tiles[:4])
+    src = once_inner(src, r'<div id="lgd-stats" class="lgd-stats">\n', r'\n  </div>', tiles_html, "static stat strip")
+    if data.get("quotable_facts"):
+        facts_html = "\n".join(f'      <li style="margin: 0 0 8px;">{sub(f)}</li>' for f in data["quotable_facts"])
+        src = once_inner(src, r'<ul id="lgd-facts-list"[^>]*>\n', r'\n    </ul>', facts_html, "static facts list")
+    if data.get("citation_line"):
+        src = once_inner(src, r'<p id="lgd-citation"[^>]*>', r'</p>', sub(data["citation_line"]), "static citation")
+
     # ---- static
     m = re.search(r'(<p id="lgd-published-date"[^>]*>\n\s*)([^\n]*?)( edition &nbsp;)', src)
     assert m, "edition line"
@@ -221,13 +274,13 @@ def main():
     assert m, "static table body"
     src = src[:m.start(2)] + static_table(data, cells) + src[m.end(2):]
     # key findings (static)
-    kf_html = "\n".join(f'        <li style="margin: 0 0 9px;">{b}</li>' if i < len(kf) - 1 else f'        <li style="margin: 0;">{b}</li>' for i, b in enumerate(kf))
-    m = re.search(r'(<strong style="display: block; margin-bottom: 10px; font-size: 1rem; color: #ffffff;">Key Findings: )([^<]*)(</strong>\n      <p style="margin: 0 0 14px; color: #c8c8c8; font-size: 0.9rem; line-height: 1.6;">)([^<]*)(</p>\n      <ul[^>]*>\n)(.*?)(\n      </ul>)', src, re.S)
+    kf_html = fold_html(kf, dark=True)
+    m = re.search(r'(<strong style="display: block; margin-bottom: 10px; font-size: 1rem; color: #ffffff;">Key Findings: )([^<]*)(</strong>\n      <p style="margin: 0 0 14px; color: #c8c8c8; font-size: 0.9rem; line-height: 1.6;">)([^<]*)(</p>\n      <div id="lgd-kf-list"[^>]*>\n)(.*?)(\n      </div>)', src, re.S)
     assert m, "static key findings"
     src = (src[:m.start(2)] + month + m.group(3) + f"{ctx['n_retailers_word'].capitalize()} retailers. {ctx['listings']} listings. G VS1 Round Excellent IGI."
            + m.group(5) + kf_html + src[m.end(6):])
-    meth_html = "\n".join(f'      <p style="margin: 0 0 12px;"><strong>{t}.</strong> {b}</p>' for t, b in meth)
-    m = re.search(r'(<div id="lgd-method-wrap".*?<div style="font-size: 0.9rem; color: #333; line-height: 1.7;">\n)(.*?)(\n    </div>\n  </div>)', src, re.S)
+    meth_html = fold_html([f"<strong>{t}.</strong> {b}" for t, b in meth])
+    m = re.search(r'(<div id="lgd-method-wrap".*?<div id="lgd-method-list" style="font-size: 0.9rem; color: #333; line-height: 1.7;">\n)(.*?)(\n    </div>\n  </div>)', src, re.S)
     assert m, "static methodology"
     src = src[:m.start(2)] + meth_html + src[m.end(2):]
     nxt = MONTHS[(MONTHS.index(mname) + 1) % 12] + " " + (str(int(myear) + 1) if mname == "December" else myear)
@@ -251,6 +304,12 @@ def main():
     src = once(src, r'"description": "Monthly benchmark prices for lab-grown diamonds \(G VS1[^\n]*",', f'"description": {json.dumps(sub(data["jsonld_description"]), ensure_ascii=False)},', "ld description")
     src = once(src, r'"datePublished": "[^"]*",\n  "dateModified": "[^"]*",', f'"datePublished": "{data["last_updated"]}",\n  "dateModified": "{data["last_updated"]}",', "ld dates")
     src = once(src, r'"temporalCoverage": "\d{4}-\d{2}"', f'"temporalCoverage": "{myear}-{MONTHS.index(mname) + 1:02d}"', "ld temporal")
+    src = once(src, r'"version": "[^"]*"', f'"version": "{month}"', "ld version")
+    if data.get("citation_line"):
+        src = once(src, r'"creditText": "[^"]*"', f'"creditText": {json.dumps(sub(data["citation_line"]), ensure_ascii=False)}', "ld creditText")
+    if data.get("dataset_license"):
+        # license is a Rodney decision; inserted only when the JSON sets it (never a placeholder URL)
+        src = once(src, r'"isAccessibleForFree": true,', f'"license": "{data["dataset_license"]}",\n  "isAccessibleForFree": true,', "ld license")
     src = once(src, r'Data collected [A-Z][a-z]+ \d{4}\."', f'Data collected {month}."', "ld collected")
     vm = []
     for key, wt, _ in BANDS:

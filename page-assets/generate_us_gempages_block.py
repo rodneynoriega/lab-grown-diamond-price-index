@@ -551,7 +551,11 @@ def generate_html(data):
     answer = apply_ctx(data.get("answer_sentence", ""), ctx) if data.get("answer_sentence") else (
         f"As of {month}, published 1ct E VS1 IGI retailer medians run from ${min1ct:,} to ${max1ct:,} "
         f"across {num_to_word(n_retailers)} U.S. retailers ({listings_str} listings).")
-    asof_line = f"Data as of {month}" + (f", collected {data['collection_date']}" if data.get("collection_date") else "") + "."
+    # Rodney, 2026-09-18: keep the top-line date clean, one date (matches the
+    # Published line below it), not a separate "collected" date. The
+    # collection date still appears in Methodology > Scope for anyone who
+    # wants the precise capture-vs-publish distinction.
+    asof_line = f"Data as of {month}."
     if next_ed:
         asof_line += " " + next_ed
     facts = [apply_ctx(f, ctx) for f in (data.get("quotable_facts") or [])]

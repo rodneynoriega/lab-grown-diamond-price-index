@@ -9,6 +9,10 @@
     month: "August 2026",
     last_updated: "2026-08-30",
     next_edition_note: "Updated monthly. Next edition: week of September 28, 2026.",
+    collection_date: "August 29, 2026",
+    answer_sentence: "As of {month}, a 1.5 carat E VS1 IGI round lab-grown diamond lists at a Market Median of $1,005 across four U.S. retailers, down 0.6% from July; 1 carat retailer medians run from ${min1ct} to ${max1ct}.",
+    quotable_facts: ["In August 2026 the Market Median for a 1.5 carat E VS1 IGI round lab-grown diamond was $1,005 across four U.S. retailers (Ritani, Grown Brilliance, With Clarity, Brilliant Earth), down 0.6% from $1,011 in July 2026.", "In August 2026 a 1 carat E VS1 IGI round lab-grown diamond listed at a median of $223 at the cheapest published retailer and $856 at the priciest, a 3.8x spread across four retailers.", "In August 2026 a 2 carat E VS1 IGI round lab-grown diamond listed at retailer medians from $496 to $2,730 across five retailers.", "The August 2026 edition of the Rings.com Lab-Grown Diamond Price Index analyzed 259,656 lab-grown diamond listings collected from seven U.S. online retailers on August 29, 2026.", "Ritani cut its 1 carat E VS1 IGI median 24% between July and August 2026, from $295 to $223 per carat, the largest move on the panel."],
+    citation_line: "Cite as: Rings.com Lab-Grown Diamond Price Index, {month} edition, rings.com/pages/lab-grown-diamond-price-index.",
     benchmark_spec: "E VS1 Excellent IGI",
     benchmark_cells: ["1ct", "1.5ct", "2ct"],
     market_median_suppressed: ["1ct", "2ct"],
@@ -441,8 +445,46 @@
       + " Same certification. Same grade. Different retailer."
       + "</p>";
 
-    tableWrap.insertAdjacentHTML("beforebegin", "<span id=\"price-table\" aria-hidden=\"true\" style=\"display:block;height:0;overflow:hidden;\"></span>" + _calloutHtml);
-    methodWrap.insertAdjacentHTML("beforebegin", "<span id=\"methodology\" aria-hidden=\"true\" style=\"display:block;height:0;overflow:hidden;\"></span>");
+    // Anchor spans: the static block carries them from the September 2026 paste on; insert only when absent (no duplicate ids).
+    tableWrap.insertAdjacentHTML("beforebegin", (document.getElementById("price-table") ? "" : "<span id=\"price-table\" aria-hidden=\"true\" style=\"display:block;height:0;overflow:hidden;\"></span>") + _calloutHtml);
+    if (!document.getElementById("methodology")) methodWrap.insertAdjacentHTML("beforebegin", "<span id=\"methodology\" aria-hidden=\"true\" style=\"display:block;height:0;overflow:hidden;\"></span>");
+
+    // Citability block (2026-09-03): re-render the answer sentence, the "as of" line and the quotable facts
+    // from the fetched JSON so JS-enabled visitors and crawlers read the same figures. Same {placeholder}
+    // vocabulary as generate_us_gempages_block.py (month, listings, n_retailers_word, collection_date, min1ct...).
+    var _numWords = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
+    var _nPanel = data.retailers.filter(function (r) { return !r.reference_row_of; }).length;
+    var _lastHist = (data.history && data.history.length) ? data.history[data.history.length - 1] : null;
+    var _ctx = {
+      month: data.month || "",
+      listings: (_lastHist && _lastHist.total_listings) ? _lastHist.total_listings.toLocaleString("en-US") : "",
+      n_retailers: String(_nPanel),
+      n_retailers_word: _numWords[_nPanel] || String(_nPanel),
+      collection_date: data.collection_date || "",
+      min1ct: isFinite(_min1) ? Math.round(_min1).toLocaleString("en-US") : "",
+      max1ct: isFinite(_max1) ? Math.round(_max1).toLocaleString("en-US") : "",
+      min2ct: isFinite(_min2) ? _min2.toLocaleString("en-US") : "",
+      max2ct: isFinite(_max2) ? _max2.toLocaleString("en-US") : ""
+    };
+    function lgdSub(str) { return String(str).replace(/\{(\w+)\}/g, function (m, k) { return (_ctx[k] !== undefined) ? _ctx[k] : m; }); }
+    var ansEl = document.getElementById("lgd-answer");
+    if (ansEl && data.answer_sentence) ansEl.textContent = lgdSub(data.answer_sentence);
+    var asofEl = document.getElementById("lgd-asof");
+    if (asofEl && data.month) {
+      asofEl.textContent = "Data as of " + data.month + "." + (data.next_edition_note ? " " + data.next_edition_note : "");
+    }
+    var factsEl = document.getElementById("lgd-facts-list");
+    if (factsEl && data.quotable_facts && data.quotable_facts.length) {
+      factsEl.innerHTML = "";
+      data.quotable_facts.forEach(function (f) {
+        var li = document.createElement("li");
+        li.setAttribute("style", "margin:0 0 8px;");
+        li.textContent = lgdSub(f);
+        factsEl.appendChild(li);
+      });
+    }
+    var citeEl = document.getElementById("lgd-citation");
+    if (citeEl && data.citation_line) citeEl.textContent = lgdSub(data.citation_line);
 
     var thStyle = "text-align:right;padding:10px 12px;border-bottom:2px solid #1a1a1a;font-weight:700;white-space:nowrap;color:#1a1a1a;background:#fff;";
     var tableHtml = "<table style=\"width:100%;border-collapse:collapse;font-size:0.95rem;\"><thead><tr>"
@@ -496,6 +538,25 @@
       + "<p style=\"font-size:0.8rem;color:#666;margin:8px 0 0;line-height:1.4;\">Total stone price. E VS1 Round Excellent IGI. Median. All prices USD. VRAI: proprietary Diamond Foundry grading, not matched to E VS1 IGI specification. Blue Nile (GIA reference): Blue Nile's GIA-graded E VS1 Excellent stones, shown in place of its benchmark row because none of its IGI cells met the 30-listing minimum this edition (n=18, 5, 27); not comparable to the IGI rows and not part of the Market Median. Blue Nile's IGI series continues in the monthly price history. * Largest month-over-month moves at 1ct and 1.5ct. See Key Findings. &#8224; VRAI's 1.5ct cell covers a 1.6&#8211;1.9ct window (median actual weight 1.75ct, not 1.5ct) and is not directly comparable to the other retailers in that column; see the VRAI methodology note. &#8225; With Clarity's 1.5ct figure is a partial capture (85% of the band, collected price-ascending, so a floor on the true median; see Coverage this edition). A dash (&#8212;) means fewer than 30 qualifying listings; in the Market Median row it means the median is not published this edition (the 1ct and 2ct cells fail this edition's publication rule; see Key Findings and the Market Median methodology note).</p>";
     tableWrap.innerHTML = tableHtml;
 
+    // Stat strip (2026-09-03 redesign): same values as the Market Median row and the callout ranges.
+    var statsEl = document.getElementById("lgd-stats");
+    if (statsEl) {
+      var tiles = [];
+      var pubCells = cells.filter(function (c) { return !!medPrices[c]; });
+      function _tot(c) { var w = c === "1ct" ? 1 : c === "1.5ct" ? 1.5 : 2; return "$" + Math.round(medPrices[c] * w).toLocaleString("en-US"); }
+      if (pubCells.length) {
+        var extra = pubCells.slice(1).map(function (c) { return c + " " + _tot(c); }).join(", ");
+        tiles.push([_tot(pubCells[0]), "Market Median, " + pubCells[0] + " E VS1 IGI" + (extra ? " (also " + extra + ")" : "")]);
+      } else {
+        tiles.push(["n/a", "Market Median withheld this edition"]);
+      }
+      function _pubCount(c) { var n = 0; data.retailers.forEach(function (r) { if (!r.non_igi && r.cells[c] && r.cells[c].status === "ok") n++; }); return n; }
+      if (isFinite(_min1) && isFinite(_max1)) tiles.push(["$" + Math.round(_min1).toLocaleString("en-US") + " to $" + Math.round(_max1).toLocaleString("en-US"), "1ct retailer medians, " + _pubCount("1ct") + " published"]);
+      if (isFinite(_min2) && isFinite(_max2)) tiles.push(["$" + _min2.toLocaleString("en-US") + " to $" + _max2.toLocaleString("en-US"), "2ct retailer medians, " + _pubCount("2ct") + " published"]);
+      tiles.push([_ctx.listings, "listings, " + _ctx.n_retailers_word + " retailers" + (data.collection_date ? ", " + data.collection_date : "")]);
+      statsEl.innerHTML = tiles.slice(0, 4).map(function (t) { return "<div class=\"lgd-stat\"><b>" + t[0] + "</b><span>" + t[1] + "</span></div>"; }).join("");
+    }
+
     var shareUrl = encodeURIComponent(PAGE_URL);
     var shareText = encodeURIComponent("Lab-grown diamond prices vary across major U.S. retailers: published 1ct E VS1 IGI medians run from $223 to $856 by retailer. Rings.com Lab-Grown Diamond Price Index, August 2026. " + PAGE_URL);
     var iconX    = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.259 5.622 5.905-5.372zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="currentColor"/></svg>';
@@ -544,6 +605,30 @@
     var methodHtml = "<h2 style=\"font-size:1rem;font-weight:700;margin:0 0 12px;color:#1a1a1a;\">Methodology</h2><div style=\"font-size:0.9rem;color:#333;line-height:1.7;\">";
     METHODOLOGY.forEach(function (para) { methodHtml += "<p style=\"margin:0 0 12px;color:#333;\">" + para + "</p>"; });
     methodWrap.innerHTML = methodHtml + "</div>";
+
+    // Folds (2026-09-03 redesign): Key Findings bullets and Methodology paragraphs keep their bold
+    // lead visible and fold the rest. Post-processing, so the synced KEY_FINDINGS/METHODOLOGY regions stay intact.
+    function lgdFold(container, sel, dark) {
+      if (!container) return;
+      Array.prototype.forEach.call(container.querySelectorAll(sel), function (el) {
+        var strong = el.querySelector("strong");
+        if (!strong || strong !== el.firstElementChild) return;
+        var d = document.createElement("details");
+        d.className = "lgd-fold" + (dark ? " lgd-dark" : "");
+        var sm = document.createElement("summary");
+        sm.innerHTML = strong.innerHTML;
+        var body = document.createElement("div");
+        body.className = "lgd-fold-body";
+        strong.parentNode.removeChild(strong);
+        body.innerHTML = el.innerHTML.replace(/^\s+/, "");
+        d.appendChild(sm); d.appendChild(body);
+        el.parentNode.replaceChild(d, el);
+      });
+    }
+    lgdFold(calloutWrap, "li", true);
+    var kfUl = calloutWrap.querySelector("ul");
+    if (kfUl) { var kfDiv = document.createElement("div"); kfDiv.id = "lgd-kf-list"; while (kfUl.firstChild) kfDiv.appendChild(kfUl.firstChild); kfUl.parentNode.replaceChild(kfDiv, kfUl); }
+    lgdFold(methodWrap, "p", false);
 
     var nextEdNote = data.next_edition_note || "Updated monthly. Next edition: week of September 28, 2026.";
     footerWrap.innerHTML = "<p style=\"font-size:0.8rem;color:#888;margin:0 0 6px;line-height:1.5;\">" + nextEdNote + "</p>"
