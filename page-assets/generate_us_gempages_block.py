@@ -44,6 +44,24 @@ MONTH_NAMES = [
 ]
 MONTH_MAP = {m: f"{i+1:02d}" for i, m in enumerate(MONTH_NAMES)}
 
+# Frozen per-edition archive pages (2026-09-17, Beyond Carat citation
+# request: "are prior editions kept accessible by month?"). Built by
+# build_index_archives.py, which pins each archive to the exact git commit
+# whose index-data.json produced it, so a cited figure stays independently
+# checkable after this page moves on. Add the new cycle here once its
+# archive draft exists and is live -- BEFORE the next monthly refresh makes
+# it "previous" (an edition that's live-but-not-yet-archived should not
+# appear here, since its own archive page wouldn't exist yet to link to).
+# Most-recent-first (Rodney, 2026-09-18); a newly-archived cycle goes at the
+# TOP of this list, not the bottom.
+PAST_EDITIONS = [
+    ("2026-08", "August 2026"),
+    ("2026-07", "July 2026"),
+    ("2026-06", "June 2026"),
+    ("2026-05", "May 2026"),
+    ("2026-04", "April 2026"),
+]
+
 
 def load_data(path=None):
     with open(path or DEFAULT_JSON) as f:
@@ -188,6 +206,7 @@ def generate_jsonld(data, ranges, pub_date):
         "@context": "https://schema.org",
         "@type": "Dataset",
         "name": f"Rings.com Lab-Grown Diamond Price Index, {month}",
+        "version": month,
         "description": (
             f"Monthly benchmark prices for lab-grown diamonds (E VS1 Round Excellent IGI-certified) "
             f"across major U.S. online retailers. {month} edition covers {listings_str} listings "
@@ -226,6 +245,15 @@ def generate_jsonld(data, ranges, pub_date):
             "contentUrl": "https://raw.githubusercontent.com/rodneynoriega/lab-grown-diamond-price-index/main/index-data.json",
         },
     }
+    # Citability fields (2026-09-03): the license is a Rodney decision and
+    # stays OUT of the block until `dataset_license` is set in the JSON (the
+    # 2026-07-26 lesson: never point license at a URL that is not a real
+    # license). creditText carries the "Cite as" line so a machine reader
+    # gets the attribution string verbatim.
+    if data.get("dataset_license"):
+        obj["license"] = data["dataset_license"]
+    if data.get("citation_line"):
+        obj["creditText"] = apply_ctx(data["citation_line"], {"month": month})
     return json.dumps(obj, indent=2, ensure_ascii=False)
 
 
@@ -251,11 +279,86 @@ def cell_td(cell, bg, weight):
     return f'<td style="{base}font-variant-numeric:tabular-nums;"{n_tip}>${tp:,}{dagger}</td>'
 
 
+LGD_CSS = """<style>
+.lgd-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 22px}
+@media (max-width:640px){.lgd-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.lgd-stat{border:1px solid #e5e5e5;border-radius:6px;padding:12px 14px;min-width:0}
+.lgd-stat b{display:block;font-size:1.3rem;font-weight:700;letter-spacing:-0.01em;line-height:1.2;color:#1a1a1a;font-variant-numeric:tabular-nums}
+.lgd-stat span{display:block;font-size:0.72rem;color:#777;margin-top:4px;line-height:1.35}
+details.lgd-fold{border-top:1px solid #e8e8e8;padding:9px 0}
+details.lgd-fold summary{cursor:pointer;font-weight:600;font-size:0.95rem;line-height:1.45;list-style:none;position:relative;padding-right:24px;color:#1a1a1a}
+details.lgd-fold summary::-webkit-details-marker{display:none}
+details.lgd-fold summary::after{content:"+";position:absolute;right:2px;top:0;color:#999;font-weight:400}
+details.lgd-fold[open] summary::after{content:"\\2212"}
+details.lgd-fold .lgd-fold-body{margin:8px 0 0;font-size:0.9rem;line-height:1.65;color:#333}
+details.lgd-fold.lgd-dark{border-top-color:#333}
+details.lgd-fold.lgd-dark summary{color:#fff}
+details.lgd-fold.lgd-dark summary::after{color:#aaa}
+details.lgd-fold.lgd-dark .lgd-fold-body{color:#d8d8d8}
+.lgd-meta{font-size:0.82rem;color:#555;line-height:1.6;margin:0 0 6px}
+.lgd-meta a{color:#1a1a1a;font-weight:600;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
+@media (max-width:640px){#lgd-index h1{font-size:1.55rem}}
+</style>"""
+
+
+def split_lead(html_str):
+    """'<strong>Headline.</strong> body' -> (headline, body). Used to fold a
+    Key Finding or a Methodology paragraph: summary = headline, body folded."""
+    i = html_str.find("</strong>")
+    if html_str.startswith("<strong>") and i > 0:
+        return html_str[len("<strong>"):i].strip(), html_str[i + len("</strong>"):].strip()
+    return None, html_str
+
+
+def fold(items, dark=False):
+    """Render a list of '<strong>Lead.</strong> body' strings as native
+    <details> folds (no JS; every word stays in the HTML for crawlers)."""
+    out = []
+    for it in items:
+        lead, body = split_lead(it)
+        cls = "lgd-fold lgd-dark" if dark else "lgd-fold"
+        if lead is None:
+            out.append(f'<div class="{cls}" style="padding:9px 0;font-size:0.9rem;line-height:1.65;">{body}</div>')
+        else:
+            out.append(f'<details class="{cls}"><summary>{lead}</summary><div class="lgd-fold-body">{body}</div></details>')
+    return "\n".join("      " + o for o in out)
+
+
+def stat_tiles(tiles):
+    """tiles: list of (value, label). Renders the compact stat strip."""
+    return "\n".join(
+        f'    <div class="lgd-stat"><b>{v}</b><span>{l}</span></div>' for v, l in tiles)
+
+
 def generate_html(data):
     pub_date = data.get("last_updated", "")
     pub_disp = pub_display(pub_date)
     month    = data.get("month", "")
     retailers = data["retailers"]
+
+    # Previous-editions box: every PAST_EDITIONS cycle except the one this
+    # very page is currently rendering (a live edition never links to an
+    # archive of itself; it isn't archived yet).
+    cur_cycle = pub_date[:7]
+    past = [(c, lbl) for c, lbl in PAST_EDITIONS if c != cur_cycle]
+    if past:
+        editions_li = "\n      ".join(
+            f'<li style="font-size:0.95rem;line-height:2;color:#1a1a1a;">'
+            f'<a href="/pages/lab-grown-diamond-price-index-{c}" '
+            f'style="color:#1a1a1a;font-weight:600;text-decoration:underline;'
+            f'text-underline-offset:2px;">{lbl} edition</a></li>'
+            for c, lbl in past)
+        previous_editions_html = f'''
+  <div style="margin:0 0 24px;padding:18px 22px;border:1px solid #ddd;border-radius:6px;">
+    <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#888;margin:0 0 10px;">Previous editions</p>
+    <ul style="margin:0;padding-left:18px;">
+      {editions_li}
+    </ul>
+    <p style="font-size:0.78rem;color:#999;margin:10px 0 0;line-height:1.5;">Each edition is a frozen snapshot: the figures shown there do not change after publication.</p>
+  </div>
+'''
+    else:
+        previous_editions_html = ""
 
     # Dollar-gap callout sentence (IGI only, status == ok)
     igi_1ct = [(r["name"], r["cells"]["1ct"]["median_price_per_carat"])
@@ -338,6 +441,24 @@ def generate_html(data):
     rows_html  = "\n".join(rows)
     med_td_html = "".join(med_tds)
 
+    # Stat strip (2026-09-03 redesign): four numbers with small labels, two per
+    # row on phones. Derived from the same values as the table, so it cannot
+    # disagree with it; the theme script re-renders it from the fetched JSON.
+    pub_meds = [(k, medians[k]) for k, _, _ in BANDS if medians.get(k)]
+    if pub_meds:
+        mk, mv = pub_meds[0]
+        tile_mm = (f"${mv:,}", f"Market Median, {mk} E VS1 IGI" + (f" (also {', '.join(f'{k} ${v:,}' for k, v in pub_meds[1:])})" if len(pub_meds) > 1 else ""))
+    else:
+        tile_mm = ("n/a", "Market Median withheld this edition")
+    tiles = [tile_mm]
+    for key, _, _ in BANDS[:1] + BANDS[2:3]:
+        r_ = band_ranges(data).get(key)
+        if r_:
+            k_pub = sum(1 for x in retailers if not x.get("non_igi") and x["cells"].get(key, {}).get("status") == "ok")
+            tiles.append((f"${r_['min']:,} to ${r_['max']:,}", f"{key} retailer medians, {k_pub} published"))
+    tiles.append((f"{total_listings_for_month(data):,}", f"listings, {num_to_word(len(panel_retailers(retailers)))} retailers, {data.get('collection_date', '')}"))
+    tiles_html = stat_tiles(tiles[:4])
+
     # Computed values shared by Key Findings, Methodology, and JSON-LD
     ranges = band_ranges(data)
     min1ct = ranges["1ct"]["min"] if "1ct" in ranges else 0
@@ -380,14 +501,9 @@ def generate_html(data):
             f"not a quality difference. It's a retailer difference.",
             f"At 2ct, the gap widens to ${min2ct:,} to ${max2ct:,}.",
         ]
-    key_findings_html = "\n".join(
-        f'        <li style="margin:0 0 9px;">{b}</li>' for b in bullets[:-1]
-    )
-    if bullets:
-        key_findings_html += (
-            ("\n" if len(bullets) > 1 else "")
-            + f'        <li style="margin:0;">{bullets[-1]}</li>'
-        )
+    # Key Findings: each bullet keeps its bold lead visible; the explanation
+    # folds under it (2026-09-03 redesign; the theme script does the same).
+    key_findings_html = fold(bullets, dark=True)
 
     # Methodology paragraphs — data-driven, with a generic fallback.
     if data.get("methodology"):
@@ -398,11 +514,8 @@ def generate_html(data):
             {"title": "Benchmark specification", "body": "E color, VS1 clarity, round brilliant, Excellent cut, IGI-certified. Three weight cells: 1ct (0.95-1.05ct), 1.5ct (1.45-1.55ct), and 2ct (1.95-2.05ct)."},
             {"title": "Statistical method", "body": "Each published figure is the median total stone price across all qualifying listings within that cell. A minimum of 30 qualifying listings is required for publication. {stat_notes}"},
         ]
-    methodology_html = "\n".join(
-        f'      <p style="margin:0 0 12px;"><strong>{apply_ctx(p["title"], ctx)}.</strong> '
-        f'{apply_ctx(p["body"], ctx)}</p>'
-        for p in method_paras
-    )
+    methodology_html = fold([f'<strong>{apply_ctx(p["title"], ctx)}.</strong> {apply_ctx(p["body"], ctx)}'
+                             for p in method_paras])
 
     jsonld_str = generate_jsonld(data, ranges, pub_date)
 
@@ -428,7 +541,35 @@ def generate_html(data):
         f'margin:6px 0 0;line-height:1.5;">{corr_note}</p>'
     ) if corr_note else ""
 
+    # ---- Citability block (2026-09-03): first sentence = the answer, a
+    # plain-text "as of" line, methodology/retailer-selection links in the
+    # first screen, and 3-5 quotable one-sentence facts. All from the JSON
+    # (answer_sentence, quotable_facts, citation_line, next_edition_note,
+    # collection_date) with the same {ctx} substitution as Key Findings, so
+    # the static block and the theme script (which re-renders #lgd-answer,
+    # #lgd-asof and #lgd-facts-list from the fetched JSON) cannot disagree.
+    answer = apply_ctx(data.get("answer_sentence", ""), ctx) if data.get("answer_sentence") else (
+        f"As of {month}, published 1ct E VS1 IGI retailer medians run from ${min1ct:,} to ${max1ct:,} "
+        f"across {num_to_word(n_retailers)} U.S. retailers ({listings_str} listings).")
+    asof_line = f"Data as of {month}" + (f", collected {data['collection_date']}" if data.get("collection_date") else "") + "."
+    if next_ed:
+        asof_line += " " + next_ed
+    facts = [apply_ctx(f, ctx) for f in (data.get("quotable_facts") or [])]
+    facts_li = "\n".join(
+        f'      <li style="margin:0 0 8px;">{f}</li>' for f in facts)
+    citation = apply_ctx(data.get("citation_line", ""), ctx) if data.get("citation_line") else ""
+    facts_html = (
+        f'\n  <details id="lgd-facts-wrap" class="lgd-fold" style="margin:0 0 28px;border-top:1px solid #e8e8e8;border-bottom:1px solid #e8e8e8;">'
+        f'\n    <summary id="lgd-facts-heading">Key figures in words, {month} (for quoting)</summary>'
+        f'\n    <ul id="lgd-facts-list" style="margin:8px 0 0;padding-left:18px;font-size:0.9rem;line-height:1.6;color:#333;">'
+        f'\n{facts_li}'
+        f'\n    </ul>'
+        + (f'\n    <p id="lgd-citation" style="font-size:0.78rem;color:#888;margin:10px 0 0;line-height:1.5;">{citation}</p>' if citation else "")
+        + '\n  </details>'
+    ) if facts else ""
+
     html = f"""\
+{LGD_CSS}
 <div id="lgd-index" style="font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1a1a;max-width:860px;margin:0 auto;padding:0 16px 24px;">
 
   <div style="padding:14px 0;margin-bottom:24px;border-bottom:1px solid #e5e5e5;display:flex;justify-content:space-between;align-items:center;">
@@ -441,19 +582,32 @@ def generate_html(data):
     <h1 style="font-size:clamp(1.6rem,4.5vw,2.4rem);font-weight:700;margin:0 0 10px;line-height:1.15;letter-spacing:-0.01em;">
       Lab Grown Diamond Price Per Carat
     </h1>
-    <p style="font-size:1rem;color:#555;margin:0 0 16px;line-height:1.55;max-width:560px;">
-      The Rings.com Lab-Grown Diamond Price Index: monthly benchmark prices per carat across major U.S. online retailers.
-    </p>
-    <p id="lgd-published-date" style="font-size:0.78rem;color:#999;margin:0;padding-top:14px;border-top:1px solid #ebebeb;">
-      Published {pub_disp} &nbsp;&middot;&nbsp; E&nbsp;VS1 Round Excellent IGI &nbsp;&middot;&nbsp; USD
+    <p id="lgd-answer" style="font-size:1rem;color:#1a1a1a;margin:0 0 10px;line-height:1.5;max-width:640px;font-weight:600;">{answer}</p>
+    <p id="lgd-asof" class="lgd-meta">{asof_line}</p>
+    <p id="lgd-method-links" class="lgd-meta" style="margin-bottom:14px;"><a href="#methodology">How this index is calculated</a> &nbsp;&middot;&nbsp; <a href="/pages/retailer-inclusion-criteria">Which retailers are included and why</a></p>
+    <p id="lgd-published-date" style="font-size:0.78rem;color:#999;margin:0;padding-top:12px;border-top:1px solid #ebebeb;">
+      Published {pub_disp} &nbsp;&middot;&nbsp; E&nbsp;VS1 Round Excellent IGI &nbsp;&middot;&nbsp; USD &nbsp;&middot;&nbsp; The Rings.com Lab-Grown Diamond Price Index
     </p>{correction_html}
   </div>
 
+  <div id="lgd-stats" class="lgd-stats">
+{tiles_html}
+  </div>
+{facts_html}
+
+  <!--
+    DEPLOY ORDER (2026-09-03): this block carries static #price-table and #methodology
+    anchor spans. The theme script from 2026-09-03 on inserts its own copies only when
+    these are absent; the pre-2026-09-03 script inserts them unconditionally. Write the
+    theme script (fix_theme_liquid.py --yes) BEFORE pasting this block, or the live page
+    carries duplicate ids until the theme catches up.
+  -->
   <!--
     lgd-table-wrap: pre-rendered static table for crawlers and no-JS environments.
     The theme.liquid script replaces this with the interactive version (tooltips, share
     buttons) when JS runs. Content is identical -- same prices, same structure.
   -->
+  <span id="price-table" aria-hidden="true" style="display:block;height:0;overflow:hidden;"></span>
   <div id="lgd-table-wrap" style="overflow-x:auto;margin-bottom:32px;">
 
     {callout}
@@ -490,9 +644,9 @@ def generate_html(data):
     <div style="background:#1a1a1a;color:#ffffff;border-radius:6px;padding:20px 24px;line-height:1.7;font-size:0.95rem;">
       <strong style="display:block;margin-bottom:10px;font-size:1rem;color:#ffffff;">Key Findings: {month}</strong>
       <p style="margin:0 0 14px;color:#c8c8c8;font-size:0.9rem;line-height:1.6;">{panel_line} {listings_str} listings. E VS1 Round Excellent IGI.</p>
-      <ul style="margin:0;padding:0 0 0 18px;color:#ffffff;line-height:1.65;">
+      <div id="lgd-kf-list" style="margin:0;">
 {key_findings_html}
-      </ul>
+      </div>
     </div>
   </div>
 
@@ -500,11 +654,21 @@ def generate_html(data):
     lgd-method-wrap: pre-rendered methodology for crawlers.
     JS replaces this with the interactive version.
   -->
+  <span id="methodology" aria-hidden="true" style="display:block;height:0;overflow:hidden;"></span>
   <div id="lgd-method-wrap" style="border-top:1px solid #ddd;padding-top:24px;margin-bottom:24px;">
     <h2 style="font-size:1rem;font-weight:700;margin:0 0 12px;color:#1a1a1a;">Methodology</h2>
-    <div style="font-size:0.9rem;color:#333;line-height:1.7;">
+    <div id="lgd-method-list" style="font-size:0.9rem;color:#333;line-height:1.7;">
 {methodology_html}
     </div>
+  </div>
+
+  <!--
+    lgd-retailer-selection: static box linking the public selection policy
+    (live 2026-08-31, pasted by Rodney; in the generator from 2026-09-03 so
+    the monthly paste carries it). Outside the JS-replaced wraps on purpose.
+  -->
+  <div id="lgd-retailer-selection" style="margin:0 0 24px;padding:16px 20px;border:1px solid #ddd;border-radius:6px;">
+    <p style="margin:0;font-size:0.9rem;color:#333;line-height:1.7;"><strong>Retailer selection.</strong> Retailers in this index are selected by our research process and are never added by request, payment, or partnership. The full criteria and observation process are public: <a href="/pages/retailer-inclusion-criteria" style="color:#1a1a1a;font-weight:600;text-decoration:underline;text-underline-offset:2px;">how retailers are selected for this index</a>.</p>
   </div>
 
   <!--
@@ -521,7 +685,7 @@ def generate_html(data):
       <li style="font-size:0.95rem;line-height:2;color:#1a1a1a;"><a href="/pages/lab-grown-diamond-resale-value" style="color:#1a1a1a;font-weight:600;text-decoration:underline;text-underline-offset:2px;">Lab grown diamond resale value: what listing history shows</a></li>
     </ul>
   </div>
-
+{previous_editions_html}
   <!--
     lgd-footer-wrap: pre-rendered footer for crawlers.
     JS replaces this with the interactive version (same content).
