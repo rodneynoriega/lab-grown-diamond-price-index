@@ -1,9 +1,21 @@
 {
-  "month": "August 2026",
-  "last_updated": "2026-08-30",
+  "month": "September 2026",
+  "last_updated": "2026-09-17",
   "benchmark_spec": "G VS1 Excellent IGI",
   "currency": "GBP",
   "prices_note": "ex-VAT",
+  "next_edition_note": "Updated monthly. Next edition: late October 2026.",
+  "collection_date": "September 17, 2026",
+  "answer_sentence": "As of {month}, a 1 carat G VS1 IGI round lab-grown diamond lists at a Market Median of £275 inc-VAT across two UK retailers (Quality Diamonds fell below the publication minimum this edition); 1.5 carat is £371 (down 4% from August) and 2 carat £473 (up 2%).",
+  "quotable_facts": [
+    "In September 2026 the UK Market Median for a 1 carat G VS1 IGI round lab-grown diamond was £275 including VAT, across two retailers (Diamond Labs and 77 Diamonds); Quality Diamonds fell below the 30-listing publication minimum this edition.",
+    "In September 2026 the UK Market Median for a 1.5 carat G VS1 IGI round lab-grown diamond was £371 including VAT, down 4% from £387 in August 2026, on Diamond Labs and 77 Diamonds (Quality Diamonds below the minimum).",
+    "In September 2026 the UK Market Median for a 2 carat G VS1 IGI round lab-grown diamond was £473 including VAT, up 2% from £466 in August 2026, still on all three retailers.",
+    "Quality Diamonds' UK lab-grown inventory contracted 82% between August and September 2026, from 402 to 74 collected listings across the three tracked weights (before the Excellent-cut filter each retailers own published cells apply), dropping it below the publication minimum at 1ct and 1.5ct.",
+    "The September 2026 edition of the Rings.com UK Lab-Grown Diamond Price Index collected 2,213 round G VS1 IGI listings from three UK online retailers across the three carat bands (before each retailer's own Excellent-cut filter is applied), collected September 17, 2026."
+  ],
+  "citation_line": "Cite as: Rings.com UK Lab-Grown Diamond Price Index, {month} edition, rings.com/pages/uk-lab-grown-diamond-price-index.",
+  "dataset_license": "",
   "benchmark_cells": [
     "1ct",
     "1.5ct",
@@ -14,7 +26,7 @@
     "1.5ct": "1.45–1.55ct",
     "2ct": "1.95–2.05ct"
   },
-  "data_notes": "Sources: Diamond Labs, 77 Diamonds, Quality Diamonds (August 2026; 77 Diamonds and Quality Diamonds collected August 29, 2026, Diamond Labs August 30, 2026). All prices in GBP, exclusive of VAT (ex-VAT). UK consumers pay 20% VAT on loose diamonds at purchase; multiply any figure by 1.20 for the consumer-facing inc-VAT price. Diamond Labs' August 29 collection returned 1, 4 and 0 listings across the three cells (a live re-query at the time returned two G VS1 stones in the 1ct band); a re-query the next morning returned 74, 268 and 84 with normal totals across other colours, so the August 29 result was a feed outage at the retailer, not an inventory change, and the edition uses the August 30 collection for Diamond Labs. All three retailers cleared the 30-listing minimum in all three cells, so every cell has a three-retailer Market Median, including 1ct (July had only one qualifying retailer there). All three retailers repriced downward at 1ct: 77 Diamonds -7%, Quality Diamonds -6%, Diamond Labs -1%; at 1.5ct 77 Diamonds -9%, Quality Diamonds -9%, Diamond Labs +7%; at 2ct 77 Diamonds -3%, Quality Diamonds -3%, Diamond Labs -2% (ex-VAT per carat, July to August). Total benchmark-matching listings this edition: 2,382.",
+  "data_notes": "Sources: three retailers scraped September 17, 2026, totaling 2,213 round G VS1 IGI listings collected across the three carat bands (before each retailer's own Excellent-cut filter; published cells are narrower, see each retailer's note). Quality Diamonds' listed inventory contracted sharply: 74 listings collected across the three cells this edition (16 at 1ct, 28 at 1.5ct, 30 at 2ct) against 402 in August (77, 147, 178). A live re-query on 2026-09-17 (the same day as the collection) confirmed the current count (16, 29, 30) matches the September 17 collection closely, so this is a genuine inventory contraction at the retailer, not a collection issue. Quality Diamonds' 1ct and 1.5ct cells fall below the 30-listing publication minimum this edition on any count; its 2ct cell is at exactly n=30 on the collected count, but whether it should qualify depends on an open methodology question not yet resolved (see Coverage this edition). this is the first edition since the panel's inception in which any retailer has dropped below the minimum at a previously-published cell. Diamond Labs and 77 Diamonds both cleared the minimum at every weight. Market Median: published at all three weights (a Market Median requires at least two qualifying retailers); 1ct and 1.5ct now draw on two retailers instead of three.",
   "history": [
     {
       "month": "May 2026",
@@ -99,6 +111,27 @@
           "2ct": 194
         }
       }
+    },
+    {
+      "month": "September 2026",
+      "total_listings": 2213,
+      "retailers": {
+        "diamond_labs": {
+          "1ct": 207,
+          "1.5ct": 172,
+          "2ct": 172
+        },
+        "77_diamonds": {
+          "1ct": 251,
+          "1.5ct": 241,
+          "2ct": 234
+        },
+        "quality_diamonds": {
+          "1ct": null,
+          "1.5ct": null,
+          "2ct": 197
+        }
+      }
     }
   ],
   "retailers": [
@@ -108,24 +141,20 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 74,
-          "median_price_per_carat": 202,
-          "note": "Collected August 30 after an August 29 feed outage; see Coverage this edition."
+          "stone_count": 64,
+          "median_price_per_carat": 207
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 268,
-          "median_price_per_carat": 168,
-          "note": "Collected August 30 after an August 29 feed outage; see Coverage this edition."
+          "stone_count": 273,
+          "median_price_per_carat": 172
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 84,
-          "median_price_per_carat": 158,
-          "note": "Collected August 30 after an August 29 feed outage; see Coverage this edition."
+          "stone_count": 45,
+          "median_price_per_carat": 172
         }
-      },
-      "note": "Collected August 30, 2026: the August 29 collection returned 1, 4 and 0 listings from Diamond Labs' inventory API (a live re-query at the time returned two G VS1 stones in the 1ct band), and a re-query the next morning returned 74, 268 and 84 with normal totals across other colours, so the August 29 result was a retailer feed outage, not an inventory change. The edition uses the August 30 collection for Diamond Labs; see Coverage this edition."
+      }
     },
     {
       "name": "77 Diamonds",
@@ -133,65 +162,67 @@
       "cells": {
         "1ct": {
           "status": "ok",
-          "stone_count": 312,
-          "median_price_per_carat": 234
+          "stone_count": 229,
+          "median_price_per_carat": 251
         },
         "1.5ct": {
           "status": "ok",
-          "stone_count": 840,
-          "median_price_per_carat": 229
+          "stone_count": 775,
+          "median_price_per_carat": 241
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 402,
-          "median_price_per_carat": 230
+          "stone_count": 265,
+          "median_price_per_carat": 234
         }
       }
     },
     {
       "name": "Quality Diamonds",
       "slug": "quality_diamonds",
+      "note": "Listed inventory fell 82% this edition (402 to 74 listings across the three cells); a live re-query the following day confirmed the drop is genuine, not a collection issue. See Coverage this edition.",
       "cells": {
         "1ct": {
-          "status": "ok",
-          "stone_count": 77,
-          "median_price_per_carat": 268
+          "status": "thin",
+          "stone_count": 16,
+          "note": "Below the 30-listing minimum this edition (was n=77 in August). See Coverage this edition."
         },
         "1.5ct": {
-          "status": "ok",
-          "stone_count": 147,
-          "median_price_per_carat": 215
+          "status": "thin",
+          "stone_count": 28,
+          "note": "Below the 30-listing minimum this edition (was n=147 in August). See Coverage this edition."
         },
         "2ct": {
           "status": "ok",
-          "stone_count": 178,
-          "median_price_per_carat": 194
+          "stone_count": 30,
+          "median_price_per_carat": 197,
+          "note": "At exactly the 30-listing minimum this edition (was n=178 in August)."
         }
       }
     }
   ],
   "key_findings": [
-    "<strong>All three cells carry a three-retailer Market Median again, and the 1ct Market Median is back: £281.</strong> Diamond Labs, 77 Diamonds and Quality Diamonds all cleared the 30-listing minimum at every weight this month. July had only one qualifying retailer at 1ct, so 1ct has no published comparison; 1.5ct fell 9% (£427 to £387) and 2ct 3% (£478 to £466), on the same three retailers both months.",
-    "<strong>Prices fell at all three retailers, most at 1ct and 1.5ct.</strong> Per carat, ex-VAT, July to August: 77 Diamonds -7% at 1ct (£252 to £234), -9% at 1.5ct (£253 to £229), -3% at 2ct (£238 to £230); Quality Diamonds -6% at 1ct (£284 to £268), -9% at 1.5ct (£237 to £215), -3% at 2ct (£199 to £194); Diamond Labs -1% at 1ct (£205 to £202, against a July figure that was itself below the publication minimum), +7% at 1.5ct (£157 to £168), -2% at 2ct (£162 to £158).",
-    "<strong>The price difference is not a quality difference. It is a retailer difference.</strong> At 1ct the same G VS1 IGI round costs £242 at Diamond Labs and £322 at Quality Diamonds, an £80 gap; at 2ct the gap reaches £173 on a single stone, identical certification and grade.",
-    "<strong>Diamond Labs is still the cheapest retailer at every weight; its figures come from an August 30 collection after its inventory feed returned almost nothing on August 29.</strong> The August 29 pull found 1, 4 and 0 listings in the three cells, and a live re-query at the time found only two G VS1 stones in the 1ct band; the next morning the same query returned 74, 268 and 84, with other colours and cuts stocked normally. That is a feed outage at the retailer, not an inventory change, and this edition uses the August 30 collection for Diamond Labs (a one-day gap from the other two retailers, disclosed here and in Methodology).",
+    "<strong>Quality Diamonds' listed inventory collapsed 82%, dropping it below the publication minimum at two of three weights.</strong> Its collected listing count fell from 402 in August (77 at 1ct, 147 at 1.5ct, 178 at 2ct) to 74 in September (16, 28, 30). A live re-check of the retailer's own inventory API on the same day (September 17) returned nearly identical counts (16, 29, 30), confirming this is a real drop in listed stock, not a collection problem. Quality Diamonds' 1ct and 1.5ct prices are no longer shown. Its 2ct cell is at exactly the 30-listing threshold on the collected count (n=30); whether that cell should qualify depends on an open methodology question (see Coverage this edition) not yet resolved as of this edition.",
+    "<strong>The 1ct and 1.5ct Market Medians now draw on two retailers instead of three, and both fell.</strong> 1ct: £275 (Diamond Labs and 77 Diamonds), down 2% from August's three-retailer £281. 1.5ct: £371, down 4% from £387. 2ct still has all three retailers and rose 2% to £473 from £466. Because the 1ct and 1.5ct figures now come from a different, smaller set of retailers than August's, they are not a clean like-for-like comparison; see Coverage this edition.",
+    "<strong>Diamond Labs and 77 Diamonds both raised prices at every weight.</strong> Per carat, ex-VAT, August to September: Diamond Labs +2% at 1ct (£202 to £207), +2% at 1.5ct (£168 to £172), +9% at 2ct (£158 to £172); 77 Diamonds +7% at 1ct (£234 to £251), +5% at 1.5ct (£229 to £241), +2% at 2ct (£230 to £234). Every published cell at both retailers moved in the same direction this edition.",
+    "<strong>At 1ct, the published price gap looks smaller this month only because the priciest retailer dropped out of the published set.</strong> Diamond Labs (£207) against 77 Diamonds (£251) is a £44 gap per carat, ex-VAT, on the same benchmark specification; in August the same two retailers were £32 apart (£202 to £234), while Quality Diamonds, no longer published at this weight, was the priciest at £268. At 2ct, where all three retailers still qualify, the spread is £62: Diamond Labs £172 (cheapest), Quality Diamonds £197, 77 Diamonds £234 (priciest).",
     "<strong>What UK buyers assume is a cross-border premium is VAT and exchange rate, not markup.</strong> Brilliant Earth UK is excluded from this index: their GBP prices are derived from a USD conversion formula, not independently set for the UK market.",
-    "<strong>Three of six audited UK retailers qualified at launch, and the panel is unchanged.</strong> London-based Queensmith passed structural eligibility but carries zero G-color lab-grown diamonds. Their inventory is exclusively D, E, and F color, confirmed via live API across all carat bands. A three-retailer result at G VS1 is not a methodology gap. It is the market.",
+    "<strong>Three of six audited UK retailers qualified at launch, and the panel is unchanged.</strong> London-based Queensmith passed structural eligibility but carries zero G-color lab-grown diamonds. Their inventory is exclusively D, E, and F color, confirmed via live API across all carat bands at launch. A three-retailer panel at G VS1 is not a methodology gap. It is the market.",
     "<strong>All prices inc-VAT (20% UK VAT included).</strong> Ex-VAT figures are in the methodology section.",
     "<strong>The UK index tracks G VS1, the highest-volume lab-grown specification across UK retailers.</strong> The Rings.com US index uses E VS1. Not directly comparable. E commands a color premium over G."
   ],
   "methodology": [
     {
       "title": "Scope",
-      "body": "This index tracks listed retail prices (not transaction prices) across major UK online lab-grown diamond retailers. The August 2026 edition covers 2,382 benchmark-matching lab-grown diamond listings across three retailers. All prices are in GBP, inclusive of 20% UK VAT (inc-VAT). Data was collected on August 29, 2026 (77 Diamonds, Quality Diamonds) and August 30, 2026 (Diamond Labs; see Coverage this edition). This is the fourth edition; the retailer panel is unchanged since the May 2026 inaugural edition."
+      "body": "This index tracks listed retail prices (not transaction prices) across major UK online lab-grown diamond retailers. The September 2026 edition collected 2,213 round G VS1 IGI lab-grown diamond listings (before each retailer's own Excellent-cut filter) across three retailers. All prices are in GBP, inclusive of 20% UK VAT (inc-VAT). Data was collected on September 17, 2026. This is the fifth edition; the retailer panel is unchanged since the May 2026 inaugural edition."
     },
     {
       "title": "Coverage this edition",
-      "body": "Diamond Labs' inventory API returned almost nothing on August 29: 1 listing at 1ct, 4 at 1.5ct and none meeting the Excellent-cut filter at 2ct, and a live re-query during that collection found only two G VS1 round stones in the 1ct band regardless of cut grade. A re-query on the morning of August 30 returned 74, 268 and 84 qualifying listings, with the retailer's other colours and cut grades stocked normally, so the August 29 result was a feed outage at the retailer rather than an inventory change. This edition uses the August 30 collection for Diamond Labs, one day after the other two retailers; both collections are retained. All three retailers met the 30-listing minimum in all three cells, so every cell has a three-retailer Market Median."
+      "body": "Quality Diamonds' listed inventory contracted sharply between the August and September collections: 74 listings collected this edition (16 at 1ct, 28 at 1.5ct, 30 at 2ct) against 402 in August (77, 147, 178). A live re-query of the retailer's own inventory API on 2026-09-17 (the same day as the collection) returned near-identical counts (16, 29, 30), confirming the drop is a genuine change in listed stock rather than a collection issue. Quality Diamonds' 1ct and 1.5ct cells fall below the 30-listing publication minimum this edition and are not shown; its 2ct cell is at exactly the threshold (n=30) on the collected count. Note: unlike Diamond Labs, whose raw collection is filtered client-side to Excellent-cut stones before any cell is computed (its API returns both Excellent and Ideal cut, matching the retailer's own available grades), Quality Diamonds' collection has never applied that same cut filter, despite this index's stated Excellent-cut benchmark; this edition's raw 74 listings include 48 Ideal-cut stones that a like-for-like filter would exclude (2ct alone: 30 collected, 9 Excellent-cut). This affects every past Quality Diamonds edition, not just this one (August's raw collection was also a similar mix), and is an open methodology question not yet resolved by Rings.com as of this edition; the 2ct Quality Diamonds figure and Market Median above use the collected (unfiltered) count, consistent with every prior edition, pending that decision. Diamond Labs and 77 Diamonds both cleared the minimum at every weight; both collections were made September 17, 2026, with no feed issues."
     },
     {
       "title": "Month-over-month",
-      "body": "Per carat, ex-VAT, July to August: 77 Diamonds -7% at 1ct, -9% at 1.5ct, -3% at 2ct; Quality Diamonds -6% at 1ct, -9% at 1.5ct, -3% at 2ct; Diamond Labs -1% at 1ct (July's figure was below the publication minimum, n=15), +7% at 1.5ct, -2% at 2ct. Published Market Medians: 1ct not comparable (July published no 1ct Market Median; June's three-retailer £304 against this month's £281 is -8% over two months on the same three retailers); 1.5ct fell 9% (£427 to £387) and 2ct fell 3% (£478 to £466), each on the same three retailers in both months."
+      "body": "Per carat, ex-VAT, August to September: Diamond Labs +2% at 1ct (£202 to £207), +2% at 1.5ct (£168 to £172), +9% at 2ct (£158 to £172); 77 Diamonds +7% at 1ct (£234 to £251), +5% at 1.5ct (£229 to £241), +2% at 2ct (£230 to £234); Quality Diamonds not comparable at 1ct or 1.5ct this edition (both cells fell below the publication minimum), +2% at 2ct (£194 to £197, n=30). Published Market Medians: 1ct £275, down 2% from August's three-retailer £281, now on two retailers (Diamond Labs, 77 Diamonds); 1.5ct £371, down 4% from £387, also now on two retailers; 2ct £473, up 2% from £466, still on all three retailers. The 1ct and 1.5ct month-over-month Market Median moves are not a clean like-for-like comparison: they now draw on a different, smaller retailer set than August's."
     },
     {
       "title": "Retailer panel",
@@ -203,7 +234,7 @@
     },
     {
       "title": "Price inputs",
-      "body": "Prices are the publicly visible list price at the time of data collection. Published figures in the index table include 20% UK VAT applied to the collected ex-VAT price. Ex-VAT medians (per carat) for August 2026: Diamond Labs 1ct £202 (n=74), 1.5ct £168 (n=268), 2ct £158 (n=84). 77 Diamonds 1ct £234 (n=312), 1.5ct £229 (n=840), 2ct £230 (n=402). Quality Diamonds 1ct £268 (n=77), 1.5ct £215 (n=147), 2ct £194 (n=178). The following are excluded: promotional codes, membership discounts, negotiated pricing, and strikethrough compare-at or was-£X reference prices."
+      "body": "Prices are the publicly visible list price at the time of data collection. Published figures in the index table include 20% UK VAT applied to the collected ex-VAT price. Ex-VAT medians (per carat) for September 2026: Diamond Labs 1ct £207 (n=64), 1.5ct £172 (n=273), 2ct £172 (n=45). 77 Diamonds 1ct £251 (n=229), 1.5ct £241 (n=775), 2ct £234 (n=265). Quality Diamonds 1ct and 1.5ct below the publication minimum this edition (n=16, n=28); 2ct £197 (n=30). The following are excluded: promotional codes, membership discounts, negotiated pricing, and strikethrough compare-at or was-£X reference prices."
     },
     {
       "title": "Benchmark specification",
@@ -211,7 +242,7 @@
     },
     {
       "title": "Statistical method",
-      "body": "Each published figure is the median total stone price across all qualifying listings within that cell. Median is used instead of an average to reduce the influence of extreme outlier listings. A minimum of 30 qualifying listings per retailer is required for that retailer's cell to be published, and a Market Median requires at least two qualifying retailers in that cell; a single retailer's price is shown individually but is not published as a market figure. Per-cell sample sizes (n) are visible as tooltips when hovering over any price in the table. Every cell met the retailer threshold this edition."
+      "body": "Each published figure is the median total stone price across all qualifying listings within that cell. Median is used instead of an average to reduce the influence of extreme outlier listings. A minimum of 30 qualifying listings per retailer is required for that retailer's cell to be published, and a Market Median requires at least two qualifying retailers in that cell; a single retailer's price is shown individually but is not published as a market figure. Per-cell sample sizes (n) are visible as tooltips when hovering over any price in the table. Quality Diamonds fell below the retailer threshold at 1ct and 1.5ct this edition (n=16 and n=28); Diamond Labs and 77 Diamonds met the threshold at every weight, and all three met it at 2ct."
     },
     {
       "title": "Deduplication",
@@ -227,12 +258,12 @@
     },
     {
       "title": "Comparability",
-      "body": "The UK and US indices are not directly comparable: the UK index uses G VS1 and reports in GBP inc-VAT; the US index uses E VS1 and reports in USD. Historical index figures may not be directly comparable when the benchmark specification, the retailer panel, or the set of retailers with published cells changes; this edition's 1.5ct and 2ct Market Medians draw on the same three retailers as July's, and the 1ct Market Median returns after a one-retailer July."
+      "body": "The UK and US indices are not directly comparable: the UK index uses G VS1 and reports in GBP inc-VAT; the US index uses E VS1 and reports in USD. Historical index figures may not be directly comparable when the benchmark specification, the retailer panel, or the set of retailers with published cells changes; this edition's 2ct Market Median draws on the same three retailers as August's; the 1ct and 1.5ct Market Medians now draw on two retailers (Diamond Labs, 77 Diamonds) instead of three, after Quality Diamonds' listed inventory fell below the publication minimum at those weights. See Coverage this edition."
     },
     {
       "title": "Independence",
       "body": "Rings.com receives no compensation from the retailers included in this index for inclusion or ranking, and no retailer has any editorial control over the methodology or results. This index reflects public list prices only; individual purchase prices may differ due to custom configurations, time-sensitive promotions, or VAT treatment at purchase."
     }
   ],
-  "jsonld_description": "Monthly benchmark prices for lab-grown diamonds (G VS1 Round Excellent IGI-certified) across major UK online retailers. August 2026 edition covers 2,382 listings across three retailers: Diamond Labs, 77 Diamonds, and Quality Diamonds. All prices in GBP, inclusive of 20% UK VAT. Every cell carries a three-retailer Market Median this edition."
+  "jsonld_description": "Monthly benchmark prices for lab-grown diamonds (G VS1 Round Excellent IGI-certified) across major UK online retailers. September 2026 edition collected 2,213 round G VS1 IGI listings across three retailers (before each retailer's own Excellent-cut filter): Diamond Labs, 77 Diamonds, and Quality Diamonds. All prices in GBP, inclusive of 20% UK VAT. The 2ct cell carries a three-retailer Market Median this edition; 1ct and 1.5ct carry a two-retailer Market Median after Quality Diamonds fell below the publication minimum at those weights."
 }
