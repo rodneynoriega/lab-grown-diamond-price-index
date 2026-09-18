@@ -95,7 +95,17 @@ def scrape_quality_diamonds():
             if start >= total or not rows:
                 break
         RAW_ROWS.setdefault("quality_diamonds", {})[label] = all_rows
-        pc = [(row["PriceExVatValue"], float(row["Carats"])) for row in all_rows]
+        # Fixed 2026-09-18: SelectedCutVals=["2746"] does not actually
+        # restrict the API response to Excellent cut -- the raw response
+        # mixes Excellent and Ideal (confirmed: September capture was 26
+        # Excellent / 48 Ideal of 74 total). Diamond Labs' scraper already
+        # filters client-side for the identical reason; Quality Diamonds
+        # never did, so every prior edition silently included Ideal-cut
+        # stones despite the index's stated Excellent-cut benchmark. See
+        # MEMORY/project_uk_index.md for the discovery and the decision not
+        # to restate already-published editions.
+        pc = [(row["PriceExVatValue"], float(row["Carats"]))
+              for row in all_rows if row.get("CutGrade") == "Excellent"]
         results[label] = {"n": len(pc), "median_ppc": median_ppc(pc)}
         print(f"  Quality Diamonds {label}: n={len(pc)} median={results[label]['median_ppc']}")
     return results
