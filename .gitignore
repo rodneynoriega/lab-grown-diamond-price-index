@@ -23,3 +23,5 @@ kill-switch-*.log
 page_output/
 page_output_archive/
 page_output_*/
+# private traffic analytics (GA4/GSC data); never commit to this public repo
+anchor-ai-citation-baseline.md
