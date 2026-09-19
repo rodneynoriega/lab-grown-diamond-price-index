@@ -241,6 +241,7 @@ def scrape(
     colors: list[int] | None = None,
     cuts: list[int] | None = None,
     claritys: list[int] | None = None,
+    start_page: int = 1,
 ) -> list[Diamond]:
     """Scrape WC via Playwright.
 
@@ -250,6 +251,16 @@ def scrape(
     and the full range is thousands of pages. The benchmark bands are a small
     fraction, so a targeted pull finishes before the block trips. Grades are
     still filtered downstream (we pull all colors/clarities within each band).
+
+    start_page: resume a band from this page instead of page 1 (2026-09-17).
+    Only meaningful with a single shape and a single carat_bands entry -- it
+    applies to every (shape, band) pair in the loop, so passing it with
+    multiple shapes/bands would wrongly skip the early pages of every pair
+    but the first. Use when a prior IP was blocked partway through a band:
+    pass the page it stopped at (WC serves price-ascending, so a partial run
+    always covers the CHEAPEST stones first; resuming from that page picks
+    up the untouched, pricier tail rather than re-fetching the same stones
+    a fresh IP would see first anyway).
     """
     bands = carat_bands or [(min_carat, max_carat)]
     all_diamonds: list[Diamond] = []
@@ -266,7 +277,7 @@ def scrape(
                 continue
 
             for band_min, band_max in bands:
-                page_num = 1
+                page_num = start_page
                 band_total: int | None = None
 
                 while True:

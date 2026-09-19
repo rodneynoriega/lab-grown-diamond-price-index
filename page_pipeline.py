@@ -74,12 +74,16 @@ TEMPLATES = HERE / "templates"
 # a prior cycle can be rebuilt byte-for-byte as a regression check.
 CYCLE_LABELS = {"2026-04": "April 2026", "2026-05": "May 2026",
                 "2026-06": "June 2026", "2026-07": "July 2026",
-                "2026-08": "August 2026"}
+                "2026-08": "August 2026", "2026-09": "September 2026"}
 CYCLE_TIMESTAMPS = {"2026-07": "2026-07-23",   # capture date of every source file
-                    "2026-08": "2026-08-29"}
-CYCLE_ORDER = ["2026-04", "2026-05", "2026-06", "2026-07", "2026-08"]
+                    "2026-08": "2026-08-29",
+                    "2026-09": "2026-09-17"}
+CYCLE_ORDER = ["2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"]
 # Publish date shown in the page header next to the capture date (Rodney,
 # 2026-08-30: "ensure Date is August 30"); the capture date stays factual.
+# 2026-09 is deliberately absent until Rodney signs off tranche 0 and a real
+# publish date is set (falls back to DATA_TIMESTAMP until then, same as
+# every prior cycle before its own publish day).
 CYCLE_PUBLISHED = {"2026-08": "2026-08-30"}
 DEFAULT_CYCLE = "2026-08"
 
@@ -157,6 +161,20 @@ CYCLE_FILES = {
         "Ritani": "ritani_2026-08-29.csv",
         "Grown Brilliance": "grown_brilliance_2026-08-29.csv",
         "With Clarity": "with_clarity_2026-08-29.csv",
+    },
+    # September 2026: Ritani/Grown Brilliance main files are the union of
+    # their three benchmark-band pulls (same convention as July/August);
+    # With Clarity got a full 3-band capture this cycle (see
+    # feedback_ip_block_hotspot_workaround.md), main file is the merge of
+    # all four collection runs (1ct/1.5ct/1.5ct-tail/2ct).
+    "2026-09": {
+        "Brilliant Earth": "brilliant_earth_2026-09-17.csv",
+        "Blue Nile": "blue_nile_2026-09-17.csv",
+        "Clean Origin": "clean_origin_2026-09-17.csv",
+        "VRAI": "vrai_2026-09-17.csv",
+        "Ritani": "ritani_2026-09-17.csv",
+        "Grown Brilliance": "grown_brilliance_2026-09-17.csv",
+        "With Clarity": "with_clarity_2026-09-17.csv",
     },
 }
 
@@ -549,12 +567,193 @@ def jenv():
     return env
 
 
-def dataset_ld(name, desc):
-    return {"@context": "https://schema.org", "@type": "Dataset",
-            "name": f"{name} ({CYCLE_LABEL})", "description": desc,
-            "temporalCoverage": CYCLE,
-            "creator": {"@type": "Organization", "name": "Rings.com",
-                        "url": "https://rings.com"}}
+# Dataset license: a Rodney decision (e.g. "https://creativecommons.org/
+# licenses/by/4.0/"). None = the property is omitted; never a placeholder
+# URL (the 2026-07-26 dead terms-of-service license lesson).
+DATASET_LICENSE = None
+
+
+def dataset_ld(name, desc, handle=None, variables=None):
+    """Dataset JSON-LD for a pilot page. Citability fields added 2026-09-03:
+    url, datePublished/dateModified (the cycle's publish date, else the
+    capture date), publisher, isAccessibleForFree, spatialCoverage,
+    measurementTechnique, version, variableMeasured, optional license."""
+    pub = CYCLE_PUBLISHED.get(CYCLE, DATA_TIMESTAMP)
+    ld = {"@context": "https://schema.org", "@type": "Dataset",
+          "name": f"{name} ({CYCLE_LABEL})", "description": desc,
+          "temporalCoverage": CYCLE,
+          "creator": {"@type": "Organization", "name": "Rings.com",
+                      "url": "https://rings.com"},
+          "publisher": {"@type": "Organization", "name": "Rings.com",
+                        "url": "https://rings.com"},
+          "datePublished": pub, "dateModified": pub,
+          "version": CYCLE_LABEL,
+          "isAccessibleForFree": True,
+          "spatialCoverage": {"@type": "Place", "name": "United States"},
+          "measurementTechnique": (
+              "Median of publicly listed retail prices for loose lab grown "
+              "diamonds, captured from each retailer's public website on "
+              f"{DATA_DATE_H}; only retailers with at least {MIN_CELL_N} "
+              "qualifying listings in the stated range are pooled. USD, "
+              "loose stone, before any setting.")}
+    if handle:
+        ld["url"] = f"https://rings.com/pages/{handle}"
+    if variables:
+        ld["variableMeasured"] = variables
+    if DATASET_LICENSE:
+        ld["license"] = DATASET_LICENSE
+    return ld
+
+
+def pv(name, value, unit=None):
+    d = {"@type": "PropertyValue", "name": name, "value": value}
+    if unit:
+        d["unitCode"] = unit
+    return d
+
+
+def next_cycle_label():
+    """'August 2026' -> 'September 2026' (the header's Next update line)."""
+    mname, year = CYCLE_LABEL.split()
+    months = ["January", "February", "March", "April", "May", "June", "July",
+              "August", "September", "October", "November", "December"]
+    i = months.index(mname)
+    return f"{months[(i + 1) % 12]} {int(year) + 1 if i == 11 else year}"
+
+
+def retailer_phrase(retailers):
+    """'6 US retailers (5 with third-party certificates, plus VRAI, which
+    grades in-house)' or '5 US retailers'. The first sentence is the most
+    quoted string on the page, so VRAI's non-comparability caveat travels
+    with the count instead of sitting in a footnote further down
+    (adversarial review 2026-09-03)."""
+    n = len(retailers)
+    if "VRAI" in retailers:
+        return (f"{n} US retailers ({n - 1} with third-party certificates, "
+                f"plus VRAI, which grades in-house)")
+    return f"{n} US retailers"
+
+
+def cell_tiles(st, cs, shape_word):
+    m = len(st["shown_retailers"])
+    return [(usd(st["median"]), f"median, {cs} carat {shape_word}lab grown diamond"),
+            (f"{usd(st['p10'])} to {usd(st['p90'])}", "typical range, 10th to 90th percentile"),
+            (usd(st["median_ppc"]), "median price per carat"),
+            (f"{st['n']:,}", f"public listings, {m} retailers")]
+
+
+def prev_history_row(hist):
+    """The most recent prior month that cleared the n-rule, for the
+    'compared with' fact (carries the composition caveat wherever quoted)."""
+    rows = [h for h in hist if h["n"] >= MIN_CELL_N]
+    return rows[-2] if len(rows) >= 2 else None
+
+
+def cell_facts(st, cs, shape_word, hist, shapes=None):
+    """3-5 quotable one-sentence facts for a carat / shape-carat page, each
+    with a number and the cycle date, from the same stats as the tables."""
+    facts = [
+        f"As of {CYCLE_LABEL}, the median {cs} carat {shape_word}lab grown "
+        f"diamond listed for {usd(st['median'])} across "
+        f"{retailer_phrase(st['shown_retailers'])}, "
+        f"from {st['n']:,} public listings.",
+        f"In {CYCLE_LABEL}, the middle 80% of {cs} carat {shape_word}lab grown "
+        f"diamond listings ran from {usd(st['p10'])} to {usd(st['p90'])} "
+        f"(10th to 90th percentile), and the median price per carat was "
+        f"{usd(st['median_ppc'])}.",
+    ]
+    comp = [r for r in st["retailer_rows"] if r["retailer"] != "VRAI"]
+    if len(comp) >= 2:
+        lo = min(comp, key=lambda r: r["median"])
+        hi = max(comp, key=lambda r: r["median"])
+        facts.append(
+            f"In {CYCLE_LABEL}, among retailers with third-party "
+            f"certificates, the lowest retailer median for a {cs} carat "
+            f"{shape_word}lab grown diamond was {usd(lo['median'])} at "
+            f"{lo['retailer']} and the highest was {usd(hi['median'])} at "
+            f"{hi['retailer']}, a {hi['median'] / lo['median']:.1f}x spread.")
+    prev = prev_history_row(hist)
+    if prev:
+        facts.append(
+            f"The {prev['label']} pooled median for this carat range was "
+            f"{usd(prev['median'])} from {prev['n']:,} listings; pooled "
+            f"medians move with inventory mix as well as price.")
+    if shapes:
+        ok = [s for s in shapes if s["n"] >= MIN_CELL_N]
+        if len(ok) == 2:
+            facts.append(
+                f"In {CYCLE_LABEL}, the median {cs} carat round lab grown "
+                f"diamond listed for {usd(ok[0]['median'])} and the median "
+                f"{cs} carat oval for {usd(ok[1]['median'])}.")
+    return facts[:5]
+
+
+def stone_cohort(displayed, spec_carat, sshape, stats_a, stats_b, built_a,
+                 built_b):
+    """Cohort-median positioning for a stone page (2026-09-17 content-gap
+    fix, revised 2026-09-17 after adversarial review): 'this stone is X%
+    above/below the {carat} carat [{shape}] median this cycle'. Reuses
+    cell_stats via the SAME stats_a/stats_b/built_a/built_b the Family A/B
+    aggregate pages already compute for this cycle, no new aggregation
+    logic. Searches ALL qualifying Family B (shape+carat) points for this
+    stone's own shape, nearest first, so a carat point that only exists in
+    the Family B grid (e.g. round 1.75/2.25/2.5, oval 1.25/2.25/2.5, none
+    of which are Family A points) is still matched -- the initial version
+    of this function silently limited itself to Family A points via a
+    shared `pt` variable, which understated coverage. Falls back to a
+    Family A (carat-only, any shape) cell if no shape+carat cell qualifies.
+    Never color/clarity, because the site has no published cell at that
+    granularity with adequate n. Returns None if the stone's carat has no
+    qualifying cell this cycle.
+
+    IMPORTANT: caller must not call this for a `delisted` stone page --
+    `displayed` for a delisted page is the LAST cycle's comparison rows,
+    while stats_a/stats_b are always the CURRENT cycle; comparing a stale
+    per-stone price against a current-cycle cohort median under a "this
+    cycle" label is exactly the bug the 2026-09-17 review caught. The
+    build() call site is responsible for this gating (see its `delisted`
+    check), not this function."""
+    def result(cell, scope, label, point):
+        stone_ppc = statistics.median(
+            [row.price_usd / row.carat for row in displayed])
+        cohort_ppc = cell["median_ppc"]
+        pct = (stone_ppc - cohort_ppc) / cohort_ppc * 100
+        # Banded language above +100% (2026-09-17, post-review): stone
+        # pages are selected FOR large cross-retailer spread, so a precise
+        # triple-digit percentage from a 3-4-listing median reads as false
+        # precision and risks a low-credibility/manipulated-content look at
+        # ~900-page scale. int(ratio) floors, so "more than double" etc. is
+        # always literally true (never overclaims); pct itself is always
+        # kept in the record for traceability regardless of display band.
+        # pct cannot reach -100% (cohort_ppc > 0 by construction), so
+        # banding only ever applies on the "above" side.
+        band = None
+        if pct > 100:
+            mult = int(stone_ppc / cohort_ppc)
+            word = {2: "double", 3: "triple", 4: "quadruple",
+                   5: "quintuple"}.get(mult, f"{mult} times")
+            band = f"more than {word}"
+        return {
+            "scope": scope, "label": label, "point": point,
+            "stone_ppc": stone_ppc, "cohort_ppc": cohort_ppc,
+            "pct": pct, "direction": "above" if pct >= 0 else "below",
+            "band": band,
+            "n": cell["n"], "retailers": cell["shown_retailers"],
+            "retailer_phrase": retailer_phrase(cell["shown_retailers"]),
+        }
+
+    b_points = sorted((p for (s, p) in built_b if s == sshape),
+                      key=lambda p: abs(spec_carat - p))
+    for p in b_points:
+        if abs(spec_carat - p) <= CARAT_BAND:
+            return result(stats_b[(sshape, p)], "shape",
+                          f"{carat_str(p)} carat {sshape}", p)
+    a_points = sorted(built_a, key=lambda p: abs(spec_carat - p))
+    for p in a_points:
+        if abs(spec_carat - p) <= CARAT_BAND:
+            return result(stats_a[p], "carat",
+                          f"{carat_str(p)} carat (any shape)", p)
+    return None
 
 
 def base_ctx():
@@ -565,10 +764,11 @@ def base_ctx():
         "published_h": PUBLISHED_H,
         "index_url": INDEX_URL,
         "brand_line": BRAND_LINE,
+        "next_update_h": next_cycle_label(),
     }
 
 
-def stone_page(env, sel, spec_row, related, delisted=None):
+def stone_page(env, sel, spec_row, related, delisted=None, cohort=None):
     """delisted: None for a normal page; for a LIVE stone that no longer
     has >= MIN_DISPLAYED displayed prices in the current cycle, a dict
     {"last_cycle": cycle, "current": {retailer: row}} where sel["displayed"]
@@ -654,8 +854,14 @@ def stone_page(env, sel, spec_row, related, delisted=None):
         history=history, hist_cycles=hist_cycles,
         retailer_order=retailer_order, ret_specs=ret_specs,
         cycle_labels=CYCLE_LABELS, h1=h1, meta=meta, json_ld=json_ld,
-        related=related, **dl_ctx)
+        related=related, cohort=cohort, **dl_ctx)
     src = sorted({row.source_file for row in displayed} | hist_files)
+    if cohort:
+        # The cohort median draws on the current cycle's aggregate-panel
+        # files (AGG_DISPLAY), a different retailer set than this stone's
+        # own cert-matched comparison; list them too so the figure is
+        # traceable like everything else on the page.
+        src = sorted(set(src) | set(july_sources(cohort["retailers"])))
     if delisted:
         # The current-cycle files are what verified the absence; they are
         # part of the page's evidence and go in the traceability record.
@@ -673,6 +879,13 @@ def stone_page(env, sel, spec_row, related, delisted=None):
         "scope": {"cert_matched_only": True, "ring_total_present": False,
                   "ring_total_separated": False},
     }
+    if cohort:
+        record["cohort"] = {"scope": cohort["scope"], "label": cohort["label"],
+                            "n": cohort["n"], "pct": round(cohort["pct"], 1),
+                            "band": cohort["band"],
+                            "stone_ppc": round(cohort["stone_ppc"], 2),
+                            "cohort_ppc": round(cohort["cohort_ppc"], 2),
+                            "retailers": cohort["retailers"]}
     if delisted:
         # Truth for the current cycle in the standard fields; the
         # last-observed comparison (what the page shows as its table) in
@@ -718,7 +931,8 @@ def all_cycle_sources(retailers):
     return out
 
 
-def build(out_dir, canary_n, pin_live=True, refresh_manifest=None):
+def build(out_dir, canary_n, pin_live=True, refresh_manifest=None,
+          spec_handles=None, spec_tag=None):
     frame = load_frame()
     stones, pq = build_stone_parquet(frame)
     print(f"parquet: {pq} ({len(stones)} rows)")
@@ -825,8 +1039,19 @@ def build(out_dir, canary_n, pin_live=True, refresh_manifest=None):
             if (sshape, pt) in built_b:
                 related.append(b_link(sshape, pt))
         related.append(HUB_LINK)
+        displayed_rows = [sel["displayed"][r] for r in STONE_DISPLAY
+                          if r in sel["displayed"]]
+        # Delisted pages show the LAST cycle's prices (sel["displayed"] is
+        # that last comparison, not this cycle's), but stats_a/stats_b are
+        # always the CURRENT cycle: comparing a stale price against a
+        # same-cycle cohort median under a "this cycle" label would be
+        # dated/misleading (2026-09-17 adversarial review, blocking).
+        cohort = None if sel.get("delisted") else stone_cohort(
+            displayed_rows, spec_row.carat, sshape, stats_a, stats_b,
+            built_a, built_b)
         handle, title, h1, meta, kw, body, record, fam = stone_page(
-            env, sel, spec_row, related, delisted=sel.get("delisted"))
+            env, sel, spec_row, related, delisted=sel.get("delisted"),
+            cohort=cohort)
         (pages_dir / f"{handle}.html").write_text(body)
         handle_disp_cycles[handle] = len({r.cycle for r in sel["all_rows"]
                                           if r.retailer in STONE_DISPLAY})
@@ -846,18 +1071,30 @@ def build(out_dir, canary_n, pin_live=True, refresh_manifest=None):
                  f"{CYCLE_LABEL} Data")
         h1 = f"{cs} Carat Lab Grown Diamond Price"
         m = len(st["shown_retailers"])
-        meta = (f"The median {cs} carat lab grown diamond lists for "
-                f"{usd(st['median'])} ({CYCLE_LABEL}), from "
-                f"{st['n']:,} listings across {m} US retailers. "
-                f"Per-retailer medians and monthly price history.")
+        meta = (f"Median {cs} carat lab grown diamond: "
+                f"{usd(st['median'])} ({CYCLE_LABEL}), {st['n']:,} "
+                f"listings, {m} US retailers. Per-retailer medians and "
+                f"monthly price history.")
         handle = f"{carat_slug(point)}-carat-lab-grown-diamond-price"
         kw = f"{cs} carat lab grown diamond price"
         shapes = [cell_stats(jf, s, point) for s in ("round", "oval")]
         hist = monthly_history(frame, None, point)
+        answer = (f"As of {CYCLE_LABEL}, a {cs} carat lab grown diamond lists "
+                  f"at a median of {usd(st['median'])} across "
+                  f"{retailer_phrase(st['shown_retailers'])}, from "
+                  f"{st['n']:,} public listings.")
+        facts = cell_facts(st, cs, "", hist, shapes)
         body = env.get_template("aggregate_carat.html.j2").render(
             **base_ctx(), st=st, cs=cs, h1=h1, meta=meta, shapes=shapes,
             history=hist, volume_note=FAMILY_A_VOLUME.get(point),
-            json_ld=dataset_ld(h1, meta),
+            answer=answer, facts=facts, tiles=cell_tiles(st, cs, ""),
+            json_ld=dataset_ld(h1, meta, handle, [
+                pv(f"Median listed price, {cs} carat lab grown diamond",
+                   round(st["median"]), "USD"),
+                pv("Median listed price per carat",
+                   round(st["median_ppc"]), "USD"),
+                pv("Public listings pooled", st["n"]),
+                pv("US retailers pooled", m)]),
             related=[b_link(s, p) for (s, p) in built_b if p == point]
                     + [FAQ_LINK, HUB_LINK])
         (pages_dir / f"{handle}.html").write_text(body)
@@ -880,10 +1117,10 @@ def build(out_dir, canary_n, pin_live=True, refresh_manifest=None):
                  f"{CYCLE_LABEL}")
         h1 = f"{cs} Carat {sh} Lab Grown Diamond Price"
         m = len(st["shown_retailers"])
-        meta = (f"The median {cs} carat {shape} lab grown diamond lists "
-                f"for {usd(st['median'])} ({CYCLE_LABEL}), from "
-                f"{st['n']:,} listings across {m} US retailers. "
-                f"Per-retailer medians and monthly history.")
+        meta = (f"Median {cs} carat {shape} lab grown diamond: "
+                f"{usd(st['median'])} ({CYCLE_LABEL}), {st['n']:,} "
+                f"listings, {m} US retailers. Per-retailer medians and "
+                f"monthly history.")
         handle = (f"{carat_slug(point)}-carat-{shape}-lab-grown-"
                   f"diamond-price")
         kw = f"{cs} carat {shape} lab grown diamond price"
@@ -895,9 +1132,23 @@ def build(out_dir, canary_n, pin_live=True, refresh_manifest=None):
         if (other, point) in built_b:
             rel.append(b_link(other, point))
         rel.append(HUB_LINK)
+        answer = (f"As of {CYCLE_LABEL}, a {cs} carat {shape} lab grown "
+                  f"diamond lists at a median of {usd(st['median'])} across "
+                  f"{retailer_phrase(st['shown_retailers'])}, from "
+                  f"{st['n']:,} public listings.")
+        facts = cell_facts(st, cs, f"{shape} ", hist)
         body = env.get_template("aggregate_shape_carat.html.j2").render(
             **base_ctx(), st=st, cs=cs, sh=sh, h1=h1, meta=meta,
-            history=hist, json_ld=dataset_ld(h1, meta), related=rel)
+            history=hist, answer=answer, facts=facts,
+            tiles=cell_tiles(st, cs, f"{shape} "),
+            json_ld=dataset_ld(h1, meta, handle, [
+                pv(f"Median listed price, {cs} carat {shape} lab grown diamond",
+                   round(st["median"]), "USD"),
+                pv("Median listed price per carat",
+                   round(st["median_ppc"]), "USD"),
+                pv("Public listings pooled", st["n"]),
+                pv("US retailers pooled", m)]),
+            related=rel)
         (pages_dir / f"{handle}.html").write_text(body)
         pages.append((handle, title, h1, meta, kw,
                       agg_record(handle, title, h1, kw, st["n"],
@@ -908,7 +1159,11 @@ def build(out_dir, canary_n, pin_live=True, refresh_manifest=None):
 
     # ---- Family D1: cost FAQ ----
     cells = stats_a
-    total_n = int(len(jf))
+    # Sum of the three carat-band cells shown on the page (each already
+    # after the 30-listing-per-retailer rule), NOT len(jf): that was the
+    # raw row count of every scraped stone, incl. sizes outside the bands
+    # (reviewer finding 2026-09-19).
+    total_n = int(sum(cells[p_]['n'] for p_ in FAMILY_A_POINTS))
     title = (f"How Much Does a Lab Grown Diamond Cost? "
              f"({CYCLE_LABEL} Data)")
     h1 = "How Much Does a Lab Grown Diamond Cost?"
@@ -921,6 +1176,7 @@ def build(out_dir, canary_n, pin_live=True, refresh_manifest=None):
     kw = "how much does a lab grown diamond cost"
     faq_ld = {
         "@context": "https://schema.org", "@type": "FAQPage",
+        "dateModified": CYCLE_PUBLISHED.get(CYCLE, DATA_TIMESTAMP),
         "mainEntity": [
             {"@type": "Question",
              "name": "How much does a 1 carat lab grown diamond cost?",
@@ -931,6 +1187,13 @@ def build(out_dir, canary_n, pin_live=True, refresh_manifest=None):
                  f"{usd(cells[1.0]['p90'])} depending on color, clarity, "
                  f"and cut."}},
             {"@type": "Question",
+             "name": "How much does a 1.5 carat lab grown diamond cost?",
+             "acceptedAnswer": {"@type": "Answer", "text":
+                 f"The median 1.5 carat lab grown diamond listed for "
+                 f"{usd(cells[1.5]['median'])} in {CYCLE_LABEL}, with most "
+                 f"listings between {usd(cells[1.5]['p10'])} and "
+                 f"{usd(cells[1.5]['p90'])}."}},
+            {"@type": "Question",
              "name": "How much does a 2 carat lab grown diamond cost?",
              "acceptedAnswer": {"@type": "Answer", "text":
                  f"The median 2 carat lab grown diamond listed for "
@@ -938,9 +1201,35 @@ def build(out_dir, canary_n, pin_live=True, refresh_manifest=None):
                  f"listings between {usd(cells[2.0]['p10'])} and "
                  f"{usd(cells[2.0]['p90'])}."}},
         ]}
+    answer = (f"As of {CYCLE_LABEL}, a lab grown diamond lists at a median "
+              f"of {usd(cells[1.0]['median'])} at 1 carat, "
+              f"{usd(cells[1.5]['median'])} at 1.5 carats and "
+              f"{usd(cells[2.0]['median'])} at 2 carats across "
+              f"{retailer_phrase(sorted(jf['retailer'].unique()))}, from "
+              f"{total_n:,} public listings.")
+    facts = [
+        f"As of {CYCLE_LABEL}, the median 1 carat lab grown diamond listed "
+        f"for {usd(cells[1.0]['median'])} ({usd(cells[1.0]['median_ppc'])} "
+        f"per carat) from {cells[1.0]['n']:,} public listings.",
+        f"As of {CYCLE_LABEL}, the median 1.5 carat lab grown diamond listed "
+        f"for {usd(cells[1.5]['median'])} ({usd(cells[1.5]['median_ppc'])} "
+        f"per carat) from {cells[1.5]['n']:,} public listings.",
+        f"As of {CYCLE_LABEL}, the median 2 carat lab grown diamond listed "
+        f"for {usd(cells[2.0]['median'])} ({usd(cells[2.0]['median_ppc'])} "
+        f"per carat) from {cells[2.0]['n']:,} public listings.",
+        f"In {CYCLE_LABEL}, the middle 80% of 1 carat lab grown diamond "
+        f"listings ran from {usd(cells[1.0]['p10'])} to "
+        f"{usd(cells[1.0]['p90'])}; color, clarity and cut grade drive the "
+        f"difference.",
+        f"The {CYCLE_LABEL} figures pool {total_n:,} public listings from "
+        f"{retailer_phrase(sorted(jf['retailer'].unique()))}, captured "
+        f"{DATA_DATE_H}.",
+    ]
+    tiles = [(usd(cells[p]["median"]), f"{carat_str(p)} carat median") for p in FAMILY_A_POINTS]
+    tiles.append((f"{total_n:,}", f"public listings, {n_agg_retailers} retailers"))
     body = env.get_template("aggregate_cost_faq.html.j2").render(
-        **base_ctx(), cells=cells, total_n=total_n,
-        n_retailers=n_agg_retailers, h1=h1, meta=meta,
+        **base_ctx(), cells=cells, total_n=total_n, answer=answer,
+        facts=facts, tiles=tiles, n_retailers=n_agg_retailers, h1=h1, meta=meta,
         carat_points=FAMILY_A_POINTS,
         retailer_names=sorted(jf["retailer"].unique()), json_ld=faq_ld,
         related=[a_link(p) for p in built_a] + [RESALE_LINK, HUB_LINK])
@@ -955,16 +1244,55 @@ def build(out_dir, canary_n, pin_live=True, refresh_manifest=None):
     hist_1ct = monthly_history(frame, "round", 1.0)
     title = "Lab Grown Diamond Resale Value: What Price History Shows"
     h1 = "Lab Grown Diamond Resale Value: What Price History Shows"
-    meta = (f"Listing-price history for lab grown diamonds: the same "
-            f"certified stones repriced a median "
+    meta = (f"Lab grown diamond listing-price history: the same certified "
+            f"stones repriced a median "
             f"{rep['median_change_pct']:+.1f}% April–{CYCLE_LABEL} "
-            f"({rep['n_pairs']:,} matched listings). What that means "
-            f"for resale value.")
+            f"({rep['n_pairs']:,} matched listings). Resale implications.")
     handle = "lab-grown-diamond-resale-value"
     kw = "lab grown diamond resale value"
+    answer = (f"As of {CYCLE_LABEL}, the same certified lab grown diamonds "
+              f"listed in both April and {CYCLE_LABEL} at "
+              f"{len(rep['panel'])} US retailers were repriced a median "
+              f"{rep['median_change_pct']:+.1f}% ({rep['n_pairs']:,} "
+              f"matched listings), and {rep['share_down_pct']:.0f}% were "
+              f"repriced downward.")
+    prev1 = prev_history_row(hist_1ct)
+    facts = [
+        f"Between April and {CYCLE_LABEL}, {rep['n_pairs']:,} identical "
+        f"certified lab grown diamonds stayed listed at the same retailer "
+        f"and their listed prices changed a median "
+        f"{rep['median_change_pct']:+.1f}%.",
+        f"Between April and {CYCLE_LABEL}, {rep['share_down_pct']:.0f}% of "
+        f"those matched listings were repriced downward.",
+        f"Of the {rep['n_april_stones']:,} certified stones tracked in April "
+        f"2026, {rep['delisted_share_pct']:.0f}% no longer appeared in the "
+        f"{CYCLE_LABEL} listings of the {len(rep['panel'])} "
+        f"certificate-carrying retailers; public data cannot say whether "
+        f"they sold or were delisted.",
+        f"As of {CYCLE_LABEL}, the pooled median for a 1 carat round lab "
+        f"grown diamond was {usd(hist_1ct[-1]['median'])} from "
+        f"{hist_1ct[-1]['n']:,} listings"
+        + (f", against {usd(prev1['median'])} in {prev1['label']}"
+           if prev1 else "") + ".",
+        f"There is no public transaction record of lab grown diamond "
+        f"resales; the {CYCLE_LABEL} figures above are listing-price "
+        f"history, not resale prices.",
+    ]
+    tiles = [(f"{rep['n_pairs']:,}", "matched same-stone listings, April to " + CYCLE_LABEL),
+             (f"{rep['median_change_pct']:+.1f}%", "median listed-price change"),
+             (f"{rep['share_down_pct']:.0f}%", "of matched listings repriced downward"),
+             (f"{rep['delisted_share_pct']:.0f}%", "of April stones no longer listed")]
     body = env.get_template("aggregate_resale.html.j2").render(
         **base_ctx(), rep=rep, hist=hist_1ct, h1=h1, meta=meta,
-        retailer_names=AGG_DISPLAY, json_ld=dataset_ld(h1, meta),
+        answer=answer, facts=facts, tiles=tiles,
+        retailer_names=AGG_DISPLAY,
+        json_ld=dataset_ld(h1, meta, handle, [
+            pv("Matched same-stone listings, April to current cycle",
+               rep["n_pairs"]),
+            pv("Median listed-price change of matched listings (percent)",
+               round(rep["median_change_pct"], 1)),
+            pv("Share of matched listings repriced downward (percent)",
+               round(rep["share_down_pct"]))]),
         related=([a_link(1.0)] if 1.0 in built_a else [])
                 + [FAQ_LINK, HUB_LINK])
     (pages_dir / f"{handle}.html").write_text(body)
@@ -978,16 +1306,48 @@ def build(out_dir, canary_n, pin_live=True, refresh_manifest=None):
     title = (f"Lab Grown Diamond Price Comparison: {n_agg_retailers} US "
              f"Retailers, Updated Monthly")
     h1 = "Lab Grown Diamond Price Comparison"
-    meta = (f"Median lab grown diamond prices at 1, 1.5, and 2 carats "
-            f"compared across {n_agg_retailers} US retailers "
-            f"({CYCLE_LABEL}). Publicly listed prices, "
+    meta = (f"Median lab grown diamond prices at 1, 1.5 and 2 carats "
+            f"across {n_agg_retailers} US retailers ({CYCLE_LABEL}). "
             f"{total_n:,} listings, refreshed monthly.")
     handle = "lab-grown-diamond-price-comparison"
     kw = "lab grown diamond price comparison"
+    answer = (f"As of {CYCLE_LABEL}, median lab grown diamond prices across "
+              f"{retailer_phrase(sorted(jf['retailer'].unique()))} are "
+              f"{usd(grid[1.0]['median'])} at 1 carat, "
+              f"{usd(grid[1.5]['median'])} at 1.5 carats and "
+              f"{usd(grid[2.0]['median'])} at 2 carats, from {total_n:,} "
+              f"public listings.")
+    facts = []
+    for p in FAMILY_A_POINTS:
+        g = grid[p]
+        facts.append(
+            f"As of {CYCLE_LABEL}, the median {carat_str(p)} carat lab grown "
+            f"diamond listed for {usd(g['median'])} across "
+            f"{retailer_phrase(g['shown_retailers'])}, from {g['n']:,} "
+            f"public listings.")
+    comp1 = [r for r in grid[1.0]["retailer_rows"] if r["retailer"] != "VRAI"]
+    if len(comp1) >= 2:
+        lo = min(comp1, key=lambda r: r["median"])
+        hi = max(comp1, key=lambda r: r["median"])
+        facts.append(
+            f"In {CYCLE_LABEL}, among retailers with third-party "
+            f"certificates, the lowest 1 carat retailer median was "
+            f"{usd(lo['median'])} at {lo['retailer']} and the highest was "
+            f"{usd(hi['median'])} at {hi['retailer']}, a "
+            f"{hi['median'] / lo['median']:.1f}x spread.")
+    facts.append(
+        f"The {CYCLE_LABEL} comparison pools {total_n:,} public listings "
+        f"from {retailer_phrase(sorted(jf['retailer'].unique()))}, captured "
+        f"{DATA_DATE_H}.")
+    tiles = [(usd(grid[p]["median"]), f"{carat_str(p)} carat median") for p in FAMILY_A_POINTS]
+    tiles.append((f"{total_n:,}", f"public listings, {n_agg_retailers} retailers"))
     body = env.get_template("aggregate_hub.html.j2").render(
         **base_ctx(), grid=grid, carat_points=FAMILY_A_POINTS,
         retailers=AGG_DISPLAY, n_retailers=n_agg_retailers, h1=h1,
-        meta=meta, total_n=total_n, json_ld=dataset_ld(h1, meta),
+        meta=meta, total_n=total_n, answer=answer, facts=facts, tiles=tiles,
+        json_ld=dataset_ld(h1, meta, handle, [
+            pv(f"Median listed price, {carat_str(p)} carat",
+               round(grid[p]["median"]), "USD") for p in FAMILY_A_POINTS]),
         shape_pages=[b_link(s, p) for (s, p) in built_b])
     (pages_dir / f"{handle}.html").write_text(body)
     pages.append((handle, title, h1, meta, kw,
@@ -1149,6 +1509,42 @@ def build(out_dir, canary_n, pin_live=True, refresh_manifest=None):
         print(f"refresh: {len(spec_pages)}/{len(live['pages'])} live pages "
               f"rebuilt; missing: {missing}")
 
+    # ---- arbitrary-handle-list spec output (e.g. a batch-2 tranche): same
+    # shape as the canary/refresh spec+meta above, for a plain handle list
+    # instead of a live manifest or the canary heuristic. NEW pages only
+    # (a handle not produced by this build is listed, never silently
+    # dropped -- same contract as --refresh-manifest).
+    if spec_handles:
+        wanted = json.loads(Path(spec_handles).read_text())
+        by_handle = {p[0]: p for p in pages}
+        missing, spec_pages, qa_pages, meta = [], [], [], {}
+        for h in wanted:
+            p = by_handle.get(h)
+            if p is None:
+                missing.append(h)
+                continue
+            spec_pages.append({
+                "handle": h, "title": p[2],
+                "body_file": f"pages/{h}.html",
+                "source": {"cycle": CYCLE, "data_timestamp": DATA_TIMESTAMP,
+                           "source_files": p[5]["source_files"],
+                           "sample_size": p[5]["sample_size"],
+                           "retailer_set": p[5]["retailer_set"]},
+                "target_keyword": p[4],
+                "note": f"{spec_tag}; {p[5]['page_type']} page; meta in "
+                        f"{spec_tag}-meta.json",
+            })
+            qa_pages.append(p[5])
+            meta[h] = {"title_tag": p[1], "description_tag": p[3]}
+        (out_dir / f"{spec_tag}-rollback-spec.json").write_text(
+            json.dumps({"pages": spec_pages}, indent=1) + "\n")
+        (out_dir / f"qa-manifest-{spec_tag}.json").write_text(
+            json.dumps({"pages": qa_pages}, indent=1) + "\n")
+        (out_dir / f"{spec_tag}-meta.json").write_text(
+            json.dumps(meta, indent=1) + "\n")
+        print(f"spec: {len(spec_pages)}/{len(wanted)} handles rebuilt; "
+              f"missing: {missing}")
+
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -1163,11 +1559,20 @@ def main():
     b.add_argument("--refresh-manifest", default=None,
                    help="live rollback manifest; emits refresh-<cycle>-* "
                         "spec/qa/meta for exactly its pages")
+    b.add_argument("--spec-handles", default=None,
+                   help="JSON list of handles (new pages, not yet live); "
+                        "emits <spec-tag>-* spec/qa/meta for exactly them")
+    b.add_argument("--spec-tag", default=None,
+                   help="output filename prefix for --spec-handles "
+                        "(required if --spec-handles is given)")
     args = ap.parse_args()
     if args.cmd == "build":
+        if args.spec_handles and not args.spec_tag:
+            raise SystemExit("--spec-handles requires --spec-tag")
         configure(args.cycle)
         build(Path(args.out), args.canary, pin_live=not args.no_pin_live,
-              refresh_manifest=args.refresh_manifest)
+              refresh_manifest=args.refresh_manifest,
+              spec_handles=args.spec_handles, spec_tag=args.spec_tag)
 
 
 if __name__ == "__main__":

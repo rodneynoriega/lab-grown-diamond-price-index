@@ -98,7 +98,7 @@ GRAPHQL_URL = f"https://{STORE}/admin/api/{API_VERSION}/graphql.json"
 PROTECTED_IDS = {
     "gid://shopify/Page/154895089937",  # /pages/lab-grown-diamond-price-index (US index, GemPages)
     "gid://shopify/Page/155200586001",  # /pages/uk-lab-grown-diamond-price-index (UK index, GemPages)
-    "gid://shopify/Page/155196195089",  # /pages/price-index (Diamond Price Index, live)
+    "gid://shopify/Page/155196195089",  # /pages/price-index (Diamond Price Index; HIDDEN by Rodney in Admin 2026-09-03, stale May figures; stays protected)
     "gid://shopify/Page/141494190353",  # /pages/about-us
     "gid://shopify/Page/141532234001",  # /pages/contact-us
 }

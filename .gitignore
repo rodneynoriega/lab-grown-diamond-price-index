@@ -21,3 +21,5 @@ kill-switch-*.log
 # generated pilot page bodies + records: listing-level data, never in
 # the public repo (same rule as manifests/)
 page_output/
+page_output_archive/
+page_output_*/

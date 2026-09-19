@@ -41,6 +41,12 @@ USE_BANDS = len(sys.argv) > 4 and sys.argv[4] == "bands"
 BAND_SEL = [int(i) for i in sys.argv[5].split(",")] if len(sys.argv) > 5 else None
 # argv[6]: output filename suffix, e.g. "15ct" -> with_clarity_{DATE}_15ct.csv.
 SUFFIX = sys.argv[6] if len(sys.argv) > 6 else None
+# argv[7]: resume page (2026-09-17) -- start a single band from this page
+# instead of page 1, for finishing a band a prior IP got partway through
+# before blocking. Only sane with exactly one band selected (BAND_SEL of
+# length 1); with_clarity_pw.scrape() applies it to every (shape, band)
+# pair, so anything broader would wrongly skip early pages elsewhere.
+START_PAGE = int(sys.argv[7]) if len(sys.argv) > 7 else 1
 
 
 def main() -> None:
@@ -60,7 +66,8 @@ def main() -> None:
           f"bands={'benchmark' if USE_BANDS else 'full-range'} "
           f"colors={'E-only' if colors else 'all'} -> {out_path.name} ==")
     diamonds = with_clarity_pw.scrape(
-        SHAPES, MIN_CARAT, MAX_CARAT, req_delay=DELAY, carat_bands=bands, colors=colors
+        SHAPES, MIN_CARAT, MAX_CARAT, req_delay=DELAY, carat_bands=bands, colors=colors,
+        start_page=START_PAGE,
     )
     with out_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)

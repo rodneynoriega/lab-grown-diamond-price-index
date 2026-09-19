@@ -35,6 +35,12 @@
   <p style="{{ sh.callout_p }}">Price spread: {{ spread | usd }} ({{ "%.1f" | format(spread_pct) }}%)</p>
   <p style="{{ sh.callout_2 }}">between {{ hi_r }} ({{ hi_p | usd }}) and {{ lo_r }} ({{ lo_p | usd }}) for the same certified stone on {{ last_date_h if delisted else data_date_h }}.</p>
 </div>
+{% if cohort and not delisted %}
+<div style="{{ sh.callout }}">
+  <p style="{{ sh.callout_p }}">At {{ cohort.stone_ppc | usd }}/ct, this stone is {% if cohort.band %}{{ cohort.band }}{% else %}{{ "%.0f" | format(cohort.pct | abs) }}% {{ cohort.direction }}{% endif %} the {{ cohort.label }} lab grown diamond median of {{ cohort.cohort_ppc | usd }}/ct this cycle.</p>
+  <p style="{{ sh.callout_2 }}">Cohort: {{ cycle_label }}, n={{ cohort.n }} public listings from {{ cohort.retailer_phrase }}. This compares price per carat against the published {{ cohort.label }} cell (carat{% if cohort.scope == "shape" %} and shape{% endif %} matched; not color or clarity), see Related pages below for the underlying figure. This stone's own price is the median of only {{ k }} retailer listings, so it can sit far from a cohort median pooled from many more; a large percentage here reflects this specific stone's position, not a typical gap.</p>
+</div>
+{% endif %}
 
 <h2 style="{{ sh.h2s }}">Stone details ({{ lab }} certificate {{ num }})</h2>
 <div style="{{ sh.wrap }}">

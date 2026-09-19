@@ -82,6 +82,16 @@ def fallback_block(data):
         L.append(f"    next_edition_note: {js_val(data['next_edition_note'])},")
     if data.get("correction_note"):
         L.append(f"    correction_note: {js_val(data['correction_note'])},")
+    # Citability fields (2026-09-03): raw JSON strings with {placeholders};
+    # the render script substitutes them (lgdSub), like the generator does.
+    if data.get("collection_date"):
+        L.append(f"    collection_date: {js_val(data['collection_date'])},")
+    if data.get("answer_sentence"):
+        L.append(f"    answer_sentence: {js_val(data['answer_sentence'])},")
+    if data.get("quotable_facts"):
+        L.append("    quotable_facts: [" + ", ".join(js_val(f) for f in data["quotable_facts"]) + "],")
+    if data.get("citation_line"):
+        L.append(f"    citation_line: {js_val(data['citation_line'])},")
     L.append(f"    benchmark_spec: {js_val(data.get('benchmark_spec', 'E VS1 Excellent IGI'))},")
     cells = data.get("benchmark_cells", ["1ct", "1.5ct", "2ct"])
     L.append("    benchmark_cells: [" + ", ".join(js_val(c) for c in cells) + "],")

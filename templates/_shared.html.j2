@@ -40,8 +40,27 @@
    <style> tags only affect the page they are on, so the hide cannot leak
    to other pages. Literal UTF-8 (· &), never entities: Shopify decodes
    entities on store and that breaks body-equality verification. #}
-{% macro header(h1, index_url, brand_line, cycle_label, data_date_h, published_h=None) %}
-<style>.heading-wrapper--page{display:none;}</style>
+{# Citability additions (2026-09-03): optional `answer` renders as the first
+   sentence under the H1; a plain-text "as of" line and methodology /
+   retailer-selection / about-this-data links sit in the first screen so a
+   model quoting the page gets the number, the date, the retailer count and
+   the provenance links before anything else. #}
+{% macro header(h1, index_url, brand_line, cycle_label, data_date_h, published_h=None, answer=None, next_update_h=None) %}
+<style>.heading-wrapper--page{display:none;}
+.lgd-pilot h1{font-size:clamp(1.55rem,6vw,2.1rem)!important;}
+.lgd-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 20px}
+@media (max-width:640px){.lgd-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.lgd-stat{border:1px solid #e5e5e5;border-radius:6px;padding:12px 14px;min-width:0}
+.lgd-stat b{display:block;font-size:1.3rem;font-weight:700;letter-spacing:-0.01em;line-height:1.2;color:#1a1a1a;font-variant-numeric:tabular-nums}
+.lgd-stat span{display:block;font-size:0.72rem;color:#777;margin-top:4px;line-height:1.35}
+details.lgd-fold{border-top:1px solid #e8e8e8;border-bottom:1px solid #e8e8e8;padding:9px 0;margin:0 0 22px}
+details.lgd-fold summary{cursor:pointer;font-weight:600;font-size:0.92rem;line-height:1.45;list-style:none;position:relative;padding-right:24px;color:#1a1a1a}
+details.lgd-fold summary::-webkit-details-marker{display:none}
+details.lgd-fold summary::after{content:"+";position:absolute;right:2px;top:0;color:#999;font-weight:400}
+details.lgd-fold[open] summary::after{content:"\2212"}
+.lgd-meta{font-size:0.82rem;color:#555;line-height:1.6;margin:0 0 6px}
+.lgd-meta a{color:#1a1a1a;font-weight:600;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
+</style>
 <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 16px;padding-bottom:10px;border-bottom:1px solid #e5e5e5;margin-bottom:20px;">
   <span style="font-size:1rem;font-weight:600;letter-spacing:0.16em;color:#1a1a1a;">RINGS.COM</span>
   <span style="font-size:0.72rem;font-weight:600;letter-spacing:0.14em;color:#999;">RESEARCH & DATA</span>
@@ -49,8 +68,12 @@
 <div style="border-top:3px solid #1a1a1a;padding-top:16px;margin-bottom:28px;">
   <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#888;margin:0 0 10px;">Rings.com Research</p>
   <h1 style="font-size:2.1rem;font-weight:700;line-height:1.15;margin:0 0 12px;color:#1a1a1a;">{{ h1 }}</h1>
-  <p class="lgd-brand-line" style="margin:0 0 14px;color:#555;font-size:0.95rem;line-height:1.55;">{{ brand_line }}: <a href="{{ index_url }}" style="color:#1a1a1a;font-weight:600;text-decoration:underline;text-underline-offset:2px;">Lab Grown Diamond Price Per Carat</a>.</p>
-  <p style="margin:0;padding-top:10px;border-top:1px solid #ebebeb;font-size:0.78rem;color:#999;">Data: {{ cycle_label }} collection cycle · Captured {{ data_date_h }}{% if published_h %} · Published {{ published_h }}{% endif %} · USD</p>
+  {% if answer %}
+  <p class="lgd-answer" style="margin:0 0 10px;color:#1a1a1a;font-size:1rem;font-weight:600;line-height:1.5;max-width:640px;">{{ answer }}</p>
+  {% endif %}
+  <p class="lgd-brand-line" style="margin:0 0 8px;color:#555;font-size:0.85rem;line-height:1.55;">{{ brand_line }}: <a href="{{ index_url }}" style="color:#1a1a1a;font-weight:600;text-decoration:underline;text-underline-offset:2px;">Lab Grown Diamond Price Per Carat</a>.</p>
+  <p class="lgd-method-links lgd-meta" style="margin-bottom:12px;"><a href="{{ index_url }}#methodology">How the Price Index is calculated</a> · <a href="/pages/retailer-inclusion-criteria">Which retailers are included and why</a> · <a href="#lgd-about-data">About this page's data</a></p>
+  <p class="lgd-asof" style="margin:0;padding-top:10px;border-top:1px solid #ebebeb;font-size:0.78rem;color:#999;line-height:1.6;">Data as of {{ cycle_label }}, captured {{ data_date_h }}{% if published_h %}, published {{ published_h }}{% endif %}. Updated monthly{% if next_update_h %}, next update {{ next_update_h }}{% endif %}. USD.</p>
 </div>
 {% endmacro %}
 
@@ -143,8 +166,36 @@ function lgdKlavSubscribe(e) {
 <p class="lgd-stat-def" style="font-size:0.8rem;font-style:italic;color:#666;line-height:1.6;margin:0 0 12px;"><strong>Stat definition.</strong> Figures on this page pool all qualifying listings in the stated carat range: all colors, clarities, and cut grades, from retailers with at least 30 qualifying listings. The monthly Index benchmark is a different, tighter statistic (E VS1 round Excellent-cut IGI). The two are not comparable and should not be quoted against each other.</p>
 {% endmacro %}
 
+{# Quotable facts (2026-09-03): 3-5 standalone one-sentence facts, each with
+   a number and the cycle date, computed in page_pipeline.py from the same
+   stats as the tables. Plain text, no markup, so a model can lift verbatim. #}
+{% macro facts(items, cycle_label) %}
+{% if items %}
+<details class="lgd-facts-wrap lgd-fold">
+  <summary>Key figures in words, {{ cycle_label }} (for quoting)</summary>
+  <ul class="lgd-facts-list" style="margin:8px 0 0;padding-left:18px;font-size:0.9rem;line-height:1.6;color:#333;">
+  {% for f in items %}
+    <li style="margin:0 0 8px;">{{ f }}</li>
+  {% endfor %}
+  </ul>
+</details>
+{% endif %}
+{% endmacro %}
+
+{# Stat strip (2026-09-03 redesign): four numbers with small labels, two per
+   row on phones; the same values as the page's tables. #}
+{% macro tiles(items) %}
+{% if items %}
+<div class="lgd-stats">
+  {% for v, l in items %}
+  <div class="lgd-stat"><b>{{ v }}</b><span>{{ l }}</span></div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endmacro %}
+
 {% macro methodology(data_date_h) %}
-<div style="border-top:1px solid #ddd;margin-top:28px;padding-top:16px;">
+<div id="lgd-about-data" style="border-top:1px solid #ddd;margin-top:28px;padding-top:16px;">
 <h2 style="font-size:1rem;font-weight:700;margin:0 0 12px;color:#1a1a1a;">About this data</h2>
 <p style="margin:0;font-size:0.9rem;color:#333;line-height:1.7;">Prices are publicly listed retail prices for loose lab grown diamonds, collected from each retailer's public website on {{ data_date_h }}. No accounts, logins, or paywalls are involved; these are the prices any shopper sees. Rings.com is an independent research publisher, not a jewelry retailer, and publishes this data as an attributed, dated record of public listing prices. Retailer names are used for identification only; Rings.com is not affiliated with any retailer listed.</p>
 </div>

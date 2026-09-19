@@ -49,6 +49,12 @@ Checks per page (a failure lists every reason, not just the first):
                      brand (Family C held back, Rodney condition 2)
   7. scope         - stone pages: cert present + cert_matched_only;
                      any ring-total content must be flagged separated
+  8. cohort        - optional stone-page cohort-median block, added
+                     2026-09-17: HARD FAIL if present on a delisted page
+                     (stale price vs. current-cycle median mismatch);
+                     otherwise internal consistency only (pct actually
+                     derives from stone_ppc/cohort_ppc, retailers known
+                     and not With Clarity)
 
 Exit codes: 0 all pages pass; 1 at least one page fails (failing pages are
 excluded, the rest may proceed, per Rodney's rule; the caller decides);
@@ -141,6 +147,12 @@ def check_page(page, today):
     ptype = page.get("page_type")
     if ptype not in ("stone", "aggregate"):
         fails.append(f"structure: page_type '{ptype}' invalid")
+    # archived_edition (added 2026-09-17, per-month index archive pages):
+    # a frozen historical snapshot's job is fidelity to what actually
+    # published that month, not conformance to CURRENT panel policy. Both
+    # exemptions below are narrowly scoped to this flag; nothing about
+    # ordinary stone/aggregate pages changes.
+    archived = page.get("archived_edition") is True
 
     # ---- 2. source traceability -------------------------------------
     sources = page.get("source_files")
@@ -274,16 +286,27 @@ def check_page(page, today):
         fails.append("retailers: retailer_set missing or empty")
         rset = []
     lowered = [str(r).strip().lower() for r in rset]
-    for r, low in zip(rset, lowered):
-        if low in BANNED_DISPLAY:
-            fails.append(f"retailers: '{r}' is EXCLUDED from published "
-                         f"pilot pages (accepted-risk memo condition 1, "
-                         f"2026-08-09); it must not be displayed")
-        elif low not in KNOWN_RETAILERS:
-            fails.append(f"retailers: '{r}' is not a known panel retailer")
-        elif ptype == "stone" and low not in STONE_CAPABLE:
-            fails.append(f"retailers: '{r}' cannot appear on a cert-matched "
-                         f"stone page (no third-party cert capture)")
+    if not archived:
+        # Current-panel-policy checks: what a NEW page may display today.
+        # Skipped for archived_edition pages -- the historical panel
+        # legitimately differed (e.g. James Allen, retired 2026-05-24, was
+        # a real May 2026 retailer; With Clarity has always been a genuine
+        # INDEX-page benchmark retailer with its own disclosed floor/partial
+        # caveats, distinct from the pilot/stone-page WC-blind rule this
+        # BANNED_DISPLAY check was actually written for) -- and rejecting a
+        # snapshot for truthfully showing what was really published would
+        # defeat the entire point of an archive.
+        for r, low in zip(rset, lowered):
+            if low in BANNED_DISPLAY:
+                fails.append(f"retailers: '{r}' is EXCLUDED from published "
+                             f"pilot pages (accepted-risk memo condition 1, "
+                             f"2026-08-09); it must not be displayed")
+            elif low not in KNOWN_RETAILERS:
+                fails.append(f"retailers: '{r}' is not a known panel retailer")
+            elif ptype == "stone" and low not in STONE_CAPABLE:
+                fails.append(f"retailers: '{r}' cannot appear on a "
+                             f"cert-matched stone page (no third-party "
+                             f"cert capture)")
     if len(set(lowered)) != len(lowered):
         fails.append("retailers: duplicate retailer in retailer_set")
     if (ptype == "stone" and isinstance(n, int)
@@ -293,11 +316,16 @@ def check_page(page, today):
                      f"retailer count {len(rset)}")
 
     # ---- 5. timestamp staleness -------------------------------------
+    # An intentionally frozen historical snapshot is SUPPOSED to have an
+    # old timestamp -- that is the entire point, not staleness. Skip only
+    # the age check; "not in the future" and "cycle consistency" still
+    # apply, since those catch real defects on an archive page too (a wrong
+    # or forward-dated snapshot is still wrong).
     try:
         d = datetime.date.fromisoformat(ts)
         if d > today:
             fails.append(f"timestamp: {ts} is in the future")
-        elif (today - d).days > MAX_AGE_DAYS:
+        elif not archived and (today - d).days > MAX_AGE_DAYS:
             fails.append(f"timestamp: {ts} is {(today - d).days} days old "
                          f"(stale; max {MAX_AGE_DAYS})")
         cyc = str(page.get("cycle") or "")
@@ -342,6 +370,68 @@ def check_page(page, today):
             "ring_total_separated"):
         fails.append("scope: ring-total content present but not flagged "
                      "as a separated, labeled estimate section")
+
+    # ---- 8. cohort (added 2026-09-17: stone-page cohort-median
+    # positioning callout). A delisted page is a HARD FAIL if it carries a
+    # cohort block at all: its displayed prices are the LAST cycle that had
+    # a real comparison, but the cohort median is always CURRENT-cycle
+    # (stats_a/stats_b in page_pipeline.py), so a cohort figure on a
+    # delisted page compares stale per-stone data against a same-cycle
+    # median under a "this cycle" label -- the exact bug the 2026-09-17
+    # adversarial review caught before this shipped. Everything else here
+    # is an internal-consistency check (pct actually derives from the two
+    # ppc figures), not a claim about whether the cohort framing itself is
+    # sound at scale -- that's an editorial call, not a gate check.
+    cohort = page.get("cohort")
+    if cohort is not None:
+        if ptype != "stone" or not isinstance(cohort, dict):
+            fails.append("cohort: only stone pages may carry a cohort "
+                         "block, and it must be an object")
+        elif delisted is not None:
+            fails.append("cohort: a delisted stone page must not carry a "
+                         "cohort block (displayed prices are a prior "
+                         "cycle's, not this cycle's)")
+        else:
+            req = {"scope", "label", "n", "pct", "stone_ppc", "cohort_ppc",
+                  "retailers"}
+            missing = req - set(cohort)
+            if missing:
+                fails.append(f"cohort: missing fields {sorted(missing)}")
+            else:
+                if cohort["scope"] not in ("shape", "carat"):
+                    fails.append(f"cohort: scope '{cohort['scope']}' invalid")
+                cppc, sppc, pct = (cohort["cohort_ppc"], cohort["stone_ppc"],
+                                   cohort["pct"])
+                nums_ok = all(isinstance(v, (int, float))
+                             and not isinstance(v, bool)
+                             for v in (cppc, sppc, pct))
+                if not nums_ok:
+                    fails.append("cohort: stone_ppc/cohort_ppc/pct must be "
+                                 "numbers")
+                elif cppc <= 0:
+                    fails.append("cohort: cohort_ppc must be positive")
+                else:
+                    expected = (sppc - cppc) / cppc * 100
+                    if abs(expected - pct) > 0.2:
+                        fails.append(f"cohort: pct {pct} does not match "
+                                     f"stone_ppc/cohort_ppc (expected "
+                                     f"{expected:.1f})")
+                cn = cohort["n"]
+                if not isinstance(cn, int) or isinstance(cn, bool) or cn <= 0:
+                    fails.append("cohort: n must be a positive integer")
+                crets = cohort["retailers"]
+                if not isinstance(crets, list) or not crets:
+                    fails.append("cohort: retailers missing or empty")
+                else:
+                    for r in crets:
+                        low = str(r).strip().lower()
+                        if low in BANNED_DISPLAY:
+                            fails.append(f"cohort: '{r}' is EXCLUDED from "
+                                         f"published pilot pages, including "
+                                         f"cohort figures")
+                        elif low not in KNOWN_RETAILERS:
+                            fails.append(f"cohort: '{r}' is not a known "
+                                         f"panel retailer")
 
     return fails
 
