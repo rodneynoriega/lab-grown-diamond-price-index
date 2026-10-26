@@ -95,6 +95,8 @@ def fallback_block(data):
     L.append(f"    benchmark_spec: {js_val(data.get('benchmark_spec', 'E VS1 Excellent IGI'))},")
     cells = data.get("benchmark_cells", ["1ct", "1.5ct", "2ct"])
     L.append("    benchmark_cells: [" + ", ".join(js_val(c) for c in cells) + "],")
+    if data.get("largest_move_slug"):
+        L.append(f"    largest_move_slug: {js_val(data['largest_move_slug'])},")
     L.append("    market_median_suppressed: [" + ", ".join(js_val(c) for c in data.get("market_median_suppressed", [])) + "],")
     L.append("    history: [")
     hist = data.get("history", [])

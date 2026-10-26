@@ -81,7 +81,7 @@
 {% endif %}
 
 {{ sh.loose_stone_note() }}
-{% if delisted %}{{ sh.delist_note(data_date_h, current_rows | map(attribute="retailer") | list, cycle_label) }}{% else %}{{ sh.delist_note(data_date_h, displayed | map(attribute="retailer") | list, cycle_label) }}{% endif %}
+{% if delisted %}{{ sh.delist_note(data_date_h, current_rows | map(attribute="retailer") | list, cycle_label, last_cycle_label, last_date_h) }}{% else %}{{ sh.delist_note(data_date_h, displayed | map(attribute="retailer") | list, cycle_label) }}{% endif %}
 {{ sh.methodology(data_date_h) }}
 {{ sh.related(related) }}
 {{ sh.footer() }}

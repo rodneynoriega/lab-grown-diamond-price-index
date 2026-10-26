@@ -105,7 +105,8 @@ def scrape_quality_diamonds():
         # MEMORY/project_uk_index.md for the discovery and the decision not
         # to restate already-published editions.
         pc = [(row["PriceExVatValue"], float(row["Carats"]))
-              for row in all_rows if row.get("CutGrade") == "Excellent"]
+              for row in all_rows if row.get("CutGrade") == "Excellent"
+              and row.get("CertBy") == "IGI"]
         results[label] = {"n": len(pc), "median_ppc": median_ppc(pc)}
         print(f"  Quality Diamonds {label}: n={len(pc)} median={results[label]['median_ppc']}")
     return results

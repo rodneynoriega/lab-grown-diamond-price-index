@@ -26,6 +26,10 @@
 {% set callout_p = "margin:0;font-size:1.05rem;font-weight:700;line-height:1.5;color:#fff;" %}
 {% set callout_2 = "margin:8px 0 0;color:#c8c8c8;font-size:0.9rem;line-height:1.6;" %}
 {% set absent = "color:#aaa;" %}
+{# Obvious, tappable links (2026-10-10, Rodney: "make the links more obvious and clickable"). The theme strips link colour and underline, so everything is inline. Row = full-width tap target (>=44px), blue, underlined, arrow. #}
+{% set link_list = "list-style:none;margin:0 0 16px;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;" %}
+{% set link_row = "display:block;padding:12px 14px;min-height:20px;border:1px solid #c9d6f2;border-radius:6px;background:#f6f9ff;color:#1a56db;font-weight:600;line-height:1.4;text-decoration:underline;text-underline-offset:3px;" %}
+{% set link_inline = "color:#1a56db;font-weight:600;text-decoration:underline;text-underline-offset:3px;" %}
 
 {% macro td(bg) %}padding:10px 12px;background:{{ bg }};{% endmacro %}
 {% macro tdn(bg) %}text-align:right;padding:10px 12px;background:{{ bg }};font-variant-numeric:tabular-nums;{% endmacro %}
@@ -82,9 +86,9 @@ details.lgd-fold[open] summary::after{content:"\2212"}
    rings.com contact page's signup box, replicated inline so pilot pages
    have no theme/app dependency. Client-side subscribe via Klaviyo's public
    kmail-lists endpoint, identical to the contact page's pattern. #}
-{% macro email_capture() %}
+{% macro email_capture(track=False) %}
 <div class="lgd-email-capture" style="border:1px solid #ddd;border-radius:6px;padding:20px 24px;margin:32px 0 0;">
-  <h2 style="font-size:1.05rem;font-weight:700;margin:0 0 6px;color:#1a1a1a;">Get future Rings.com Research in your inbox</h2>
+  <{{ "p" if track else "h2" }} style="font-size:1.05rem;font-weight:700;margin:0 0 6px;color:#1a1a1a;">Get future Rings.com Research in your inbox</{{ "p" if track else "h2" }}>
   <p style="margin:0 0 14px;font-size:0.9rem;color:#555;line-height:1.6;">New studies and data delivered when they publish. No other emails.</p>
   <div style="display:flex;flex-wrap:wrap;gap:10px;">
     <input type="email" id="lgd-klav-email" placeholder="your@email.com" aria-label="Email address" style="flex:1 1 200px;min-width:0;padding:10px 14px;font-size:0.9rem;border:1px solid #d0d0d0;border-radius:4px;outline:none;font-family:inherit;color:#1a1a1a;background:#fff;">
@@ -109,7 +113,7 @@ function lgdKlavSubscribe(e) {
   .then(function(r) { return r.json(); })
   .then(function(j) {
     if (j.success) {
-      confirm.style.display = 'block';
+      confirm.style.display = 'block';{{ (" if (window.lgdTrackSignup) { lgdTrackSignup('lgd_email_signup', 'top'); }" | safe) if track else "" }}
       document.getElementById('lgd-klav-email').value = '';
     } else {
       error.style.display = 'block';
@@ -122,11 +126,91 @@ function lgdKlavSubscribe(e) {
 </script>
 {% endmacro %}
 
+{# Signup placement (2026-10-05): on EVERY aggregate page (not stone pages)
+   the existing email_capture block is rendered near the top (track=True) and
+   footer() omits the bottom copy. Stone pages keep the bottom block. lgdTrackSignup publishes a Shopify customer event
+   (needs a custom pixel to reach GA4; harmless without one). #}
+{% macro track_script() %}
+<script>
+function lgdTrackSignup(eventName, block) {
+  try {
+    if (window.Shopify && Shopify.analytics && Shopify.analytics.publish) {
+      Shopify.analytics.publish(eventName, { block: block, page: location.pathname });
+    }
+  } catch (err) {}
+}
+</script>
+{% endmacro %}
+
+{# CTA test 2 (2026-10-05, oval page only, DRAFT, NOT approved for publish):
+   Buy or Pass early-access list. Klaviyo list YnKGb6 (created 2026-10-05).
+   No money, no live service, no price. Email only: a cert-number field was
+   dropped because extra subscribe parameters are unverified and a failed
+   request would silently lose signups. HELD OFF: allowed only on the Index
+   (theme script twin) and the comparison hub, and only after Amendment 1 to the
+   accepted-risk memo is signed and a gate report authorizes it. #}
+{% macro buy_or_pass_waitlist(top=False) %}
+<div class="lgd-buy-or-pass" style="border:1px solid #ddd;border-radius:6px;padding:20px 24px;margin:28px 0 0;">
+  <{{ "p" if top else "h2" }} style="font-size:1.05rem;font-weight:700;margin:0 0 6px;color:#1a1a1a;">Buy or Pass: a second opinion on one stone (early access)</{{ "p" if top else "h2" }}>
+  <p style="margin:0 0 12px;font-size:0.9rem;color:#555;line-height:1.6;">Found a lab grown diamond and not sure the price is fair? We are planning a short written price check. Send the certificate number and the asking price, and get back where that price sits against our published data, a Buy, Pass or Negotiate verdict with a fair price range, and three questions to ask the seller. Planned price: $79, reply within 2 business days. Join the early-access list and we will email you when it opens. No payment is taken now.</p>
+  <form id="lgd-bop-form" onsubmit="lgdBopSubscribe(event)" style="display:flex;flex-wrap:wrap;gap:10px;margin:0;">
+    <input type="email" id="lgd-bop-email" required autocomplete="email" placeholder="your@email.com" aria-label="Email address for early access" style="flex:1 1 200px;min-width:0;min-height:44px;box-sizing:border-box;padding:10px 14px;font-size:0.9rem;border:1px solid #d0d0d0;border-radius:4px;outline:none;font-family:inherit;color:#1a1a1a;background:#fff;">
+    <button type="submit" id="lgd-bop-btn" style="min-height:44px;box-sizing:border-box;padding:10px 22px;font-size:0.875rem;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-family:inherit;">Join early access</button>
+  </form>
+  <p id="lgd-bop-confirm" style="display:none;font-size:0.875rem;color:#2e7d32;margin:10px 0 0;">You're on the early-access list.</p>
+  <p id="lgd-bop-error" style="display:none;font-size:0.875rem;color:#c62828;margin:10px 0 0;">Something went wrong. Please try again.</p>
+  <p style="margin:12px 0 0;font-size:0.78rem;color:#666;line-height:1.55;">We will only use your email to tell you about this service. A price comparison, not an appraisal, grading report, insurance value or guarantee, and it would not recommend a retailer. It would be a paid service: you pay Rings.com, retailers do not. Rings.com receives no compensation from the retailers included for inclusion or ranking.</p>
+</div>
+<script>
+function lgdBopSubscribe(e) {
+  e.preventDefault();
+  var email = document.getElementById('lgd-bop-email');
+  var btn = document.getElementById('lgd-bop-btn');
+  var okMsg = document.getElementById('lgd-bop-confirm');
+  var errMsg = document.getElementById('lgd-bop-error');
+  okMsg.style.display = 'none';
+  errMsg.style.display = 'none';
+  if (!email.value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) { errMsg.style.display = 'block'; return; }
+  btn.disabled = true;
+  fetch('https://manage.kmail-lists.com/ajax/subscriptions/subscribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' },
+    body: 'g=YnKGb6&email=' + encodeURIComponent(email.value)
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(j) {
+    if (j.success) {
+      okMsg.style.display = 'block';
+      if (window.lgdTrackSignup) { lgdTrackSignup('lgd_buy_or_pass_waitlist', 'hub-page'); }
+      email.value = '';
+    } else {
+      errMsg.style.display = 'block';
+    }
+    btn.disabled = false;
+  })
+  .catch(function() {
+    errMsg.style.display = 'block';
+    btn.disabled = false;
+  });
+}
+</script>
+{% endmacro %}
+
 {# Related-links block (v6): internal links so the cluster is crawlable
    through itself, not just the sitemap. The pipeline only passes links
    to pages that actually built this run. #}
-{% macro related(items) %}
-{% if items %}
+{# styled=True (October 2026 refresh, 14 of 18 aggregates): blue tappable rows, same variables as the hub's link lists. Default False keeps the plain list (held pages, stone pages). #}
+{% macro related(items, styled=False) %}
+{% if items and styled %}
+<div style="border-top:1px solid #ddd;margin-top:28px;padding-top:16px;">
+<h2 style="font-size:1rem;font-weight:700;margin:0 0 12px;color:#1a1a1a;">More lab grown diamond price data</h2>
+<ul style="{{ link_list }}">
+{% for label, href in items %}
+  <li style="margin:0;"><a href="{{ href }}" style="{{ link_row }}">{{ label }} <span aria-hidden="true">&rarr;</span></a></li>
+{% endfor %}
+</ul>
+</div>
+{% elif items %}
 <div style="border-top:1px solid #ddd;margin-top:28px;padding-top:16px;">
 <h2 style="font-size:1rem;font-weight:700;margin:0 0 12px;color:#1a1a1a;">More lab grown diamond price data</h2>
 <ul style="margin:0;padding-left:18px;">
@@ -138,18 +222,42 @@ function lgdKlavSubscribe(e) {
 {% endif %}
 {% endmacro %}
 
-{% macro footer() %}
-{{ email_capture() }}
+{# Stone links (October 2026 refresh, 14 of 18 aggregates). `blk` is built by page_pipeline.stone_link_block: {"intro", "groups": [{"heading", "rows": [{"href","label","sub"}]}]}. Falsy blk renders nothing (a page with fewer than 3 live stones in range gets no block). Rows are blue tappable rows like the hub; the sub line is a non-link detail. #}
+{% macro stone_links(blk, data_date_h) %}
+{% if blk %}
+<div class="lgd-stone-links" style="margin:28px 0 8px;">
+<h2 style="{{ h2s }}">{{ blk.heading }}</h2>
+<p style="{{ body_p }}">{{ blk.intro }}</p>
+{% for g in blk.groups %}
+{% if g.heading %}<p style="margin:0 0 8px;font-weight:700;line-height:1.4;">{{ g.heading }}</p>{% endif %}
+{% if g.note %}<p style="{{ body_p }}">{{ g.note }}</p>{% endif %}
+<ul style="{{ link_list }}">
+{% for r in g.rows %}
+  <li style="margin:0;"><a href="{{ r.href }}" style="{{ link_row }}">{{ r.label }} <span aria-hidden="true">&rarr;</span><br><span style="display:inline-block;font-size:0.82rem;font-weight:400;color:#444;margin-top:2px;text-decoration:none;">{{ r.sub }}</span></a></li>
+{% endfor %}
+</ul>
+{% endfor %}
+<p style="{{ note }}">Listed prices as of {{ data_date_h }}, not quotes; a stone may have sold or been repriced since. Loose stones only. This is not a recommendation of any retailer.</p>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro footer(no_capture=False) %}
+{{ "" if no_capture else email_capture() }}
 <div style="margin-top:24px;padding-top:12px;border-top:1px solid #eee;">
   <p style="margin:0 0 4px;font-size:0.8rem;color:#888;">Updated monthly.</p>
   <p style="margin:0;font-size:0.78rem;color:#999;">Rings.com Lab-Grown Diamond Price Index</p>
 </div>
 {% endmacro %}
 
-{% macro delist_note(data_date_h, retailers, cycle_label="July 2026") %}
+{% macro delist_note(data_date_h, retailers, cycle_label="July 2026", last_label=None, last_date_h=None) %}
 <div style="border-top:1px solid #ddd;margin-top:28px;padding-top:16px;">
 <h2 style="font-size:1rem;font-weight:700;margin:0 0 12px;color:#1a1a1a;">How current are these prices?</h2>
+{% if last_label %}
+<p style="margin:0 0 12px;font-size:0.9rem;color:#333;line-height:1.7;">The prices in the table above were last captured from public retailer listings on <strong>{{ last_date_h }}</strong> ({{ last_label }} collection cycle). In the <strong>{{ data_date_h }}</strong> ({{ cycle_label }}) collection this certificate was not found at two or more tracked retailers, so no current comparison is shown. Retailers reprice and delist stones continuously, so any listing shown here may have sold, been delisted, or changed price since capture.</p>
+{% else %}
 <p style="margin:0 0 12px;font-size:0.9rem;color:#333;line-height:1.7;">Every price on this page was captured from public retailer listings on <strong>{{ data_date_h }}</strong> ({{ cycle_label }} collection cycle) and is accurate as of that date only. Retailers reprice and delist stones continuously, so any listing shown here may have sold, been delisted, or changed price since capture.</p>
+{% endif %}
 <ul style="margin:0 0 12px;padding-left:18px;">
 {% for r in retailers %}
   <li style="font-size:0.9rem;color:#333;line-height:1.7;"><strong>{{ r }}</strong>: last verified in its public listings on {{ data_date_h }}. Re-checked on the index's collection cycle (currently monthly; weekly refresh rolling out).</li>

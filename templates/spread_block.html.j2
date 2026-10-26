@@ -1,0 +1,13 @@
+{% import "_shared.html.j2" as sh %}
+<div class="lgd-spread-block" style="margin:0 0 24px;">
+<h2 style="{{ sh.h2s }}">Same certified stone, different prices ({{ cycle_label }})</h2>
+<p style="{{ sh.body_p }}">Each stone below is one specific diamond, identified by its IGI certificate number, listed at more than one tracked retailer on {{ data_date_h }}. These are the largest dollar gaps we found in each of four groups (about 1.5 or 2 carats, round or oval), among stones whose retailer-assigned cut (Ideal and Super Ideal grouped with Excellent for this comparison), polish and symmetry grades do not conflict.{% if common_hi %} {{ common_hi }} is the higher-priced retailer on all {{ stones | length }} of these stones. These are listed prices on selected stones, not a ranking of retailers.{% endif %}{% if all_top_grade %} All {{ stones | length }} are D color and IF clarity, among the highest grades. Their prices are well above the pooled medians in the table above, which cover all colors and clarities.{% endif %}</p>
+{% for s in stones %}
+<div style="border:1px solid #e2e2e2;border-radius:6px;padding:12px 14px;margin:0 0 10px;">
+  <p style="margin:0 0 4px;font-weight:700;line-height:1.4;"><a href="{{ s.href }}" style="{{ sh.link_inline }}">{{ s.label }} · IGI {{ s.cert }} <span aria-hidden="true">&rarr;</span></a></p>
+  <p style="margin:0;line-height:1.6;font-variant-numeric:tabular-nums;">{% for r in s.rows %}{{ r.retailer }} {{ r.price | usd }}{% if not loop.last %} · {% endif %}{% endfor %}</p>
+  <p style="margin:4px 0 0;font-size:0.9rem;color:#444;line-height:1.5;">Gap: {{ s.gap | usd }} ({{ s.gap_pct }}%) between {{ s.hi_r }} and {{ s.lo_r }}</p>
+</div>
+{% endfor %}
+<p style="{{ sh.note }}">These stones were picked because retailers priced them very differently, so the gaps are not typical of all lab grown diamonds. {% for t in ties %}For the {{ t.label }}, {{ t.n }} certificates show the same two prices; we show one. {% endfor %}Across the {{ n_stones }} stones that are listed at two or more tracked retailers and have a page here (a set that is not a random sample of lab grown diamonds), the median gap between the highest and lowest listed price is {{ median_gap | usd }}. Listed prices as of {{ data_date_h }}, not quotes; these stones may have sold or been repriced since, and retailers differ in service, return terms and delivery, which these figures do not capture. Loose stones only. This is not a recommendation of any retailer. Rings.com receives no compensation from the retailers included for inclusion or ranking.</p>
+</div>

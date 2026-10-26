@@ -55,6 +55,7 @@ MONTH_MAP = {m: f"{i+1:02d}" for i, m in enumerate(MONTH_NAMES)}
 # Most-recent-first (Rodney, 2026-09-18); a newly-archived cycle goes at the
 # TOP of this list, not the bottom.
 PAST_EDITIONS = [
+    ("2026-09", "September 2026"),
     ("2026-08", "August 2026"),
     ("2026-07", "July 2026"),
     ("2026-06", "June 2026"),
@@ -415,7 +416,8 @@ def generate_html(data):
         name = r["name"]
         if is_vrai:
             name += f' <span style="font-size:0.75rem;font-weight:400;color:#999;">{r.get("row_label", "(non-IGI)")}</span>'
-        if r["slug"] == "ritani":
+        # asterisk marks the edition's largest move: JSON `largest_move_slug` (default ritani)
+        if r["slug"] == data.get("largest_move_slug", "ritani"):
             name += " *"
 
         tds = "".join(cell_td(r["cells"].get(key), bg, wt) for key, wt, _ in BANDS)
@@ -673,6 +675,28 @@ def generate_html(data):
   -->
   <div id="lgd-retailer-selection" style="margin:0 0 24px;padding:16px 20px;border:1px solid #ddd;border-radius:6px;">
     <p style="margin:0;font-size:0.9rem;color:#333;line-height:1.7;"><strong>Retailer selection.</strong> Retailers in this index are selected by our research process and are never added by request, payment, or partnership. The full criteria and observation process are public: <a href="/pages/retailer-inclusion-criteria" style="color:#1a1a1a;font-weight:600;text-decoration:underline;text-underline-offset:2px;">how retailers are selected for this index</a>.</p>
+  </div>
+
+  <!--
+    lgd-return-policy-link: one-sentence link to the price and return policy
+    page (Concept 2, live 2026-10-02). Requested by Reverse Engineer handoff
+    2026-10-02; NOT LIVE until Rodney pastes it after a publish-gate run.
+    Plain text link, no score, kept separate from the index figures.
+    Outside the JS-replaced wraps on purpose, same as lgd-retailer-selection.
+  -->
+  <div id="lgd-return-policy-link" style="margin:0 0 24px;padding:16px 20px;border:1px solid #ddd;border-radius:6px;">
+    <p style="margin:0;font-size:0.9rem;color:#333;line-height:1.7;">For return windows and restocking fees alongside these prices, retailer by retailer, see <a href="/pages/lab-grown-diamond-price-and-return-policy-comparison" style="color:#1a1a1a;font-weight:600;text-decoration:underline;text-underline-offset:2px;">Lab-Grown Diamond Price and Return Policy by Retailer</a>.</p>
+  </div>
+
+  <!--
+    lgd-commerce-disclosure: static box. Rodney chose the SHORT one-sentence
+    form for the Price Index page on 2026-10-02 (the full approved text is
+    on the Fine Print and the two concept pages). Live since 2026-10-02.
+    Outside the JS-replaced wraps on purpose, same as lgd-retailer-selection.
+    Edit only on Rodney's instruction.
+  -->
+  <div id="lgd-commerce-disclosure" style="margin:0 0 24px;padding:16px 20px;border:1px solid #ddd;border-radius:6px;">
+    <p style="margin:0;font-size:0.9rem;color:#333;line-height:1.7;"><strong>Disclosure.</strong> Rings.com does not sell jewelry on this site, though it did from 2024 to April 2026.</p>
   </div>
 
   <!--

@@ -53,6 +53,7 @@ records (rendered HTML embeds no clock time).
 import argparse
 import csv
 import json
+import os
 import re
 import statistics
 from collections import defaultdict
@@ -74,18 +75,30 @@ TEMPLATES = HERE / "templates"
 # a prior cycle can be rebuilt byte-for-byte as a regression check.
 CYCLE_LABELS = {"2026-04": "April 2026", "2026-05": "May 2026",
                 "2026-06": "June 2026", "2026-07": "July 2026",
-                "2026-08": "August 2026", "2026-09": "September 2026"}
+                "2026-08": "August 2026", "2026-09": "September 2026",
+                "2026-10": "October 2026"}
 CYCLE_TIMESTAMPS = {"2026-07": "2026-07-23",   # capture date of every source file
                     "2026-08": "2026-08-29",
-                    "2026-09": "2026-09-17"}
-CYCLE_ORDER = ["2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"]
+                    "2026-09": "2026-09-17",
+                    "2026-10": "2026-10-24"}
+CYCLE_ORDER = ["2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10"]
 # Publish date shown in the page header next to the capture date (Rodney,
 # 2026-08-30: "ensure Date is August 30"); the capture date stays factual.
 # 2026-09 is deliberately absent until Rodney signs off tranche 0 and a real
 # publish date is set (falls back to DATA_TIMESTAMP until then, same as
 # every prior cycle before its own publish day).
-CYCLE_PUBLISHED = {"2026-08": "2026-08-30"}
+# 2026-10: Rodney set the October publish for 2026-10-26 (2026-10-25). If the
+# publish slips, change this date BEFORE the final build.
+CYCLE_PUBLISHED = {"2026-08": "2026-08-30", "2026-10": "2026-10-25"}
 DEFAULT_CYCLE = "2026-08"
+# Signup placement (2026-10-05, published): every AGGREGATE page template gets
+# cta_test=True (signup near the top, tracking hook); stone pages do not.
+# Buy or Pass early-access block stays BUILT BUT OFF. Rodney approved the plan
+# 2026-10-05; it may appear ONLY on the comparison hub (and the Index theme
+# script twin) and ONLY after Amendment 1 to the accepted-risk memo is signed
+# and a gate report authorizes it.
+BOP_HANDLES = {"lab-grown-diamond-price-comparison"}
+BOP_TEST_ENABLED = True
 
 CYCLE = CYCLE_LABEL = DATA_TIMESTAMP = DATA_DATE_H = PUBLISHED_H = None
 ALL_CYCLES = []
@@ -176,6 +189,21 @@ CYCLE_FILES = {
         "Grown Brilliance": "grown_brilliance_2026-09-17.csv",
         "With Clarity": "with_clarity_2026-09-17.csv",
     },
+    # October 2026 (captured 2026-10-24): Ritani/Grown Brilliance main files are
+    # the plain union of their three band pulls (0 duplicates, row counts equal
+    # the band sums); With Clarity main file is the union of its three
+    # benchmark-band pulls, each band equal to the site's own listed count
+    # (no IP block this cycle). Clean Origin inventory is genuinely low this
+    # cycle (13,338 vs 23,320; confirmed by a second listing 2026-10-25).
+    "2026-10": {
+        "Brilliant Earth": "brilliant_earth_2026-10-24.csv",
+        "Blue Nile": "blue_nile_2026-10-24.csv",
+        "Clean Origin": "clean_origin_2026-10-24.csv",
+        "VRAI": "vrai_2026-10-24.csv",
+        "Ritani": "ritani_2026-10-24.csv",
+        "Grown Brilliance": "grown_brilliance_2026-10-24.csv",
+        "With Clarity": "with_clarity_2026-10-24.csv",
+    },
 }
 
 # Additional cert-retailer files fed ONLY into the per-stone table, so
@@ -258,6 +286,19 @@ PINNED_STONE_HANDLES = [
     "lab-diamond-igi-743550667", "lab-diamond-igi-782604209",
     "lab-diamond-igi-766651588", "lab-diamond-igi-726549884",
 ]
+
+
+# Tranche 0 (125, 2026-09-18) and tranche 1 (300, 2026-09-26) stone pages are
+# LIVE too. Added 2026-10-25 for the October refresh: before this only the 10
+# canary stones were pinned, so any tranche stone that fell below
+# MIN_DISPLAYED silently dropped out of the build and its live page kept last
+# cycle's prices. Pinned stones that no longer qualify are rebuilt as dated
+# "no longer listed" pages (existing delisted path).
+for _f in ("batch2-tranche0-2026-09-17-final-handles.json",
+           "batch2-tranche1-2026-09-26-final-handles.json"):
+    for _h in json.loads((HERE / "manifests" / _f).read_text()):
+        if _h not in PINNED_STONE_HANDLES:
+            PINNED_STONE_HANDLES.append(_h)
 
 
 def pinned_cert_keys():
@@ -570,37 +611,45 @@ def jenv():
 # Dataset license: a Rodney decision (e.g. "https://creativecommons.org/
 # licenses/by/4.0/"). None = the property is omitted; never a placeholder
 # URL (the 2026-07-26 dead terms-of-service license lesson).
-DATASET_LICENSE = None
+DATASET_LICENSE = os.environ.get("LGD_DATASET_LICENSE") or None
 
 
-def dataset_ld(name, desc, handle=None, variables=None):
+def dataset_ld(name, desc, handle=None, variables=None, license_ok=False,
+               cov=None):
     """Dataset JSON-LD for a pilot page. Citability fields added 2026-09-03:
     url, datePublished/dateModified (the cycle's publish date, else the
     capture date), publisher, isAccessibleForFree, spatialCoverage,
     measurementTechnique, version, variableMeasured, optional license."""
     pub = CYCLE_PUBLISHED.get(CYCLE, DATA_TIMESTAMP)
+    # cov: {"cycle", "label", "date_h"} of the data the page actually shows,
+    # for delisted stone pages whose table is an earlier cycle's capture.
+    cyc = cov["cycle"] if cov else CYCLE
+    lab_ = cov["label"] if cov else CYCLE_LABEL
+    date_h = cov["date_h"] if cov else DATA_DATE_H
     ld = {"@context": "https://schema.org", "@type": "Dataset",
-          "name": f"{name} ({CYCLE_LABEL})", "description": desc,
-          "temporalCoverage": CYCLE,
+          "name": f"{name} ({lab_})", "description": desc,
+          "temporalCoverage": cyc,
           "creator": {"@type": "Organization", "name": "Rings.com",
                       "url": "https://rings.com"},
           "publisher": {"@type": "Organization", "name": "Rings.com",
                         "url": "https://rings.com"},
           "datePublished": pub, "dateModified": pub,
-          "version": CYCLE_LABEL,
+          "version": lab_,
           "isAccessibleForFree": True,
           "spatialCoverage": {"@type": "Place", "name": "United States"},
           "measurementTechnique": (
               "Median of publicly listed retail prices for loose lab grown "
               "diamonds, captured from each retailer's public website on "
-              f"{DATA_DATE_H}; only retailers with at least {MIN_CELL_N} "
+              f"{date_h}; only retailers with at least {MIN_CELL_N} "
               "qualifying listings in the stated range are pooled. USD, "
               "loose stone, before any setting.")}
     if handle:
         ld["url"] = f"https://rings.com/pages/{handle}"
     if variables:
         ld["variableMeasured"] = variables
-    if DATASET_LICENSE:
+    # license_ok is True only for the 13 Dataset pages that take the
+    # October 2026 license field; the 4 held pages never pass it.
+    if DATASET_LICENSE and license_ok:
         ld["license"] = DATASET_LICENSE
     return ld
 
@@ -795,11 +844,11 @@ def stone_page(env, sel, spec_row, related, delisted=None, cohort=None):
           f"({spec_row.color} {spec_row.clarity}, {lab} {num}) Prices")
     if delisted:
         last_label = CYCLE_LABELS[delisted["last_cycle"]]
+        # Kept <= 160 chars (2026-10-25 review): no boilerplate tail.
         meta = (f"{lab} {num}: {cs} ct {shape.lower()} lab grown diamond "
                 f"({spec_row.color} {spec_row.clarity}) last listed "
                 f"{usd(lo_p)}–{usd(hi_p)} at {k} US retailers ({last_label}); "
-                f"not found at 2+ tracked retailers in the {CYCLE_LABEL} "
-                f"collection. Certificate-matched price history.")
+                f"not found at 2+ in {CYCLE_LABEL}.")
     else:
         meta = (f"{lab} {num}: {cs} ct {shape.lower()} lab grown diamond "
                 f"({spec_row.color} {spec_row.clarity}) listed "
@@ -847,6 +896,12 @@ def stone_page(env, sel, spec_row, related, delisted=None, cohort=None):
                                        for r in displayed)),
             "current_rows": [cur[r] for r in STONE_DISPLAY if r in cur],
         }
+        # The table is the LAST cycle's capture, not this cycle's: say so in
+        # the Dataset coverage too (2026-10-25 review).
+        json_ld = dataset_ld(h1, meta, cov={
+            "cycle": delisted["last_cycle"],
+            "label": dl_ctx["last_cycle_label"],
+            "date_h": dl_ctx["last_date_h"]})
     body = env.get_template("stone.html.j2").render(
         **base_ctx(), spec=spec_row, cs=cs, shape=shape, lab=lab, num=num,
         displayed=displayed, k=k, lo_p=lo_p, lo_r=lo_r, hi_p=hi_p,
@@ -901,6 +956,177 @@ def stone_page(env, sel, spec_row, related, delisted=None, cohort=None):
             "current_count": len(cur),
         }
     return handle, title, h1, meta, keyword, body, record, "stone"
+
+
+# October 2026 refresh extras (stone links, blue related-link rows, Dataset
+# license) apply only to 14 of the 18 aggregates; the 4 held pages (1, 1.5, 2
+# ct and the comparison hub) never get them (project_hold_carat_page_link,
+# Rodney 2026-10-25). LGD_OCT_EXTRAS=0 turns them all off, which reproduces
+# the live September pages (used to prove build == live).
+OCT_EXTRAS = os.environ.get("LGD_OCT_EXTRAS", "1") == "1"
+
+STONE_LINK_MAX = 5
+STONE_LINK_MIN = 3
+
+
+def stone_link_pool(picked, rows_by_key):
+    """Live comparison stone pages that will exist after this build: the
+    pinned (already live) handles that still qualify (>= MIN_DISPLAYED
+    displayed current prices, specs agree). Delisted pages are never in
+    this pool, so no aggregate links to a 'no longer listed' page."""
+    live = set(PINNED_STONE_HANDLES)
+    pool = []
+    for s in picked:
+        lab, num = s["cert_key"].split(":")
+        h = f"lab-diamond-{lab.lower()}-{num.lower()}"
+        if h not in live:
+            continue
+        rows = [s["displayed"][r] for r in STONE_DISPLAY if r in s["displayed"]]
+        r0 = rows[0]
+        prices = sorted(r.price_usd for r in rows)
+        cyc = len({r.cycle for r in rows_by_key[s["cert_key"]]
+                   if r.retailer in STONE_DISPLAY})
+        pool.append({
+            "handle": h, "cert_key": s["cert_key"], "carat": float(r0.carat),
+            "shape": (r0.shape or "").lower(), "color": r0.color,
+            "clarity": r0.clarity, "lab": lab, "num": num,
+            "k": len(rows), "lo": prices[0], "hi": prices[-1],
+            "med": statistics.median(prices), "cycles": cyc})
+    return pool
+
+
+def _link_row(c):
+    return {"href": f"/pages/{c['handle']}",
+            "label": (f"{carat_str(c['carat'])} carat {c['shape']}, "
+                      f"{c['color']} {c['clarity']} · {c['lab']} {c['num']}"),
+            "sub": (f"Listed at {c['k']} tracked retailers: "
+                    f"{usd(c['lo'])} to {usd(c['hi'])}")}
+
+
+def _nearest(pool, shape, lo, hi, median):
+    cands = [c for c in pool
+             if (shape is None or c["shape"] == shape)
+             and lo <= round(c["carat"], 2) <= hi]
+    cands.sort(key=lambda c: (abs(c["med"] - median), c["cert_key"]))
+    return cands[:STONE_LINK_MAX]
+
+
+def _join(vals):
+    vals = sorted(set(vals))
+    return vals[0] if len(vals) == 1 else ", ".join(vals[:-1]) + " or " + vals[-1]
+
+
+def _grade_phrase(got):
+    """Plain description of the grades actually in the linked set."""
+    n = len(got)
+    col = _join(c["color"] for c in got)
+    cla = _join(c["clarity"] for c in got)
+    lead = f"All {n}" if n > 1 else "This stone"
+    return f"{lead} are {col} color with {cla} clarity"
+
+
+def _vs_median(got, median):
+    """Data-computed sentence on where the linked stones sit against the
+    page median (2026-10-25 review: 'closest to the median' alone misled,
+    the nearest tracked stones can still sit far above it)."""
+    ratios = sorted(c["med"] / median for c in got)
+    lo, hi = ratios[0], ratios[-1]
+    if lo >= 1.5:
+        where = "sit well above"
+    elif lo >= 1.1:
+        where = "sit above"
+    elif hi <= 0.67:
+        where = "sit well below"
+    elif hi <= 0.9:
+        where = "sit below"
+    else:
+        where = "sit around"
+    if f"{lo:.1f}" == f"{hi:.1f}":
+        mult = f"about {lo:.1f} times"
+    else:
+        mult = f"{lo:.1f} to {hi:.1f} times"
+    return (f"Their median listed prices are {mult} the page median, so "
+            f"they {where} this page's median of {usd(median)}, which "
+            f"pools all grades.")
+
+
+NOT_RANDOM = ("The stones we track across retailers are not a random sample: "
+              "they lean toward stones that retailers price very "
+              "differently.")
+
+
+def stone_link_block(pool, kind, **kw):
+    """Neutral, fixed selection rules (Rodney 2026-10-10: stone links on the
+    aggregates; plan section 4). 'cell': the up-to-5 live stones in this
+    page's shape and carat range whose listed price is closest to the page
+    median, only if >= 3 exist. 'bands': same rule per carat band over all
+    shapes (cost FAQ). 'tracked': the 3 live stones with the most monthly
+    collections on record (resale). Never cheapest/priciest/biggest-gap.
+    The wording is computed from the chosen stones (grades, distance from
+    the page median) so it states what they actually are."""
+    if kind == "cell":
+        st = kw["st"]
+        cands = [c for c in pool if c["shape"] == st["shape"]
+                 and st["lo"] <= round(c["carat"], 2) <= st["hi"]]
+        got = _nearest(pool, st["shape"], st["lo"], st["hi"], st["median"])
+        if len(got) < STONE_LINK_MIN:
+            return None
+        n = len(got)
+        intro = (f"{n} of the {len(cands)} stones we track at this size "
+                 f"that have a page here, with the price range across "
+                 f"retailers. They are the {n} nearest this page's median "
+                 f"price, but {_grade_phrase(got)[0].lower()}"
+                 f"{_grade_phrase(got)[1:]}. {_vs_median(got, st['median'])} "
+                 f"{NOT_RANDOM}")
+        return {"heading": "Certified stones at this size",
+                "intro": intro,
+                "groups": [{"heading": None,
+                            "rows": [_link_row(c) for c in got]}]}
+    if kind == "bands":
+        groups = []
+        for p, cs_ in kw["cells"].items():
+            cands = [c for c in pool
+                     if cs_["lo"] <= round(c["carat"], 2) <= cs_["hi"]]
+            got = _nearest(pool, None, cs_["lo"], cs_["hi"], cs_["median"])
+            if len(got) >= STONE_LINK_MIN:
+                groups.append({
+                    "heading": f"Around {carat_str(p)} carat",
+                    "note": (f"{len(got)} of the {len(cands)} stones we "
+                             f"track at this size that have a page here, "
+                             f"the nearest to the {carat_str(p)} carat "
+                             f"median. {_grade_phrase(got)}. "
+                             f"{_vs_median(got, cs_['median'])}"),
+                    "rows": [_link_row(c) for c in got]})
+        if not groups:
+            return None
+        return {"heading": "Certified stones at these sizes",
+                "intro": ("Stones we track across retailers that have a "
+                          "page here, with the price range across "
+                          "retailers. " + NOT_RANDOM),
+                "groups": groups}
+    if kind == "tracked":
+        got = sorted(pool, key=lambda c: (-c["cycles"], c["cert_key"]))[:3]
+        if len(got) < STONE_LINK_MIN:
+            return None
+        rows = []
+        for c in got:
+            r = _link_row(c)
+            r["sub"] += f"; on record for {c['cycles']} monthly collections"
+            rows.append(r)
+        return {"heading": "Stones we have tracked the longest",
+                "intro": ("The 3 stones with the longest price record in "
+                          "our collections, chosen for record length, not "
+                          f"price. {_grade_phrase(got)}"
+                          + (", which are among the highest grades and not "
+                             "typical of all lab grown diamonds"
+                             if all(c["color"] in "DEF" and c["clarity"]
+                                    in ("IF", "VVS1", "VVS2") for c in got)
+                             else "")
+                          + ". Each page shows that stone's "
+                          "listed price at every tracked retailer, month "
+                          f"by month. {NOT_RANDOM}"),
+                "groups": [{"heading": None, "rows": rows}]}
+    raise ValueError(kind)
 
 
 def stone_rows_for(rows):
@@ -1057,6 +1283,8 @@ def build(out_dir, canary_n, pin_live=True, refresh_manifest=None,
                                           if r.retailer in STONE_DISPLAY})
         pages.append((handle, title, h1, meta, kw, record, "stone"))
 
+    slpool = stone_link_pool(picked, rows_by_key) if OCT_EXTRAS else []
+    print(f"stone-link pool: {len(slpool)} live comparison stones")
     n_agg_retailers = int(jf["retailer"].nunique())
     skipped_cells = []
 
@@ -1084,7 +1312,7 @@ def build(out_dir, canary_n, pin_live=True, refresh_manifest=None,
                   f"{retailer_phrase(st['shown_retailers'])}, from "
                   f"{st['n']:,} public listings.")
         facts = cell_facts(st, cs, "", hist, shapes)
-        body = env.get_template("aggregate_carat.html.j2").render(
+        body = env.get_template("aggregate_carat.html.j2").render(cta_test=True, 
             **base_ctx(), st=st, cs=cs, h1=h1, meta=meta, shapes=shapes,
             history=hist, volume_note=FAMILY_A_VOLUME.get(point),
             answer=answer, facts=facts, tiles=cell_tiles(st, cs, ""),
@@ -1141,13 +1369,16 @@ def build(out_dir, canary_n, pin_live=True, refresh_manifest=None,
             **base_ctx(), st=st, cs=cs, sh=sh, h1=h1, meta=meta,
             history=hist, answer=answer, facts=facts,
             tiles=cell_tiles(st, cs, f"{shape} "),
+            cta_test=True, restyle=OCT_EXTRAS,
+            stone_links=(stone_link_block(slpool, "cell", st=st)
+                         if OCT_EXTRAS else None),
             json_ld=dataset_ld(h1, meta, handle, [
                 pv(f"Median listed price, {cs} carat {shape} lab grown diamond",
                    round(st["median"]), "USD"),
                 pv("Median listed price per carat",
                    round(st["median_ppc"]), "USD"),
                 pv("Public listings pooled", st["n"]),
-                pv("US retailers pooled", m)]),
+                pv("US retailers pooled", m)], license_ok=OCT_EXTRAS),
             related=rel)
         (pages_dir / f"{handle}.html").write_text(body)
         pages.append((handle, title, h1, meta, kw,
@@ -1227,10 +1458,12 @@ def build(out_dir, canary_n, pin_live=True, refresh_manifest=None,
     ]
     tiles = [(usd(cells[p]["median"]), f"{carat_str(p)} carat median") for p in FAMILY_A_POINTS]
     tiles.append((f"{total_n:,}", f"public listings, {n_agg_retailers} retailers"))
-    body = env.get_template("aggregate_cost_faq.html.j2").render(
+    body = env.get_template("aggregate_cost_faq.html.j2").render(cta_test=True, 
         **base_ctx(), cells=cells, total_n=total_n, answer=answer,
         facts=facts, tiles=tiles, n_retailers=n_agg_retailers, h1=h1, meta=meta,
-        carat_points=FAMILY_A_POINTS,
+        carat_points=FAMILY_A_POINTS, restyle=OCT_EXTRAS,
+        stone_links=(stone_link_block(slpool, "bands", cells=cells)
+                     if OCT_EXTRAS else None),
         retailer_names=sorted(jf["retailer"].unique()), json_ld=faq_ld,
         related=[a_link(p) for p in built_a] + [RESALE_LINK, HUB_LINK])
     (pages_dir / f"{handle}.html").write_text(body)
@@ -1282,17 +1515,19 @@ def build(out_dir, canary_n, pin_live=True, refresh_manifest=None,
              (f"{rep['median_change_pct']:+.1f}%", "median listed-price change"),
              (f"{rep['share_down_pct']:.0f}%", "of matched listings repriced downward"),
              (f"{rep['delisted_share_pct']:.0f}%", "of April stones no longer listed")]
-    body = env.get_template("aggregate_resale.html.j2").render(
+    body = env.get_template("aggregate_resale.html.j2").render(cta_test=True, 
         **base_ctx(), rep=rep, hist=hist_1ct, h1=h1, meta=meta,
         answer=answer, facts=facts, tiles=tiles,
-        retailer_names=AGG_DISPLAY,
+        retailer_names=AGG_DISPLAY, restyle=OCT_EXTRAS,
+        stone_links=(stone_link_block(slpool, "tracked")
+                     if OCT_EXTRAS else None),
         json_ld=dataset_ld(h1, meta, handle, [
             pv("Matched same-stone listings, April to current cycle",
                rep["n_pairs"]),
             pv("Median listed-price change of matched listings (percent)",
                round(rep["median_change_pct"], 1)),
             pv("Share of matched listings repriced downward (percent)",
-               round(rep["share_down_pct"]))]),
+               round(rep["share_down_pct"]))], license_ok=OCT_EXTRAS),
         related=([a_link(1.0)] if 1.0 in built_a else [])
                 + [FAQ_LINK, HUB_LINK])
     (pages_dir / f"{handle}.html").write_text(body)
@@ -1341,7 +1576,7 @@ def build(out_dir, canary_n, pin_live=True, refresh_manifest=None,
         f"{DATA_DATE_H}.")
     tiles = [(usd(grid[p]["median"]), f"{carat_str(p)} carat median") for p in FAMILY_A_POINTS]
     tiles.append((f"{total_n:,}", f"public listings, {n_agg_retailers} retailers"))
-    body = env.get_template("aggregate_hub.html.j2").render(
+    body = env.get_template("aggregate_hub.html.j2").render(cta_test=True, bop_test=(handle in BOP_HANDLES and BOP_TEST_ENABLED),
         **base_ctx(), grid=grid, carat_points=FAMILY_A_POINTS,
         retailers=AGG_DISPLAY, n_retailers=n_agg_retailers, h1=h1,
         meta=meta, total_n=total_n, answer=answer, facts=facts, tiles=tiles,

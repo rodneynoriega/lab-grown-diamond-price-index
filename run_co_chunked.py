@@ -26,6 +26,7 @@ Checkpoints live in data/raw/.co_checkpoint_{DATE}/ (listing.json, details.json)
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 from datetime import date
@@ -42,7 +43,8 @@ from retailers.clean_origin import (
 )
 from retailers.base import Diamond, CSV_FIELDS, diamond_to_row, MIN_CARAT, MAX_CARAT, TARGET_SHAPES
 
-DATE = date.today().isoformat()
+# Cycle date: LGD_DATE env var, else today (a multi-hour run can cross midnight).
+DATE = os.environ.get("LGD_DATE") or date.today().isoformat()
 DATA_DIR = Path(__file__).parent / "data"
 RAW_DIR = DATA_DIR / "raw"
 CKPT_DIR = RAW_DIR / f".co_checkpoint_{DATE}"

@@ -2,25 +2,41 @@
 <div class="lgd-pilot lgd-agg-page" style="{{ sh.container }}">
 {# NO h1 in the body: the Flex default page template injects page.title as the served H1 (verified live 2026-08-09); page.title carries the scheme H1, the long SEO title lives in global.title_tag. #}
 {{ sh.header(h1, index_url, brand_line, cycle_label, data_date_h, published_h, answer=answer, next_update_h=next_update_h) }}
-{{ sh.tiles(tiles) }}
+{{ sh.tiles(tiles) }}{{ ("\n" ~ sh.track_script()) if cta_test else "" }}{{ ("\n" ~ sh.buy_or_pass_waitlist(True)) if bop_test else "" }}
 {{ sh.facts(facts, cycle_label) }}
 
 <div style="{{ sh.callout }}">
   <p style="{{ sh.callout_p }}">Median listed prices for lab grown diamonds compared across <strong>{{ n_retailers }}</strong> US retailers, {{ cycle_label }}: <strong>{{ "{:,}".format(total_n) }}</strong> public listings, round and oval, all colors and clarities pooled, refreshed monthly. Carat bands: {% for p in carat_points %}{{ "%.2f" | format(grid[p].lo) }} to {{ "%.2f" | format(grid[p].hi) }} ct ({{ '%g' | format(p) }} carat){{ ", " if not loop.last }}{% endfor %}.</p>
 </div>
 
+<style>
+@media (max-width:480px){
+.lgd-pilot .lgd-price-table,.lgd-pilot .lgd-price-table thead,.lgd-pilot .lgd-price-table tbody{display:block !important;width:100% !important}
+.lgd-pilot .lgd-price-table tr{display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr)) !important;column-gap:0}
+.lgd-pilot .lgd-price-table thead tr{position:relative}
+.lgd-pilot .lgd-price-table thead th:first-child{position:absolute !important;width:1px !important;height:1px !important;margin:-1px !important;padding:0 !important;overflow:hidden !important;clip:rect(0,0,0,0) !important;white-space:nowrap !important;border:0 !important}
+.lgd-pilot .lgd-price-table tbody td:first-child{grid-column:1 / -1;padding:10px 2px 0 !important;white-space:normal !important}
+.lgd-pilot .lgd-price-table th,.lgd-pilot .lgd-price-table td{padding:4px 2px !important;font-size:0.82rem !important;border-left:0 !important;border-right:0 !important;border-top:0 !important}
+.lgd-pilot .lgd-price-table td{border-bottom:0 !important}
+.lgd-pilot .lgd-price-table .lgd-n{display:block;font-size:0.72rem !important;color:#6b6b6b !important}
+.lgd-pilot .lgd-buy-or-pass{padding:16px !important}
+.lgd-pilot .lgd-buy-or-pass > p:nth-of-type(2){font-size:0.85rem !important;line-height:1.5 !important}
+.lgd-pilot .lgd-buy-or-pass form button,.lgd-pilot .lgd-email-capture button{width:100% !important;min-height:44px !important}
+.lgd-pilot .lgd-buy-or-pass input,.lgd-pilot .lgd-email-capture input{min-height:44px !important;box-sizing:border-box !important}
+}
+</style>
 <h2 style="{{ sh.h2s }}">Median price by retailer and carat ({{ cycle_label }})</h2>
 <div style="{{ sh.wrap }}">
-<table class="lgd-price-table" style="{{ sh.table }}">
-  <thead><tr><th style="{{ sh.th_l }}">Retailer</th>{% for p in carat_points %}<th style="{{ sh.th_r }}">{{ p | carat }} ct median</th>{% endfor %}</tr></thead>
-  <tbody>
+<table class="lgd-price-table" role="table" style="{{ sh.table }}">
+  <thead role="rowgroup"><tr role="row"><th role="columnheader" style="{{ sh.th_l }}">Retailer</th>{% for p in carat_points %}<th role="columnheader" style="{{ sh.th_r }}">{{ p | carat }} ct median</th>{% endfor %}</tr></thead>
+  <tbody role="rowgroup">
   {% for r in retailers %}
   {% set bg = loop.cycle("#fafafa", "#ffffff") %}
-  <tr>
-    <td style="{{ sh.td(bg) }}font-weight:700;white-space:nowrap;">{{ r }}{% if r == "VRAI" %} †{% endif %}</td>
+  <tr role="row">
+    <td role="rowheader" style="{{ sh.td(bg) }}font-weight:700;white-space:nowrap;">{{ r }}{% if r == "VRAI" %} †{% endif %}</td>
     {% for p in carat_points %}
     {% set row = (grid[p].retailer_rows | selectattr("retailer", "equalto", r) | list) %}
-    <td style="{{ sh.tdn(bg) }}{% if not row %}{{ sh.absent }}{% endif %}">{% if row %}{{ row[0].median | usd }} <span class="lgd-n" style="color:#888;font-size:0.85em;">(n={{ "{:,}".format(row[0].n) }})</span>{% else %}—{% endif %}</td>
+    <td role="cell" style="{{ sh.tdn(bg) }}{% if not row %}{{ sh.absent }}{% endif %}">{% if row %}{{ row[0].median | usd }} <span class="lgd-n" style="color:#888;font-size:0.85em;">(n={{ "{:,}".format(row[0].n) }})</span>{% else %}—{% endif %}</td>
     {% endfor %}
   </tr>
   {% endfor %}
@@ -29,19 +45,19 @@
 </div>
 <p style="{{ sh.note }}">"—" means the retailer had fewer than 30 qualifying listings in that carat range this cycle; no figure is published for it. † VRAI grades in-house (no third-party certificates); its figures are context, not directly comparable.</p>
 
-<h2 style="{{ sh.h2s }}">Per-carat detail pages</h2>
-<ul style="margin:0 0 12px;padding-left:18px;line-height:1.8;">
+{{ (sh.email_capture(True) ~ "\n\n") if cta_test else "" }}<h2 style="{{ sh.h2s }}">Per-carat detail pages</h2>
+<ul style="{{ sh.link_list }}">
   {% for p in carat_points %}
-  <li><a href="/pages/{{ p | carat | replace(".", "-") }}-carat-lab-grown-diamond-price" style="color:#1a1a1a;">{{ p | carat }} carat lab grown diamond price</a></li>
+  <li style="margin:0;"><a href="/pages/{{ p | carat | replace(".", "-") }}-carat-lab-grown-diamond-price" style="{{ sh.link_row }}">{{ p | carat }} carat lab grown diamond price <span aria-hidden="true">&rarr;</span></a></li>
   {% endfor %}
-  <li><a href="/pages/how-much-does-a-lab-grown-diamond-cost" style="color:#1a1a1a;">How much does a lab grown diamond cost?</a></li>
-  <li><a href="/pages/lab-grown-diamond-resale-value" style="color:#1a1a1a;">Lab grown diamond resale value</a></li>
+  <li style="margin:0;"><a href="/pages/how-much-does-a-lab-grown-diamond-cost" style="{{ sh.link_row }}">How much does a lab grown diamond cost? <span aria-hidden="true">&rarr;</span></a></li>
+  <li style="margin:0;"><a href="/pages/lab-grown-diamond-resale-value" style="{{ sh.link_row }}">Lab grown diamond resale value <span aria-hidden="true">&rarr;</span></a></li>
 </ul>
 
 <h2 style="{{ sh.h2s }}">By shape and carat</h2>
-<ul style="margin:0 0 12px;padding-left:18px;line-height:1.8;">
+<ul style="{{ sh.link_list }}">
   {% for label, href in shape_pages %}
-  <li><a href="{{ href }}" style="color:#1a1a1a;">{{ label }}</a></li>
+  <li style="margin:0;"><a href="{{ href }}" style="{{ sh.link_row }}">{{ label }} <span aria-hidden="true">&rarr;</span></a></li>
   {% endfor %}
 </ul>
 
@@ -49,7 +65,7 @@
 {{ sh.loose_stone_note() }}
 {{ sh.delist_note(data_date_h, retailers, cycle_label) }}
 {{ sh.methodology(data_date_h) }}
-{{ sh.footer() }}
+{{ sh.footer(cta_test) }}
 
 <script type="application/ld+json">{{ json_ld | tojson }}</script>
 </div>
